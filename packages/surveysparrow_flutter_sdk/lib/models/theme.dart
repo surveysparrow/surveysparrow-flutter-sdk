@@ -57,23 +57,17 @@ class SurveyThemeData {
 
   factory SurveyThemeData.fromJson({Map<String, dynamic> json = const {}}) {
     convertRgbStringToColor(String colorToConvert, opacity) {
-      print("112 color to convert called is ${colorToConvert} ssdf");
       if (colorToConvert.contains("#")) {
-        print("called inside has one ssd");
         String color = colorToConvert.replaceAll('#', '0xff');
-        print("color returned is ${color}");
         return Color(int.parse(color));
       }
-      print("called inside not has one ssd 1123 answer color");
       var convertedString = colorToConvert
           .substring(4, colorToConvert.length - 1)
           .replaceAll(RegExp(' +'), ' ')
           .split(',');
-      print("converted string is ${convertedString}");
       if (convertedString.length < 3) {
         return Color.fromRGBO(255, 255, 255, opacity);
       }
-      print("testing converted to double prob 110");
       return Color.fromRGBO(
           int.parse(convertedString[0]),
           int.parse(convertedString[1]),
@@ -88,13 +82,11 @@ class SurveyThemeData {
       } else {
         int numberToConvert = (absoluteNumber - 100).abs();
         double doubleVar = numberToConvert / 100;
-        print("sso9 ${doubleVar}");
         return doubleVar;
       }
     }
 
     getBackgroundImageColor(brightness) {
-      print("decode brightness cc90 ${brightness} ");
       if (brightness < 0) {
         return Colors.black;
       }
@@ -102,9 +94,7 @@ class SurveyThemeData {
     }
 
     getRatingBorderColor(color) {
-      // var result = bg.replace(')', ', 0.75)').replace('rgb', 'rgba');
       var newString = color.replaceAll(")", ", 0.1)").replaceAll('rgb', 'rgba');
-      print("new string is 1198-rt ${newString} ");
       return newString;
     }
 
@@ -225,16 +215,13 @@ class SurveyThemeData {
             json['properties']['colors']['overrides']['backgroundColor'], 1.0)
         : Color.fromRGBO(255, 255, 255, 1.0);
 
-    // print(' decoded background color is ${decodedBackgroundColor}');
-    // print("color detection cc90 ${json['properties']['backgroundImage']} ");
-
     var decodedBackgroundImageColor = json['properties'] != null &&
             json['properties']['backgroundImage'] != null &&
             json['properties']['backgroundImage']['brightness'] != null
         ? getBackgroundImageColor(
             json['properties']['backgroundImage']['brightness'])
         : Color.fromRGBO(255, 255, 255, 1.0);
-    // var decodedBackgroundImageColor = Color.fromRGBO(255,255,255,1.0);
+
     var decodedBackgroundImageColorOpacity = json['properties'] != null &&
             json['properties']['backgroundImage'] != null &&
             json['properties']['backgroundImage']['brightness'] != null
@@ -297,8 +284,6 @@ class SurveyThemeData {
         ? json['properties']['colors']['overrides']['questions']
         : "rgba(63, 63, 63,0.5)";
 
-    // print("show question number-789 ${json['properties']}");
-
     var decodedHasGradient = json['properties'] != null &&
             json['properties']['backgroundType'] != null &&
             json['properties']['backgroundType'] == "Gradient"
@@ -319,14 +304,7 @@ class SurveyThemeData {
         json['properties'] != null && json['properties']['progressBar'] != null
             ? json['properties']['progressBar']
             : true;
-    // print("check thank you ${json['properties']['branding']} " );
 
-    // print("check req ${decodedButtonStyle}");
-
-    // print("decoded answer rating color 1198-rt ${decodedRatingRgba} ${json['properties']['colors']['overrides']['answers']} ");
-
-    // print(
-    //     "cta button color override ${json['properties']['colors']['overrides']}");
     return SurveyThemeData(
       decodedQuestionColor,
       decodedQuestionDescriptionColor,

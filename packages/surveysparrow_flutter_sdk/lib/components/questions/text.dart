@@ -64,10 +64,7 @@ class _TextRatingState extends State<TextRating> {
   @override
   initState() {
     super.initState();
-    print("test text text-1190 ${this.question['properties']['data']['type']}");
-
     if (this.widget.euiTheme != null) {
-      print("q-eui-theme ${this.widget.euiTheme} ");
       if (this.widget.euiTheme!['font'] != null) {
         customFont = this.widget.euiTheme!['font'];
       }
@@ -91,7 +88,6 @@ class _TextRatingState extends State<TextRating> {
   Widget build(BuildContext context) {
     var shortestSide = MediaQuery.of(context).size.shortestSide;
     final bool useMobileLayout = shortestSide < 600;
-    print("sel-90-txt-dis ${disabled}");
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -112,11 +108,8 @@ class _TextRatingState extends State<TextRating> {
                   BoxConstraints(maxWidth: useMobileLayout ? 320 : 500),
               child: TextField(
                 onChanged: (value) {
-                  print('vali called ${this.question['type']}');
                   if (this.question['type'] == 'EmailInput') {
-                    print("vali called ${validateEmail(value)}");
                     if (!validateEmail(value)) {
-                      print("sel-90-txt-in ${value}");
                       setState(() {
                         disabled = true;
                       });
@@ -127,7 +120,6 @@ class _TextRatingState extends State<TextRating> {
                     }
                   } else {
                     if (value.length == 0) {
-                      print("sel-90-txt-in ${value}");
                       setState(() {
                         disabled = true;
                       });
@@ -171,18 +163,15 @@ class _TextRatingState extends State<TextRating> {
                       ? false
                       : true,
               onClickNext: () {
-                print("obtained test input is 1134 ${inputController.text}");
                 if (!disabled) {
                   this.func(inputController.text, question['id']);
                 }
                 if (!disabled && this.widget.isLastQuestion) {
-                  print("vali called called for submit ${disabled} ");
                   this.widget.submitData();
                 }
               },
               onClickSkip: () {
                 this.func(null, question['id']);
-                print("skip is clicked");
               },
               theme: theme,
               euiTheme: this.widget.euiTheme,

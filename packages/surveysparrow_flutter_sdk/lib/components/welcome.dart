@@ -35,9 +35,6 @@ class _WelcomePageState extends State<WelcomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-
-    print("wel-9891v ${this.widget.euiTheme} ");
-
     if(this.widget.euiTheme != null){
       if(this.widget.euiTheme!['font'] != null ){
         customFont = this.widget.euiTheme!['font'];
@@ -48,17 +45,13 @@ class _WelcomePageState extends State<WelcomePage> {
         this.widget.welcomeEntity['0'] != null &&
          this.widget.welcomeEntity['0']['type'] != null &&
         this.widget.welcomeEntity['0']['type'] == 'IMAGE') {
-      print("wel-98912 ${this.widget.welcomeEntity['0']['type']}");
       imageSrc = this.widget.welcomeEntity['0']['data']['src'];
     }
-
-    print("wel-9891 ${this.widget.welcomeButtonDesc}");
     luminanceValue = this.widget.theme['ctaButtonColor'].computeLuminance();
   }
 
   @override
   Widget build(BuildContext context) {
-    print("wel-90 theme inside welcome ${this.widget.theme} ");
     return Container(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

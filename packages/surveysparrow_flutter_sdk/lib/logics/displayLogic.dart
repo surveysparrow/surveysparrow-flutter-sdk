@@ -9,7 +9,6 @@ handleDisplayLogic(questionId,_allQuestionList,_allowedQuestionIds, _workBench,_
     while (!canDisplay) {
       var jumpEvaluation =  newJumpLogic(_currentId, _questionPos, _allQuestionList, _allowedQuestionIds, _workBench);
       
-      print("jump evaluation is ${jumpEvaluation} ");
       if(jumpEvaluation[1] is String && jumpEvaluation[1] != false){
         hasThankYouJumpLogic = jumpEvaluation[1];
       }

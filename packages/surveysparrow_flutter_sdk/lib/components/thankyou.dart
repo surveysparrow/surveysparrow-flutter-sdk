@@ -65,7 +65,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
     if (this.widget.thankYouPageJson['button'] != null) {
       if (this.widget.thankYouPageJson['button']['enabled'] == true) {
-        print("tht-89 thank you called ");
         hasThankYouButton = true;
         if (this.widget.thankYouPageJson['button']['url'] != null) {
           thankYouButtonUrl = this.widget.thankYouPageJson['button']['url'];
@@ -126,7 +125,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
   @override
   Widget build(BuildContext context) {
-    print("wel-90 theme inside welcome ${this.widget.theme} ");
     return Container(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -194,7 +192,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                print("url-98 launch test ${thankYouButtonUrl} ");
                 this.widget.setPageType("questions");
                 final Uri url = Uri.parse(thankYouButtonUrl);
                 _launchInBrowser(thankYouButtonUrl);

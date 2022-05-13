@@ -65,7 +65,6 @@ class _SkipAndNextButtonsState extends State<SkipAndNextButtons> {
     super.initState();
 
     if(this.widget.euiTheme != null){
-      print("q-eui-theme ${this.widget.euiTheme} ");
       if(this.widget.euiTheme!['font'] != null){
         customFont = this.widget.euiTheme!['font'];
       }
@@ -91,9 +90,6 @@ class _SkipAndNextButtonsState extends State<SkipAndNextButtons> {
         
       }
     }
-
-    print(
-        "cta button disabled ${this.theme['buttonStyle']} ${this.theme['ctaButtonDisabledColor']}");
     luminanceValue = this.theme['ctaButtonColor'].computeLuminance();
   }
 

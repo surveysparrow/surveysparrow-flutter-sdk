@@ -6,9 +6,7 @@ handleDisplayAndSkipLogic(question, type,_allowedQuestionIds,_workBench) {
     if (question == null) {
       return true;
     } else {
-
       var contionMapping = {'and': '&&', 'or': '||'};
-      // return false if the logic is not met else return true if logic is met
       if (type == 'dl') {
         if (question['displayLogic']['logics'].length > 0) {
           questionLogics = question['displayLogic']['logics'];
@@ -35,9 +33,6 @@ handleDisplayAndSkipLogic(question, type,_allowedQuestionIds,_workBench) {
           }
 
           Expression exp = Expression(tempEvalString);
-          // var finalResult =
-          //     int.parse(exp.eval().toString()) == 0 ? false : true;
-
           var finalResult;
           if (tempEvalString.length > 0) {
             Expression exp = Expression(tempEvalString);

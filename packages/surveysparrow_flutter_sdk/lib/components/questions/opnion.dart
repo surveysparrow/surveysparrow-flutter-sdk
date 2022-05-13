@@ -64,7 +64,6 @@ class _ColumnOpnionScaleState extends State<ColumnOpnionScale> {
 
   @override
   Widget build(BuildContext context) {
-    // print("119011 updated inside opnion ${currentQuestionNumber} ");
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,14 +98,12 @@ class _ColumnOpnionScaleState extends State<ColumnOpnionScale> {
           showSubmit: this.widget.isLastQuestion,
           onClickSkip: () {
             this.func(null, question['id']);
-            print("skip is clicked");
           },
           onClickNext: () {
             // this.widget.submitData();
             if (_selectedOption != -1) {
               this.widget.submitData();
             }
-            print("rating submit is ${_selectedOption}");
           },
           theme: this.theme,
           euiTheme: this.widget.euiTheme,
@@ -170,7 +167,6 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
       _selectedOption = val;
     });
     this.func(val, question['id']);
-    print("val to update is ${val}");
   }
 
   generateStartStep(step, start) {
@@ -179,8 +175,6 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
 
     _mid = totalOptions % 2 == 0 ? -1 : ((totalOptions - 1) / 2).round();
     _end = step;
-
-    print(" all the opnion scale values ${_start} ${_mid} ${_end} 1190-op-2 ");
   }
 
   var customFont = null ;
@@ -199,7 +193,6 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
     super.initState();
 
      if(this.widget.euiTheme != null){
-      print("q-eui-theme ${this.widget.euiTheme} ");
       if(this.widget.euiTheme!['font'] != null){
         customFont = this.widget.euiTheme!['font'];
       }
@@ -228,8 +221,6 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
 
     }
 
-    print("test op0911 ${this.question['properties']['data']} ");
-
     startLabel = this.question['properties']['data']['min'] ==
             'builder.opinion_scale.min'
         ? 'Least Likely'
@@ -245,18 +236,12 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
 
     luminanceValue =
         this.theme['decodedOpnionBackgroundColorUnSelected'].computeLuminance();
-    print(
-        "luminance check ${this.theme['decodedOpnionBackgroundColorUnSelected'].computeLuminance()}");
-    print("hey color will be ser xxt ${this.theme}");
-
-    print("cur question 1190-op ${this.question['properties']['data']} ");
 
     reversedOrder = this.question['properties']['data']['reversedOrder'];
 
     this.generateStartStep(this.question['properties']['data']['step'],
         this.question['properties']['data']['start']);
 
-    // print("called in rating ${this.answer}");
     if (this.answer[this.question['id']] != null) {
       setState(() {
         _selectedOption = this.answer[this.question['id']];
@@ -385,7 +370,6 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
         list.add(
           GestureDetector(
             onTap: () {
-              print("on tap called for op ${i}");
               updateOpnionScale(i);
             },
             child: Container(
@@ -399,7 +383,6 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
         list.add(
           GestureDetector(
             onTap: () {
-              print("on tap called for op ${i}");
               updateOpnionScale(i);
             },
             child: Container(

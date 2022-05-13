@@ -82,7 +82,6 @@ class _MultiChoiceState extends State<MultiChoice> {
             hasNextButton = true;
           }
         }
-        print("66ty ${question['choices'][i]['id']}");
       }
     }
 
@@ -96,19 +95,15 @@ class _MultiChoiceState extends State<MultiChoice> {
     if (this.answer[this.question['id']] != null) {
       _selectedOptions = this.answer[this.question['id']];
     }
-
-    // print("1189-1 called in multi choice ${question['choices']}");
   }
 
   setSelectedOptions(options) {
-    print("options obtained multi-34 ${options}");
     setState(() {
       _selectedOptions = options;
     });
   }
 
   setShowNextButton(val) {
-    print("8897 update show next");
     if (val == true) {
       hasOtherInput = true;
     }
@@ -134,7 +129,6 @@ class _MultiChoiceState extends State<MultiChoice> {
 
   @override
   Widget build(BuildContext context) {
-    print("Selected test sel-90 ${_selectedOptions.length}");
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -173,14 +167,10 @@ class _MultiChoiceState extends State<MultiChoice> {
                       : true,
               showSubmit: this.widget.isLastQuestion,
               onClickNext: () {
-                print("8897 test text ${hasOtherInputText}");
-                print(
-                    "submit answer 2xx ${this.question['properties']}  ${this.question['properties']['data']['type'] == 'EXACT'}");
                 if (this.question['properties']['data']['type'] == 'EXACT') {
                   if (_selectedOptions.length ==
                       int.parse(this.question['properties']['data']
                           ['exactChoices'])) {
-                    print("called func excate");
                     this.func(_selectedOptions, question['id'],
                         otherInput: _selectedOptions.contains(otherInputId),
                         otherInputId: otherInputId,
@@ -190,8 +180,6 @@ class _MultiChoiceState extends State<MultiChoice> {
                     setChoiceError(true,
                         "Please select ${this.question['properties']['data']['exactChoices']} choices");
                   }
-                  print(
-                      "excat ${_selectedOptions.length == this.question['properties']['data']['exactChoices']} ${_selectedOptions.length} ${this.question['properties']['data']['type']} ${this.question['properties']['data']['exactChoices'].toString()}");
                 } else if (this.question['properties']['data']['type'] ==
                     'RANGE') {
                   if (_selectedOptions.length >=
@@ -200,7 +188,6 @@ class _MultiChoiceState extends State<MultiChoice> {
                       _selectedOptions.length <=
                           int.parse(this.question['properties']['data']
                               ['maxLimit'])) {
-                    print("called func excate");
                     this.func(_selectedOptions, question['id'],
                         otherInput: _selectedOptions.contains(otherInputId),
                         otherInputId: otherInputId,
@@ -210,9 +197,6 @@ class _MultiChoiceState extends State<MultiChoice> {
                     setChoiceError(
                         true, "Please select choices between a range");
                   }
-
-                  print(
-                      "excat ${this.question['properties']['data']} ${this.question['properties']['data']['minLimit'].toString()} ${this.question['properties']['data']['maxLimit'].toString()}");
                 } else {
                   if (_selectedOptions.length > 0) {
                     this.func(_selectedOptions, question['id'],
@@ -230,7 +214,6 @@ class _MultiChoiceState extends State<MultiChoice> {
               },
               onClickSkip: () {
                 this.func(null, question['id']);
-                print("skip is clicked");
               },
               theme: theme,
               euiTheme: this.widget.euiTheme,
@@ -316,14 +299,12 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
     super.initState();
 
     if (this.widget.euiTheme != null) {
-      print("q-eui-theme ${this.widget.euiTheme} ");
       if (this.widget.euiTheme!['font'] != null) {
         customFont = this.widget.euiTheme!['font'];
       }
     }
 
     inputController.text = '';
-    print("selected 8897 90 ${this.answer}");
 
     if (this.answer['${this.question['id']}_other'] != null) {
       inputController.text = this.answer['${this.question['id']}_other'];
@@ -334,18 +315,11 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
     luminanceValue =
         this.theme['decodedOpnionBackgroundColorUnSelected'].computeLuminance();
 
-    print(
-        "multi-34 called in multi choice inside row ${this.question['properties']} ${this.question['multipleAnswers']}");
     isMultipleAnswer = this.question['multipleAnswers'];
 
     for (var i = 0; i < question['choices'].length; i++) {
       initilizeChoices(question['choices'][i], question['choices'][i]['id']);
-    }
-
-    
- 
-
-    
+    }    
 
     if (this.answer[this.question['id']] != null) {
       setState(() {
@@ -361,8 +335,6 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
   checkForAllOptions(val, singleUpdate, options) {
     var multiSelected;
     if (hasAllOfOption != -1) {
-      print(
-          "0098 uui ${hasAllOfOption} ${val[0]} ${hasAllOfOption != -1} ${val[0] == hasAllOfOption}");
       if (hasAllOfOption != -1 && val[0] == hasAllOfOption) {
         multiSelected = [...allOptions, hasAllOfOption];
         return multiSelected;
@@ -375,13 +347,9 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
         var arrayWithoutSelectedOption = [..._selectedOption, ...val];
         arrayWithoutSelectedOption
           ..removeWhere((element) => element == hasAllOfOption);
-
-        print(
-            "0098op ${listEquals(arrayWithoutSelectedOption, allOptions)} ${arrayWithoutSelectedOption} ${allOptions} ");
         arrayWithoutSelectedOption.sort();
         allOptions.sort();
         if (listEquals(arrayWithoutSelectedOption, allOptions)) {
-          print("0098op");
           multiSelected = [...allOptions, hasAllOfOption];
           return multiSelected;
         }
@@ -402,32 +370,25 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
   getMultiSelectedValue(val) {
     var multiSelected;
     if (hasNoneOfOption != -1) {
-      print("multi-34567 ${val.length}");
       var alllTheAbovePresent = _selectedOption.contains(hasNoneOfOption);
 
       if (!(val.contains(hasNoneOfOption)) && !(alllTheAbovePresent)) {
-        print("hasn 0098 called here multi all ${val}");
         multiSelected = checkForAllOptions(val, false, val);
         return multiSelected;
       } else {
-        print("out el 0098 called here multi all ${val}");
         if (alllTheAbovePresent) {
           var currentSelectedOptions = [..._selectedOption, ...val];
           currentSelectedOptions
               .removeWhere((element) => element == hasNoneOfOption);
           multiSelected = checkForAllOptions(val, true, currentSelectedOptions);
-          print("0098 all multi options ${multiSelected} ${hasNoneOfOption} ");
           return multiSelected;
         } else {
-          print(" 0098 called here multi all ${val}");
           multiSelected = val;
           return multiSelected;
         }
       }
     }
     if (hasAllOfOption != -1) {
-      print(
-          "0098 ${hasAllOfOption} ${val[0]} ${hasAllOfOption != -1} ${val[0] == hasAllOfOption}");
       if (hasAllOfOption != -1 && val[0] == hasAllOfOption) {
         multiSelected = [...allOptions, hasAllOfOption];
         return multiSelected;
@@ -449,9 +410,6 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
   }
 
   updateChoice(val, isNoneAboveChoice) {
-    print(
-        "all 0098 options ${_selectedOption} ${hasNoneOfOption} ${hasAllOfOption} ${allOptions} ");
-
     //handle single answer
     if (isMultipleAnswer == false) {
       if (hasOtherOption == -1) {
@@ -467,7 +425,6 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
           _selectedOption = singleSelected;
         });
         if (_selectedOption.contains(hasOtherOption)) {
-          print("8897 cll in");
           this.widget.setSelectedOptions!(singleSelected);
           this.widget.setShowNextButton!(true);
         } else {
@@ -481,26 +438,17 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
     //handle multiple answer
     else {
       var multiSelected = getMultiSelectedValue(val);
-
-      print("0098 multi select ${multiSelected}");
-
       if (multiSelected.contains(hasOtherOption)) {
         this.widget.setShowNextButton!(true);
       }
-
-      print("multi-3456 final ${multiSelected}");
-
       setState(() {
         _selectedOption = multiSelected;
       });
       this.widget.setSelectedOptions!(multiSelected);
     }
-
-    print("multi-34 val to update is ${val}");
   }
 
   removeChoice(val) {
-    print("remove 0098op ${val} ${hasAllOfOption}");
     if (hasAllOfOption != -1 && val == hasAllOfOption) {
       var currentSelectedOptions = [];
       setState(() {
@@ -525,8 +473,6 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
   }
 
   initilizeChoices(val, id) {
-    print("init choices 8897 ${val['other']}");
-
     if (val['other']) {
       hasOtherOption = id;
       hasOtherOptionJson = val;
@@ -554,7 +500,6 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
   Widget build(BuildContext context) {
     var shortestSide = MediaQuery.of(context).size.shortestSide;
     final bool useMobileLayout = shortestSide < 600;
-    print("dd 11 ${_selectedOption} ");
     List<Widget> list = List<Widget>.empty(growable: true);
     var charc = 65;
     for (var i = 0; i < question['choices'].length; i++) {
@@ -562,10 +507,6 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
         GestureDetector(
           onTap: () {
             var isNoneAboveChoice = hasNoneOfOption == -1 ? false : true;
-
-            print(
-                "choice tapped multi-3456 isNoneAboveChoice ${isNoneAboveChoice} ${hasNoneOfOption}");
-
             choiceToUpdateIs = [];
             choiceToUpdateIs.add(question['choices'][i]['id']);
 
@@ -574,7 +515,6 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
 
             if (choicePresent) {
               removeChoice(question['choices'][i]['id']);
-              print("multi-34 remove and update");
             } else {
               updateChoice(choiceToUpdateIs, isNoneAboveChoice);
             }

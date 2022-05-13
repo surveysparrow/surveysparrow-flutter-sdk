@@ -49,7 +49,6 @@ class _QuestionColumnState extends State<QuestionColumn> {
     // TODO: implement initState
     super.initState();
     if (this.widget.euiTheme != null) {
-      print("q-eui-theme ${this.widget.euiTheme} ");
       if (this.widget.euiTheme!['font'] != null) {
         customFont = this.widget.euiTheme!['font'];
       }
@@ -76,7 +75,6 @@ class _QuestionColumnState extends State<QuestionColumn> {
 
   @override
   Widget build(BuildContext context) {
-    print("obtained theme is 0091 ${theme['showRequired']}");
     return Container(
       width: double.infinity,
       child: Column(

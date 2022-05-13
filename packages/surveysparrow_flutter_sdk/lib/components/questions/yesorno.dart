@@ -72,7 +72,6 @@ class _YesOrNoState extends State<YesOrNo> {
   void initState() {
     super.initState();
     if(this.widget.euiTheme != null){
-      print("q-eui-theme ${this.widget.euiTheme} ");
       if(this.widget.euiTheme!['font'] != null){
         customFont = this.widget.euiTheme!['font'];
       }
@@ -90,7 +89,6 @@ class _YesOrNoState extends State<YesOrNo> {
 
   @override
   Widget build(BuildContext context) {
-    // print("119011 updated inside opnion ${currentQuestionNumber} ");
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,9 +100,7 @@ class _YesOrNoState extends State<YesOrNo> {
           theme: this.theme,
           euiTheme: this.widget.euiTheme,
         ),
-        // SizedBox(height: 40),
         SizedBox(height: 2.h),
-        // SizedBox(height: 40),
 
         YesOrNoQuestion(
           func: func,
@@ -114,17 +110,7 @@ class _YesOrNoState extends State<YesOrNo> {
           setSelectedOption: setSelectedOption,
           euiTheme: this.widget.euiTheme,
         ),
-
-        // OpnionScaleQuestion(
-        //   func: this.func,
-        //   answer: this.answer,
-        //   question: this.question,
-        //   theme: this.theme,
-        //   setSelectedOption: setSelectedOption,
-        // ),
-
         SizedBox(height: 7.h),
-        // SizedBox(height: 40),
         SkipAndNextButtons(
           key: UniqueKey(),
           disabled: _selectedOption == -1,
@@ -135,14 +121,12 @@ class _YesOrNoState extends State<YesOrNo> {
           showSubmit: this.widget.isLastQuestion,
           onClickSkip: () {
             this.func(null, question['id']);
-            print("skip is clicked");
           },
           onClickNext: () {
             // this.widget.submitData();
             if (_selectedOption != -1) {
               this.widget.submitData();
             }
-            print("rating submit is ${_selectedOption}");
           },
           theme: this.theme,
           euiTheme: this.widget.euiTheme,
@@ -203,40 +187,21 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
     required this.theme,
   });
 
-  updateOpnionScale(val) {
-    // this.widget.setSelectedOption(val);
-    // setState(() {
-    //   _selectedOption = val;
-    // });
-    // this.func(val, question['id']);
-    // print("val to update is ${val}");
-  }
-
   var customFont = null;
   @override
   initState() {
     super.initState();
 
     if(this.widget.euiTheme != null){
-      print("q-eui-theme ${this.widget.euiTheme} ");
       if(this.widget.euiTheme!['font'] != null){
         customFont = this.widget.euiTheme!['font'];
       }
     }
-
-    print(
-        "yesorno-89-q question ${this.question['properties']} ${this.question['properties']['data']['iconShape']}");
-
     yesLabel = this.question['properties']['data']['yes'] == 'builder.yes_no.yes' ? 'Yes' : this.question['properties']['data']['yes'];
     noLabel = this.question['properties']['data']['no'] == 'builder.yes_no.no' ? 'No' : this.question['properties']['data']['no'];
 
     luminanceValue =
         this.theme['decodedOpnionBackgroundColorUnSelected'].computeLuminance();
-
-    // print("called in rating ${this.answer}");
-
-    print(
-        "test yesorno-89 ${this.answer[this.question['id']]} ${this.theme['ratingRgba']}");
 
     if (this.answer[this.question['id']] != null) {
       setState(() {
@@ -265,7 +230,6 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
   }
 
   updateYesOrNoAnswer(val) {
-    print("yes or no int is ${val}");
     this.widget.setSelectedOption(convertBoolToIndex(val));
     setState(() {
       _selectedOption = convertBoolToIndex(val);
@@ -392,8 +356,6 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
 
   @override
   Widget build(BuildContext context) {
-    print("selected option yes or no int is ${_selectedOption}");
-
     var shortestSide = MediaQuery.of(context).size.shortestSide;
     final bool useMobileLayout = shortestSide < 600;
 
@@ -403,7 +365,6 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
       list.add(
         GestureDetector(
           onTap: () {
-            print("on tap called for op ${i}");
             updateYesOrNoAnswer(convertIndexToBool(i));
           },
           child: Container(

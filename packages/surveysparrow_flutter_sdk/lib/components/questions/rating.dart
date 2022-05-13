@@ -65,13 +65,6 @@ class _ColumnRatingState extends State<ColumnRating> {
   @override
   initState() {
     super.initState();
-    print(" ttr 1-q ${this.widget.euiTheme}");
-    print("reload called ttr 1 ${this.question['required']}");
-    print(
-        "rating test rrty78 disp 345 ${this.widget.isLastQuestion} ${this.widget.lastQuestionId}");
-    print("draft view testing is done 0093 ${this.question['rtxt']}");
-    print("1198-rtr ${this.theme}");
-
     if (this.answer[this.question['id']] != null) {
       _selectedOption = this.answer[this.question['id']];
     }
@@ -83,8 +76,6 @@ class _ColumnRatingState extends State<ColumnRating> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        " ttr 1-q-c ${this.widget.lastQuestionId} ${this.widget.isLastQuestion} ");
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -116,13 +107,11 @@ class _ColumnRatingState extends State<ColumnRating> {
           showSubmit: this.widget.isLastQuestion,
           onClickSkip: () {
             this.func(null, question['id']);
-            print("skip is clicked");
           },
           onClickNext: () {
             if (_selectedOption != -1.0) {
               this.widget.submitData();
             }
-            print("rating submit is ${this._selectedOption}");
           },
           theme: theme,
           euiTheme: this.widget.euiTheme,
@@ -167,7 +156,6 @@ class _RatingQuestionState extends State<RatingQuestion> {
   var customSvg = null;
 
   getRatingSvg(svgName, opacity, color, border) {
-    print("89iop ${opacity}");
     if (opacity == 0.5 && customSvg != null) {
       return customSvg;
     }
@@ -191,7 +179,6 @@ class _RatingQuestionState extends State<RatingQuestion> {
   }
 
   getSmiliySvg(type, isSelected, curIndex) {
-    print("rrt56 ${type} ${curIndex}");
     switch (type) {
       case 5:
         if (curIndex == 0) {
@@ -293,7 +280,6 @@ class _RatingQuestionState extends State<RatingQuestion> {
   }
 
   _buildRatingStart(int index) {
-    print("1q rating build called ${_rating} ${index}");
     if (this.question['properties']['data']['iconArrayName'] ==
         "RATING_SMILEY") {
       if (_rating - 1 == index.toDouble()) {
@@ -439,7 +425,6 @@ class _RatingQuestionState extends State<RatingQuestion> {
   @override
   initState() {
     super.initState();
-    print("89iop ${this.widget.euiTheme}");
     if (this.widget.euiTheme != null) {
       if (this.widget.euiTheme!['rating'] != null) {
         if (this.widget.euiTheme!['rating']['showNumber'] != null) {
@@ -459,9 +444,6 @@ class _RatingQuestionState extends State<RatingQuestion> {
         }
       }
     }
-    print("called in rating ${this.answer}");
-    print(
-        "question is rrt56 ${this.question['properties']['data']['iconArrayName']}");
     if (this.answer[this.question['id']] != null) {
       setState(() {
         _rating = this.answer[this.question['id']];

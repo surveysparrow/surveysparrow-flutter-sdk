@@ -73,22 +73,17 @@ class _ColumnPhoneState extends State<ColumnPhone> {
   @override
   initState() {
     super.initState();
-    print("draft view testing is done 0093 ${this.question['rtxt']}");
-    print("phone test ${this.isLastQuestion}");
   }
 
   handlePhoneNumberSubmit(phoneNumber) {
     _phoneNumber = phoneNumber;
-    print("phone number obtained is ${phoneNumber} ");
   }
 
   handleCountryCodeSubmit(countryCode) {
     _countryCode = countryCode;
-    print("country code obtained is 2 ${countryCode}");
   }
 
   handleErrorStateChange() {
-    print("112 called");
     setState(() {
       erroredInput = true;
     });
@@ -157,14 +152,11 @@ class _ColumnPhoneState extends State<ColumnPhone> {
               : true,
           showSubmit: isLastQuestion == true ? true : false,
           onClickNext: () {
-            print(
-                "country code is when submitted ${_countryCode} ${_phoneNumber} ${_countryCode.runtimeType} ${PhoneNumber.fromCountryCode(_countryCode, _phoneNumber).validate()}");
             final phoneParser =
                 PhoneNumber.fromCountryCode(_countryCode, _phoneNumber)
                     .validate();
-            print("parser value is ${phoneParser} ");
+
             if (phoneParser == false) {
-              print("parser value is indie ${phoneParser} ");
               setState(() {
                 erroredInput = true;
               });
@@ -179,7 +171,6 @@ class _ColumnPhoneState extends State<ColumnPhone> {
                 this.widget.submitData();
               }
             }
-            // print("next print ${} ${} ");
           },
           onClickSkip: () {
             this.func(null, question['id']);
@@ -188,7 +179,6 @@ class _ColumnPhoneState extends State<ColumnPhone> {
                 Navigator.of(context).pop();
               });
             }
-            print("skip is clicked");
           },
           theme: theme,
         )
@@ -249,8 +239,6 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
     super.initState();
 
     if (this.answer[this.question['id']] != null) {
-      print(
-          "phone pre input 998o ${this.answer} ${this.answer[this.question['id']]} ${this.answer['${this.question['id']}_phone'].split(' ')[0]}");
       var phoneCode = this
           .answer['${this.question['id']}_phone']
           .split(' ')[0]
@@ -262,19 +250,16 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
           CountryPickerUtils.getCountryByPhoneCode(phoneCode);
       this.handleCountryCodeSubmit(phoneCode);
       this.handlePhoneNumberSubmit(number);
-
-      // setState(() {
-      //   _selectedOption = convertBoolToIndex(this.answer[this.question['id']]);
-      // });
     } else {
       if (this.widget.euiTheme != null) {
         if (this.widget.euiTheme!['phoneNumber'] != null) {
           if (this.widget.euiTheme!['phoneNumber']['defaultNumber'] != null) {
-            ContryCodeInputController.text = '+${this.widget.euiTheme!['phoneNumber']['defaultNumber']}';
-            _selectedDialogCountry =
-                CountryPickerUtils.getCountryByPhoneCode(this.widget.euiTheme!['phoneNumber']['defaultNumber']);
-            this.handleCountryCodeSubmit(this.widget.euiTheme!['phoneNumber']['defaultNumber']);
-            // print("cus-ph-90 ${this.widget.euiTheme!['phoneNumber']['defaultNumber']}");
+            ContryCodeInputController.text =
+                '+${this.widget.euiTheme!['phoneNumber']['defaultNumber']}';
+            _selectedDialogCountry = CountryPickerUtils.getCountryByPhoneCode(
+                this.widget.euiTheme!['phoneNumber']['defaultNumber']);
+            this.handleCountryCodeSubmit(
+                this.widget.euiTheme!['phoneNumber']['defaultNumber']);
           }
         }
       } else {
@@ -282,10 +267,6 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
         _selectedDialogCountry = CountryPickerUtils.getCountryByPhoneCode('91');
         this.handleCountryCodeSubmit('91');
       }
-
-      // setState(() {
-      //   _selectedOption = -1;
-      // });
     }
   }
 
@@ -322,7 +303,6 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
           title: Text('Select your phone code'),
           onValuePicked: (Country country) {
             ContryCodeInputController.text = '+${country.phoneCode}';
-            // print("is a valid phone check 990 ${phoneParser.validate()} ");
             setState(() => _selectedDialogCountry = country);
             this.handleCountryCodeSubmit(country.phoneCode);
           },
@@ -331,7 +311,6 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
       );
   @override
   Widget build(BuildContext context) {
-    print("inside widget changes 118 ${erroredInput} ${widget.erroredInput}");
     return Container(
       width: double.infinity,
       child: Column(
@@ -345,7 +324,6 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
               GestureDetector(
                 onTap: () {
                   _openCountryPickerDialog();
-                  print("call the country picker");
                 },
                 child: Container(
                   color: this.theme['decodedOpnionBackgroundColorUnSelected'],
@@ -399,7 +377,6 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
                   keyboardType: TextInputType.number,
                   onChanged: (e) {
                     this.handlePhoneNumberSubmit(e);
-                    print("the changed value phone is ${e}");
                   },
                   decoration: InputDecoration(
                     // errorText:"invalid phone number",

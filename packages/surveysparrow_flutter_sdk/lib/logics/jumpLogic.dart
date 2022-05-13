@@ -15,26 +15,19 @@ newJumpLogic(_currentId, _questionPos, _allQuestionList, _allowedQuestionIds,
         questionToCheck['jumpLogic']['logics'][0]['jump_to_id'];
     var questionJumpLogics =
         questionToCheck['jumpLogic']['logics'][0]['logics'];
-    // var jump = _coreDisplayLogic(questionToCheck, 'jl');
 
     var jump = handleDisplayAndSkipLogic(
         questionToCheck, 'jl', _allowedQuestionIds, _workBench);
     
     if (jump) {
       if(questionToCheck['jumpLogic']['logics'][0]['jump_to_id'].toString().contains("ty:")){
-        print("lq12 inside jump //////// ");
         hasThankYouLogic = questionToCheck['jumpLogic']['logics'][0]['jump_to_id'];
       }
       if(questionToCheck['jumpLogic']['logics'][0]['jump_to_id'].toString() == "-2"){
-        print("lq12 inside jump redirect //////// ");
-        hasThankYouLogic = questionToCheck['jumpLogic']['logics'][0]['jump_to_id'];
+        hasThankYouLogic = questionToCheck['jumpLogic']['logics'][0]['redirectUrl'];
       }
-      print("lq12 jump q is ${questionToCheck['jumpLogic']['logics'][0]} ");
-      // if(questionToCheck[])
       nextIndex = _questionPos[questionIdToJump];
     }
   }
-  // print("lq12 next index is ${questionToCheck} ");
-
   return [nextIndex,hasThankYouLogic];
 }

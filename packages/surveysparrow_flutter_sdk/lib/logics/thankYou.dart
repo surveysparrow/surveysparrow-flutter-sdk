@@ -4,7 +4,6 @@ import 'package:surveysparrow_flutter_sdk/logics/mapLogicComparators.dart';
 checkThankYouLogics(thankYouPages, _workBench,_hasThankYouLogicSkip) {
   if(_hasThankYouLogicSkip is String && _hasThankYouLogicSkip != false){
     var thankYouIndex = _hasThankYouLogicSkip.replaceAll('ty:', '');
-    print("inside thank you index ${thankYouIndex}");
     return thankYouPages[int.parse(thankYouIndex)];
   }
 

@@ -63,8 +63,6 @@ class _BottomNavigationState extends State<BottomNavigation> {
   @override
   Widget build(BuildContext context) {
     var bottomPadding = window.viewPadding.bottom;
-    print("style 901 ${bottomPadding} ${showPadding} ");
-
     return Container(
       child: Container(
         width: double.infinity,

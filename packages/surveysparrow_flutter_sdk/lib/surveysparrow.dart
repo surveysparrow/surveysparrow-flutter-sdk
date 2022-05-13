@@ -14,6 +14,7 @@ import 'dart:convert';
 import 'package:sizer/sizer.dart';
 import 'helpers/answers.dart';
 import 'dart:async';
+import 'package:url_launcher/url_launcher.dart';
 
 class SurveyModal extends StatelessWidget {
   final String token;
@@ -38,10 +39,6 @@ class SurveyModal extends StatelessWidget {
   }) : super(key: key);
 
   late Future<Map<dynamic, dynamic>> testeru = fetchAlbum(this.token);
-
-  static testFunc(){
-    print("ttryl");
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -207,9 +204,6 @@ class _QuestionsPageState extends State<QuestionsPage>
   }
 
   submitData() async {
-
-    print("last question is lq12 ${this._lastQuestion}");
-
     if (hasThankYouPage) {
       setState(() {
         _pageType = 'thankYou';
@@ -372,7 +366,7 @@ class _QuestionsPageState extends State<QuestionsPage>
       if(evaluatedLogics[1] is String && evaluatedLogics[1] != false){
         _hasThankYouLogicSkip = evaluatedLogics[1];
       }
-      print("evaluated logics is ${evaluatedLogics}");
+
     } while (_currentQuestionIndex != null);
 
     for (var question in _questionArrayToConvert) {
@@ -494,6 +488,16 @@ class _QuestionsPageState extends State<QuestionsPage>
     });
   }
 
+  Future<void> _launchInBrowser(url) async {
+    Uri myUri = Uri.parse(url);
+    if (!await launchUrl(
+      myUri,
+      mode: LaunchMode.externalApplication,
+    )) {
+      throw 'Could not launch $myUri';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var shortestSide = MediaQuery.of(context).size.shortestSide;
@@ -541,6 +545,11 @@ class _QuestionsPageState extends State<QuestionsPage>
     }
 
     if (hasThankYouPage && _pageType == "thankYou") {
+      if(_hasThankYouLogicSkip is String && _hasThankYouLogicSkip.contains("http")){
+        this.widget.onSubmitCloseModalFunction!();
+        _launchInBrowser(_hasThankYouLogicSkip);
+        return  SizedBox.shrink();
+      }
       if (this.Survey['thankyou_json'].length > 0) {
         hasThankYouPage = true;
         thankYouPageJson =
@@ -687,12 +696,10 @@ Future<Map<dynamic, dynamic>> fetchAlbum(token) async {
       'https://madbee.surveysparrow.com/api/internal/offline-app/v3/get-sdk-data/${token}';
 
   final response = await http.get(Uri.parse(url2));
-  print('inital load called');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response,
     // then parse the JSON.
     final parsedJson = jsonDecode(response.body);
-    print('loaded parsed json ${parsedJson}');
     return parsedJson;
   } else {
     // If the server did not return a 200 OK response,
