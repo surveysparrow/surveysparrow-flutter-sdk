@@ -18,7 +18,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class SurveyModal extends StatelessWidget {
   final String token;
-  final Map<String, String> customParams;
+  final Map<String, String>? customParams;
   final dynamic? firstQuestionAnswer;
   final Map<dynamic, dynamic>? euiTheme;
   final Function? currentlyCollectedAnswers;
@@ -29,7 +29,7 @@ class SurveyModal extends StatelessWidget {
   SurveyModal({
     Key? key,
     required this.token,
-    required this.customParams,
+    this.customParams,
     this.euiTheme,
     this.firstQuestionAnswer,
     this.currentlyCollectedAnswers,
@@ -49,12 +49,12 @@ class SurveyModal extends StatelessWidget {
             return QuestionsPage(
               token: this.token,
               Questions: this.surveyData!,
-              customParams: customParams,
+              customParams: customParams ?? {},
               firstQuestionAnswer: firstQuestionAnswer,
               currentlyCollectedAnswers: currentlyCollectedAnswers,
               allCollectedAnswers: allCollectedAnswers,
               onSubmitCloseModalFunction: onSubmitCloseModalFunction,
-              euiTheme: this.euiTheme,
+              euiTheme: euiTheme ?? {},
             );
           },
         ),
@@ -71,12 +71,12 @@ class SurveyModal extends StatelessWidget {
                 return QuestionsPage(
                   token: this.token,
                   Questions: snapshot.data,
-                  customParams: customParams,
+                  customParams: customParams ?? {},
                   firstQuestionAnswer: firstQuestionAnswer,
                   currentlyCollectedAnswers: currentlyCollectedAnswers,
                   allCollectedAnswers: allCollectedAnswers,
                   onSubmitCloseModalFunction: onSubmitCloseModalFunction,
-                  euiTheme: euiTheme,
+                  euiTheme: euiTheme ?? {},
                 );
               },
             );
