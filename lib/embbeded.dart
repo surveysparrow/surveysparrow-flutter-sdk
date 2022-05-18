@@ -20,15 +20,6 @@ class Page2 extends StatelessWidget {
               height: double.infinity,
               child: SurveyModal(
                 // surveyData: surveyData,
-                euiTheme: const {
-                  "rating": {
-                    "showNumber": true,
-                  },
-                  "bottomSheet": {
-                    "showPadding": true,
-                    "direction": "vertical",
-                  }
-                },
                 token: 'tt-0e48de',
                 onSubmitCloseModalFunction: () {
                   Navigator.of(context).pop();

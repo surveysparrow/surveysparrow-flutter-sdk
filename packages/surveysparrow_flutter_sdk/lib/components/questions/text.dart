@@ -61,12 +61,37 @@ class _TextRatingState extends State<TextRating> {
   });
 
   var customFont = null;
+
+  double fontSize = 18.0;
+  var textFieldWidth;
   @override
   initState() {
     super.initState();
+
     if (this.widget.euiTheme != null) {
       if (this.widget.euiTheme!['font'] != null) {
         customFont = this.widget.euiTheme!['font'];
+      }
+      if (this.question['type'] == 'EmailInput') {
+        if (this.widget.euiTheme!['email'] != null) {
+          if (this.widget.euiTheme!['email']['fontSize'] != null) {
+            fontSize = this.widget.euiTheme!['email']['fontSize'];
+          }
+          if (this.widget.euiTheme!['email']['textFieldWidth'] != null) {
+            textFieldWidth = this.widget.euiTheme!['email']['textFieldWidth'];
+          }
+        }
+      }
+
+      if (this.question['type'] != 'EmailInput') {
+        if (this.widget.euiTheme!['text'] != null) {
+          if (this.widget.euiTheme!['text']['fontSize'] != null) {
+            fontSize = this.widget.euiTheme!['text']['fontSize'];
+          }
+          if (this.widget.euiTheme!['text']['textFieldWidth'] != null) {
+            textFieldWidth = this.widget.euiTheme!['text']['textFieldWidth'];
+          }
+        }
       }
     }
 
@@ -88,6 +113,7 @@ class _TextRatingState extends State<TextRating> {
   Widget build(BuildContext context) {
     var shortestSide = MediaQuery.of(context).size.shortestSide;
     final bool useMobileLayout = shortestSide < 600;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -104,8 +130,12 @@ class _TextRatingState extends State<TextRating> {
               euiTheme: this.widget.euiTheme,
             ),
             Container(
-              constraints:
-                  BoxConstraints(maxWidth: useMobileLayout ? 320 : 500),
+              constraints: BoxConstraints(
+                  maxWidth: textFieldWidth != null
+                      ? textFieldWidth
+                      : useMobileLayout
+                          ? 320
+                          : 500),
               child: TextField(
                 onChanged: (value) {
                   if (this.question['type'] == 'EmailInput') {
@@ -134,7 +164,10 @@ class _TextRatingState extends State<TextRating> {
                     this.question['properties']['data']['type'] == "MULTI_LINE"
                         ? null
                         : 1,
-                style: TextStyle(fontFamily: customFont,color: this.theme['answerColor']),
+                style: TextStyle(
+                    fontFamily: customFont,
+                    color: this.theme['answerColor'],
+                    fontSize: fontSize),
                 cursorColor: this.theme['answerColor'],
                 controller: inputController,
                 decoration: InputDecoration(
@@ -142,8 +175,9 @@ class _TextRatingState extends State<TextRating> {
                     borderSide: BorderSide(color: this.theme['answerColor']),
                   ),
                   hintText: "Please Enter Your Response",
-                  hintStyle:
-                      TextStyle(fontFamily: customFont, color: this.theme['questionNumberColor']),
+                  hintStyle: TextStyle(
+                      fontFamily: customFont,
+                      color: this.theme['questionNumberColor']),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
                       color: this.theme['questionDescriptionColor'],

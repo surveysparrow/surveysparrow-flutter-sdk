@@ -294,6 +294,15 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
 
   var customFont = null;
   var newList = [];
+
+  double choiceContainerWidth = 250.0;
+  double choiceContainerHeight = 50.0;
+  double fontSize = 16.0;
+  double circularFontContainerSize = 32.0;
+  double otherOptionTextFieldHeight = 50.0;
+  var otherOptionTextFieldWidth;
+  double otherOptionTextFontSize = 20.0;
+
   @override
   initState() {
     super.initState();
@@ -301,6 +310,46 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
     if (this.widget.euiTheme != null) {
       if (this.widget.euiTheme!['font'] != null) {
         customFont = this.widget.euiTheme!['font'];
+      }
+
+      if (this.widget.euiTheme!['multipleChoice'] != null) {
+        if (this.widget.euiTheme!['multipleChoice']['choiceContainerWidth'] !=
+            null) {
+          choiceContainerWidth =
+              this.widget.euiTheme!['multipleChoice']['choiceContainerWidth'];
+        }
+        if (this.widget.euiTheme!['multipleChoice']['choiceContainerHeight'] !=
+            null) {
+          choiceContainerHeight =
+              this.widget.euiTheme!['multipleChoice']['choiceContainerHeight'];
+        }
+        if (this.widget.euiTheme!['multipleChoice']['fontSize'] != null) {
+          fontSize = this.widget.euiTheme!['multipleChoice']['fontSize'];
+        }
+        if (this.widget.euiTheme!['multipleChoice']
+                ['circularFontContainerSize'] !=
+            null) {
+          circularFontContainerSize = this.widget.euiTheme!['multipleChoice']
+              ['circularFontContainerSize'];
+        }
+        if (this.widget.euiTheme!['multipleChoice']
+                ['otherOptionTextFieldHeight'] !=
+            null) {
+          otherOptionTextFieldHeight = this.widget.euiTheme!['multipleChoice']
+              ['otherOptionTextFieldHeight'];
+        }
+        if (this.widget.euiTheme!['multipleChoice']
+                ['otherOptionTextFieldWidth'] !=
+            null) {
+          otherOptionTextFieldWidth = this.widget.euiTheme!['multipleChoice']
+              ['otherOptionTextFieldWidth'];
+        }
+        if (this.widget.euiTheme!['multipleChoice']
+                ['otherOptionTextFontSize'] !=
+            null) {
+          otherOptionTextFontSize = this.widget.euiTheme!['multipleChoice']
+              ['otherOptionTextFontSize'];
+        }
       }
     }
 
@@ -319,7 +368,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
 
     for (var i = 0; i < question['choices'].length; i++) {
       initilizeChoices(question['choices'][i], question['choices'][i]['id']);
-    }    
+    }
 
     if (this.answer[this.question['id']] != null) {
       setState(() {
@@ -347,6 +396,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
         var arrayWithoutSelectedOption = [..._selectedOption, ...val];
         arrayWithoutSelectedOption
           ..removeWhere((element) => element == hasAllOfOption);
+
         arrayWithoutSelectedOption.sort();
         allOptions.sort();
         if (listEquals(arrayWithoutSelectedOption, allOptions)) {
@@ -520,7 +570,9 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
             }
           },
           child: Container(
-            constraints: BoxConstraints(maxHeight: 50, maxWidth: 250),
+            constraints: BoxConstraints(
+                maxHeight: choiceContainerHeight,
+                maxWidth: choiceContainerWidth),
             decoration: BoxDecoration(
               color: _selectedOption.contains(question['choices'][i]['id'])
                   ? this.theme['decodedOpnionBackgroundColorSelected']
@@ -543,7 +595,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
                         style: TextStyle(
                           fontFamily: customFont,
                           decoration: TextDecoration.none,
-                          fontSize: 14,
+                          fontSize: fontSize,
                           fontWeight: FontWeight.w400,
                           color: _selectedOption
                                   .contains(question['choices'][i]['id'])
@@ -553,15 +605,15 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
                               : this.theme['answerColor'],
                         )),
                     Container(
-                      width: 32,
-                      height: 32,
+                      width: circularFontContainerSize,
+                      height: circularFontContainerSize,
                       child: Center(
                         child: Text(
                           String.fromCharCode(charc + i),
                           style: TextStyle(
                             fontFamily: customFont,
                             decoration: TextDecoration.none,
-                            fontSize: 12,
+                            fontSize: fontSize,
                             fontWeight: FontWeight.bold,
                             color: luminanceValue > 0.5
                                 ? Colors.black
@@ -600,7 +652,12 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
             Container(
               // color: Colors.red,
               constraints: BoxConstraints(
-                  maxHeight: 50, maxWidth: useMobileLayout ? 320 : 500),
+                  maxHeight: otherOptionTextFieldHeight,
+                  maxWidth: otherOptionTextFieldWidth != null
+                      ? otherOptionTextFieldWidth
+                      : useMobileLayout
+                          ? 320
+                          : 500),
               child: TextField(
                 key: Key(question['id'].toString()),
                 onChanged: (text) {
@@ -609,7 +666,9 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
                   });
                 },
                 style: TextStyle(
-                    fontFamily: customFont, color: this.theme['answerColor']),
+                    fontFamily: customFont,
+                    color: this.theme['answerColor'],
+                    fontSize: otherOptionTextFontSize),
                 cursorColor: this.theme['answerColor'],
                 controller: inputController,
                 decoration: InputDecoration(

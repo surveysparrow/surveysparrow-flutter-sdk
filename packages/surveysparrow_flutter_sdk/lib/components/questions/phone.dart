@@ -155,7 +155,6 @@ class _ColumnPhoneState extends State<ColumnPhone> {
             final phoneParser =
                 PhoneNumber.fromCountryCode(_countryCode, _phoneNumber)
                     .validate();
-
             if (phoneParser == false) {
               setState(() {
                 erroredInput = true;
@@ -234,9 +233,58 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
   TextEditingController ContryCodeInputController = new TextEditingController();
   TextEditingController PhoneInputController = new TextEditingController();
 
+  double fontSize = 18.0;
+
+  double countryPickerWidth = 14.w;
+  double countryPickerHeight = 44.0;
+
+  double countryCodeInputWidth = 13.w;
+  double countryCodeInputHeight = 50;
+
+  double countryCodeNumberInputHeight = 50.0;
+  double countryCodeNumberInputWidth = 48.w;
+
   @override
   initState() {
     super.initState();
+
+    if (this.widget.euiTheme!['phoneNumber'] != null) {
+      if (this.widget.euiTheme!['phoneNumber']['fontSize'] != null) {
+        fontSize = this.widget.euiTheme!['phoneNumber']['fontSize'];
+      }
+
+      if (this.widget.euiTheme!['phoneNumber']['countryPickerWidth'] != null) {
+        countryPickerWidth =
+            this.widget.euiTheme!['phoneNumber']['countryPickerWidth'];
+      }
+      if (this.widget.euiTheme!['phoneNumber']['countryPickerHeight'] != null) {
+        countryPickerHeight =
+            this.widget.euiTheme!['phoneNumber']['countryPickerHeight'];
+      }
+
+      if (this.widget.euiTheme!['phoneNumber']['countryCodeInputWidth'] !=
+          null) {
+        countryCodeInputWidth =
+            this.widget.euiTheme!['phoneNumber']['countryCodeInputWidth'];
+      }
+      if (this.widget.euiTheme!['phoneNumber']['countryCodeInputHeight'] !=
+          null) {
+        countryCodeInputHeight =
+            this.widget.euiTheme!['phoneNumber']['countryCodeInputHeight'];
+      }
+
+      if (this.widget.euiTheme!['phoneNumber']
+              ['countryCodeNumberInputHeight'] !=
+          null) {
+        countryCodeNumberInputHeight = this.widget.euiTheme!['phoneNumber']
+            ['countryCodeNumberInputHeight'];
+      }
+      if (this.widget.euiTheme!['phoneNumber']['countryCodeNumberInputWidth'] !=
+          null) {
+        countryCodeNumberInputWidth =
+            this.widget.euiTheme!['phoneNumber']['countryCodeNumberInputWidth'];
+      }
+    }
 
     if (this.answer[this.question['id']] != null) {
       var phoneCode = this
@@ -250,6 +298,10 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
           CountryPickerUtils.getCountryByPhoneCode(phoneCode);
       this.handleCountryCodeSubmit(phoneCode);
       this.handlePhoneNumberSubmit(number);
+
+      // setState(() {
+      //   _selectedOption = convertBoolToIndex(this.answer[this.question['id']]);
+      // });
     } else {
       if (this.widget.euiTheme != null) {
         if (this.widget.euiTheme!['phoneNumber'] != null) {
@@ -328,8 +380,8 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
                 child: Container(
                   color: this.theme['decodedOpnionBackgroundColorUnSelected'],
                   constraints: BoxConstraints(maxWidth: 65),
-                  width: 14.w,
-                  height: 44,
+                  width: countryPickerWidth,
+                  height: countryPickerHeight,
                   padding: EdgeInsets.all(10),
                   child: _buildDialogItemPickerPhone(_selectedDialogCountry),
                 ),
@@ -338,11 +390,12 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
                 width: 5.w,
               ),
               Container(
-                width: 13.w,
-                height: 50,
+                width: countryCodeInputWidth,
+                height: countryCodeInputHeight,
                 child: TextField(
                   readOnly: true,
-                  style: TextStyle(color: this.theme['answerColor']),
+                  style: TextStyle(
+                      color: this.theme['answerColor'], fontSize: fontSize),
                   controller: ContryCodeInputController,
                   cursorColor: this.theme['answerColor'],
                   decoration: InputDecoration(
@@ -364,11 +417,12 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
                 width: 5.w,
               ),
               Container(
-                height: 50,
-                width: 48.w,
+                height: countryCodeNumberInputHeight,
+                width: countryCodeNumberInputWidth,
                 constraints: BoxConstraints(maxHeight: double.infinity),
                 child: TextField(
-                  style: TextStyle(color: this.theme['answerColor']),
+                  style: TextStyle(
+                      color: this.theme['answerColor'], fontSize: fontSize),
                   cursorColor: this.theme['answerColor'],
                   controller: PhoneInputController,
                   inputFormatters: <TextInputFormatter>[

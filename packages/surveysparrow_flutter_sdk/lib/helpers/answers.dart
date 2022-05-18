@@ -23,16 +23,41 @@ getAnswerValueToStore(
 }
 
 submitAnswer(_collectedAnswers, finalTime, customParams, token) async {
-  var url = Uri.parse(
-      'https://madbee.surveysparrow.com/api/internal/offline-app/v3/post-sdk-data/${token}');
+    var url = Uri.parse(
+      'http://sample.surveysparrow.test/api/internal/submission/answers/${token}');
   Map<dynamic, dynamic> payload = {};
+
+  var submissionObjPayload = {
+    'answers': _collectedAnswers,
+    'stripe': {
+    'currency': {},
+    'amount': '',
+    'cardCompleted': false,
+    'discountCoupon': {},
+    },
+    'customParams': customParams,
+    'additionalAttributes': {},
+    'timeTaken': finalTime,
+    'timeZone': 'Asia/Calcutta',
+    'browserLanguage': 'en-GB',
+    'language': 'en',
+  };
 
   payload['answers'] = _collectedAnswers;
   payload['finalTime'] = finalTime;
   payload['customParam'] = customParams;
 
-  final String encodedData = json.encode(payload);
-  var response = await http.post(url, body: encodedData);
+  var body = json.encode(submissionObjPayload);
+
+  var response = await http.post(url,
+      headers: {"Content-Type": "application/json"},
+      body: body
+  );
+
+
+
+  // final String encodedData = json.encode(payload);
+  // var response = await http.post(url, body: encodedData);
   return response;
 }
 

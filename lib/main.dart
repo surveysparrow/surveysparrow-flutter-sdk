@@ -61,15 +61,6 @@ class MyApp extends StatelessWidget {
                             height: 500,
                             child: SurveyModal(
                               token: 'tt-3d4efc',
-                              euiTheme: const {
-                                "rating": {
-                                  "showNumber": true,
-                                },
-                                "bottomSheet": {
-                                  "showPadding": true,
-                                  "direction": "horizontal"
-                                }
-                              },
                               surveyData: surveyData,
                               onSubmitCloseModalFunction: () {
                                 Future.delayed(
@@ -131,9 +122,7 @@ class MyApp extends StatelessWidget {
                                 });
                               },
                               firstQuestionAnswer: rating,
-                              euiTheme: const {
-                                'phoneNumber': {'defaultNumber': '65'}
-                              },
+                              euiTheme: CustomSurveyTheme(font: "Antons"),
                               customParams: {
                                 'test': 'sachin 2',
                                 'ntesterR': 'sachin 3'
@@ -196,32 +185,6 @@ class MyApp extends StatelessWidget {
                         height: 450,
                         child: SurveyModal(
                           token: 'tt-0e48de',
-                          euiTheme: const {
-                            "question": {
-                              "questionNumberFontSize": 18.0,
-                              "questionHeadingFontSize": 28.0,
-                              "questionDescriptionFontSize": 18.0,
-                            },
-                            "rating": {
-                              "showNumber": true,
-                              "customRatingSVGUnselected":
-                                  '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.656 15.75H6.344a1.688 1.688 0 0 1-1.683-1.558l-.723-9.41h10.124l-.723 9.41a1.687 1.687 0 0 1-1.683 1.558v0ZM15 4.781H3M6.89 2.25h4.22a.844.844 0 0 1 .843.844V4.78H6.047V3.094a.844.844 0 0 1 .844-.844v0Zm.61 10.5h3" stroke="gray" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-                              "customRatingSVGSelected":
-                                  '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.656 15.75H6.344a1.688 1.688 0 0 1-1.683-1.558l-.723-9.41h10.124l-.723 9.41a1.687 1.687 0 0 1-1.683 1.558v0ZM15 4.781H3M6.89 2.25h4.22a.844.844 0 0 1 .843.844V4.78H6.047V3.094a.844.844 0 0 1 .844-.844v0Zm.61 10.5h3" stroke="#EC6772" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-                              "svgHeight": 50.0,
-                              "svgWidth": 50.0,
-                            },
-                            "opnionScale": {
-                              "outerBlockSizeWidth": 90.0,
-                              "outerBlockSizeHeight": 170.0,
-                              "innerBlockSizeWidth": 80.0,
-                              "innerBlockSizeHeight": 80.0,
-                            },
-                            "font": "Antons",
-                            "bottomSheet": {
-                              "showPadding": false,
-                            }
-                          },
                           customParams: {
                             'tester': 'sachin 2',
                             'ntesterR': 'sachin 3'
@@ -313,9 +276,9 @@ class _TestWiddgetState extends State<TestWiddget> {
 
 Future<Map<dynamic, dynamic>> fetchAlbumMain() async {
   var url1 =
-      'http://sample.surveysparrow.test/api/internal/offline-app/v3/get-sdk-data/tt-3d4efc';
+      'http://sample.surveysparrow.test/api/internal/sdk/get-survey/tt-3d4efc';
   var url2 =
-      'https://madbee.surveysparrow.com/api/internal/offline-app/v3/get-sdk-data/tt-3d4efc';
+      'https://madbee.surveysparrow.com/api/internal/sdk/get-survey/tt-3d4efc';
 
   final response = await http.get(Uri.parse(url2));
   print('inital load called');

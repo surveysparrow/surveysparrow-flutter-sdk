@@ -17,18 +17,18 @@ class YesOrNo extends StatefulWidget {
   final Function submitData;
   final Map<dynamic, dynamic>? euiTheme;
 
-  const YesOrNo({
-    Key? key,
-    required this.func,
-    required this.answer,
-    required this.question,
-    required this.theme,
-    required this.customParams,
-    required this.currentQuestionNumber,
-    required this.isLastQuestion,
-    required this.submitData,
-    this.euiTheme
-  }) : super(key: key);
+  const YesOrNo(
+      {Key? key,
+      required this.func,
+      required this.answer,
+      required this.question,
+      required this.theme,
+      required this.customParams,
+      required this.currentQuestionNumber,
+      required this.isLastQuestion,
+      required this.submitData,
+      this.euiTheme})
+      : super(key: key);
 
   @override
   State<YesOrNo> createState() => _YesOrNoState(
@@ -71,8 +71,8 @@ class _YesOrNoState extends State<YesOrNo> {
   @override
   void initState() {
     super.initState();
-    if(this.widget.euiTheme != null){
-      if(this.widget.euiTheme!['font'] != null){
+    if (this.widget.euiTheme != null) {
+      if (this.widget.euiTheme!['font'] != null) {
         customFont = this.widget.euiTheme!['font'];
       }
     }
@@ -100,7 +100,9 @@ class _YesOrNoState extends State<YesOrNo> {
           theme: this.theme,
           euiTheme: this.widget.euiTheme,
         ),
+        // SizedBox(height: 40),
         SizedBox(height: 2.h),
+        // SizedBox(height: 40),
 
         YesOrNoQuestion(
           func: func,
@@ -110,7 +112,17 @@ class _YesOrNoState extends State<YesOrNo> {
           setSelectedOption: setSelectedOption,
           euiTheme: this.widget.euiTheme,
         ),
+
+        // OpnionScaleQuestion(
+        //   func: this.func,
+        //   answer: this.answer,
+        //   question: this.question,
+        //   theme: this.theme,
+        //   setSelectedOption: setSelectedOption,
+        // ),
+
         SizedBox(height: 7.h),
+        // SizedBox(height: 40),
         SkipAndNextButtons(
           key: UniqueKey(),
           disabled: _selectedOption == -1,
@@ -156,10 +168,10 @@ class YesOrNoQuestion extends StatefulWidget {
 
   @override
   State<YesOrNoQuestion> createState() => _YesOrNoQuestionState(
-      func: this.func,
-      answer: this.answer,
-      question: this.question,
-      theme: this.theme,
+        func: this.func,
+        answer: this.answer,
+        question: this.question,
+        theme: this.theme,
       );
 }
 
@@ -188,17 +200,73 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
   });
 
   var customFont = null;
+
+  var svgWidth = 42.0;
+  var svgHeight = 42.0;
+
+  var outerContainerWidth = 120.0;
+  var outerContainerHeight = 140.0;
+
+  var circleFontIndicatorSize = 24.0;
+
+  var fontSize = 12.0;
+
+  var customSvgStringSelected;
+  var customSvgStringUnSelected;
+  // var text
+
   @override
   initState() {
     super.initState();
 
-    if(this.widget.euiTheme != null){
-      if(this.widget.euiTheme!['font'] != null){
+    if (this.widget.euiTheme != null) {
+      if (this.widget.euiTheme!['font'] != null) {
         customFont = this.widget.euiTheme!['font'];
       }
+
+      if (this.widget.euiTheme!['yesOrNo'] != null) {
+        if (this.widget.euiTheme!['yesOrNo']['svgWidth'] != null) {
+          svgWidth = this.widget.euiTheme!['yesOrNo']['svgWidth'];
+        }
+        if (this.widget.euiTheme!['yesOrNo']['svgHeight'] != null) {
+          svgHeight = this.widget.euiTheme!['yesOrNo']['svgHeight'];
+        }
+        if (this.widget.euiTheme!['yesOrNo']['outerContainerWidth'] != null) {
+          outerContainerWidth =
+              this.widget.euiTheme!['yesOrNo']['outerContainerWidth'];
+        }
+        if (this.widget.euiTheme!['yesOrNo']['outerContainerHeight'] != null) {
+          outerContainerHeight =
+              this.widget.euiTheme!['yesOrNo']['outerContainerHeight'];
+        }
+        if (this.widget.euiTheme!['yesOrNo']['fontSize'] != null) {
+          fontSize = this.widget.euiTheme!['yesOrNo']['fontSize'];
+        }
+        if (this.widget.euiTheme!['yesOrNo']['circleFontIndicatorSize'] !=
+            null) {
+          circleFontIndicatorSize =
+              this.widget.euiTheme!['yesOrNo']['circleFontIndicatorSize'];
+        }
+        if (this.widget.euiTheme!['yesOrNo']['customSvgStringSelected'] !=
+            null) {
+          customSvgStringSelected =
+              this.widget.euiTheme!['yesOrNo']['customSvgStringSelected'];
+        }
+        if (this.widget.euiTheme!['yesOrNo']['customSvgStringUnSelected'] !=
+            null) {
+          customSvgStringUnSelected =
+              this.widget.euiTheme!['yesOrNo']['customSvgStringUnSelected'];
+        }
+      }
     }
-    yesLabel = this.question['properties']['data']['yes'] == 'builder.yes_no.yes' ? 'Yes' : this.question['properties']['data']['yes'];
-    noLabel = this.question['properties']['data']['no'] == 'builder.yes_no.no' ? 'No' : this.question['properties']['data']['no'];
+
+    yesLabel =
+        this.question['properties']['data']['yes'] == 'builder.yes_no.yes'
+            ? 'Yes'
+            : this.question['properties']['data']['yes'];
+    noLabel = this.question['properties']['data']['no'] == 'builder.yes_no.no'
+        ? 'No'
+        : this.question['properties']['data']['no'];
 
     luminanceValue =
         this.theme['decodedOpnionBackgroundColorUnSelected'].computeLuminance();
@@ -239,8 +307,8 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
 
   generateYesOrNoBlock(val) {
     return Container(
-      width: 120,
-      height: 140,
+      width: outerContainerWidth,
+      height: outerContainerHeight,
       margin: EdgeInsets.only(right: 20),
       decoration: BoxDecoration(
         color: _selectedOption == val
@@ -256,33 +324,33 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
             margin: EdgeInsets.only(top: 24.sp),
             child: val == 1
                 ? Container(
-                    width: 42,
-                    height: 42,
+                    width: svgWidth,
+                    height: svgHeight,
                     child: SvgPicture.string(
-                      this.question['properties']['data']['iconShape'] ==
-                                'YES_NO_ICON_TICK_CROSS'
-                            ? generateYesOrNoTickUnSelected(
-                                _selectedOption == val
-                                    ? luminanceValue > 0.5
-                                        ? 'rgba(57,57,57,1)'
-                                        : 'rgba(255,255,255,1)'
-                                    : this.theme['ratingRgba'],
-                              )
-                            : generateYesOrNoThumbUnSelected(
-                                _selectedOption == val
-                                    ? luminanceValue > 0.5
-                                        ? 'rgba(57,57,57,1)'
-                                        : 'rgba(255,255,255,1)'
-                                    : this.theme['ratingRgba'],
-                              ),
+                      customSvgStringUnSelected !=null ? _selectedOption == val ? customSvgStringSelected : customSvgStringUnSelected  :this.question['properties']['data']['iconShape'] ==
+                              'YES_NO_ICON_TICK_CROSS' 
+                          ? generateYesOrNoTickUnSelected(
+                              _selectedOption == val
+                                  ? luminanceValue > 0.5
+                                      ? 'rgba(57,57,57,1)'
+                                      : 'rgba(255,255,255,1)'
+                                  : this.theme['ratingRgba'],
+                            )
+                          : generateYesOrNoThumbUnSelected(
+                              _selectedOption == val
+                                  ? luminanceValue > 0.5
+                                      ? 'rgba(57,57,57,1)'
+                                      : 'rgba(255,255,255,1)'
+                                  : this.theme['ratingRgba'],
+                            ),
                     ),
                   )
                 : Container(
                     child: Container(
-                      width: 42,
-                      height: 42,
+                      width: svgWidth,
+                      height: svgHeight,
                       child: SvgPicture.string(
-                        this.question['properties']['data']['iconShape'] ==
+                        customSvgStringSelected !=null ? _selectedOption == val ? customSvgStringSelected : customSvgStringUnSelected : this.question['properties']['data']['iconShape'] ==
                                 'YES_NO_ICON_TICK_CROSS'
                             ? generateYesOrNoTickSelected(
                                 _selectedOption == val
@@ -314,9 +382,9 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
                     val == 0 ? yesLabel : noLabel,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontFamily:customFont,
+                      fontFamily: customFont,
                       decoration: TextDecoration.none,
-                      fontSize: 12,
+                      fontSize: fontSize,
                       color: _selectedOption == val
                           ? luminanceValue > 0.5
                               ? Colors.black
@@ -326,8 +394,8 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
                   ),
                 ),
                 Container(
-                  width: 24,
-                  height: 24,
+                  width: circleFontIndicatorSize,
+                  height: circleFontIndicatorSize,
                   decoration: BoxDecoration(
                     color: this.theme['answerColor'],
                     shape: BoxShape.circle,
@@ -336,9 +404,9 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
                     child: Text(
                       val == 0 ? "Y" : "N",
                       style: TextStyle(
-                        fontFamily:customFont,
+                        fontFamily: customFont,
                         decoration: TextDecoration.none,
-                        fontSize: 12,
+                        fontSize: fontSize,
                         fontWeight: FontWeight.bold,
                         color:
                             luminanceValue > 0.5 ? Colors.black : Colors.white,

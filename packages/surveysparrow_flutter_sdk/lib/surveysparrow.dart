@@ -1,4 +1,5 @@
 library surveysparrow;
+export 'package:surveysparrow_flutter_sdk/models/customSurveyTheme.dart';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -9,6 +10,7 @@ import 'package:surveysparrow_flutter_sdk/components/welcome.dart';
 import 'package:surveysparrow_flutter_sdk/helpers/question.dart';
 import 'package:surveysparrow_flutter_sdk/logics/displayLogic.dart';
 import 'package:surveysparrow_flutter_sdk/logics/thankYou.dart';
+import 'package:surveysparrow_flutter_sdk/models/customSurveyTheme.dart';
 import 'package:surveysparrow_flutter_sdk/models/theme.dart';
 import 'dart:convert';
 import 'package:sizer/sizer.dart';
@@ -20,7 +22,7 @@ class SurveyModal extends StatelessWidget {
   final String token;
   final Map<String, String>? customParams;
   final dynamic? firstQuestionAnswer;
-  final Map<dynamic, dynamic>? euiTheme;
+  final CustomSurveyTheme? euiTheme;
   final Function? currentlyCollectedAnswers;
   final Function? allCollectedAnswers;
   final Map<dynamic, dynamic>? surveyData;
@@ -54,7 +56,7 @@ class SurveyModal extends StatelessWidget {
               currentlyCollectedAnswers: currentlyCollectedAnswers,
               allCollectedAnswers: allCollectedAnswers,
               onSubmitCloseModalFunction: onSubmitCloseModalFunction,
-              euiTheme: euiTheme ?? {},
+              euiTheme: euiTheme?.toMap() ?? {},
             );
           },
         ),
@@ -76,7 +78,7 @@ class SurveyModal extends StatelessWidget {
                   currentlyCollectedAnswers: currentlyCollectedAnswers,
                   allCollectedAnswers: allCollectedAnswers,
                   onSubmitCloseModalFunction: onSubmitCloseModalFunction,
-                  euiTheme: euiTheme ?? {},
+                  euiTheme: euiTheme?.toMap() ?? {},
                 );
               },
             );
@@ -691,15 +693,17 @@ class _QuestionsPageState extends State<QuestionsPage>
 
 Future<Map<dynamic, dynamic>> fetchAlbum(token) async {
   var url1 =
-      'http://sample.surveysparrow.test/api/internal/offline-app/v3/get-sdk-data/${token}';
+      'http://sample.surveysparrow.test/api/internal/sdk/get-survey/${token}';
   var url2 =
-      'https://madbee.surveysparrow.com/api/internal/offline-app/v3/get-sdk-data/${token}';
+      'https://madbee.surveysparrow.com/api/internal/sdk/get-survey/${token}';
 
   final response = await http.get(Uri.parse(url2));
+  print('inital load called');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response,
     // then parse the JSON.
     final parsedJson = jsonDecode(response.body);
+    print('loaded 1 parsed json ${parsedJson}');
     return parsedJson;
   } else {
     // If the server did not return a 200 OK response,
