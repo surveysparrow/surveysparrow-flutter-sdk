@@ -1,9 +1,14 @@
 library surveysparrow;
+
 export 'package:surveysparrow_flutter_sdk/models/customSurveyTheme.dart';
+export 'package:surveysparrow_flutter_sdk/models/firstQuestionAnswer.dart';
+export 'package:surveysparrow_flutter_sdk/models/answer.dart';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:surveysparrow_flutter_sdk/components/common/bottomNavigation.dart';
+import 'package:surveysparrow_flutter_sdk/components/common/footer.dart';
+import 'package:surveysparrow_flutter_sdk/components/common/header.dart';
 import 'package:surveysparrow_flutter_sdk/components/loadingScreen.dart';
 import 'package:surveysparrow_flutter_sdk/components/thankyou.dart';
 import 'package:surveysparrow_flutter_sdk/components/welcome.dart';
@@ -20,6 +25,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class SurveyModal extends StatelessWidget {
   final String token;
+  final String domain;
   final Map<String, String>? customParams;
   final dynamic? firstQuestionAnswer;
   final CustomSurveyTheme? euiTheme;
@@ -31,6 +37,7 @@ class SurveyModal extends StatelessWidget {
   SurveyModal({
     Key? key,
     required this.token,
+    required this.domain,
     this.customParams,
     this.euiTheme,
     this.firstQuestionAnswer,
@@ -40,7 +47,8 @@ class SurveyModal extends StatelessWidget {
     this.onSubmitCloseModalFunction,
   }) : super(key: key);
 
-  late Future<Map<dynamic, dynamic>> testeru = fetchAlbum(this.token);
+  late Future<Map<dynamic, dynamic>> testeru =
+      fetchAlbum(this.token, this.domain);
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +58,7 @@ class SurveyModal extends StatelessWidget {
           builder: (context, orientation, deviceType) {
             return QuestionsPage(
               token: this.token,
+              domain: this.domain,
               Questions: this.surveyData!,
               customParams: customParams ?? {},
               firstQuestionAnswer: firstQuestionAnswer,
@@ -72,6 +81,7 @@ class SurveyModal extends StatelessWidget {
               builder: (context, orientation, deviceType) {
                 return QuestionsPage(
                   token: this.token,
+                  domain: this.domain,
                   Questions: snapshot.data,
                   customParams: customParams ?? {},
                   firstQuestionAnswer: firstQuestionAnswer,
@@ -92,6 +102,7 @@ class SurveyModal extends StatelessWidget {
 
 class QuestionsPage extends StatefulWidget {
   final String token;
+  final String domain;
   final Map<dynamic, dynamic> Questions;
   final Map<String, String> customParams;
   final dynamic? firstQuestionAnswer;
@@ -103,6 +114,7 @@ class QuestionsPage extends StatefulWidget {
   const QuestionsPage({
     Key? key,
     required this.token,
+    required this.domain,
     required this.Questions,
     required this.customParams,
     this.firstQuestionAnswer,
@@ -218,8 +230,8 @@ class _QuestionsPageState extends State<QuestionsPage>
         _collectedAnswers,
         (_stopwatch.elapsedMilliseconds / 1000).round(),
         customParams,
-        this.token);
-
+        this.token,
+        this.widget.domain);
   }
 
   _scrollListener() {
@@ -268,9 +280,17 @@ class _QuestionsPageState extends State<QuestionsPage>
   var hasThankYouPage = false;
   var thankYouPageJson = {};
 
+  incrementCount(token, domain) async {
+    var url =
+        Uri.parse('http://${domain}/api/internal/sdk/increment-count/${token}');
+    final response = await http.get(url);
+  }
+
   @override
   initState() {
     super.initState();
+    incrementCount(token, this.widget.domain);
+
     if (widget.euiTheme!['bottomSheet'] != null) {
       if (widget.euiTheme!['bottomSheet']['direction'] != null) {
         if (widget.euiTheme!['bottomSheet']['direction'] == "horizontal") {
@@ -342,8 +362,8 @@ class _QuestionsPageState extends State<QuestionsPage>
 
     if (this.Survey['thankyou_json'].length > 0) {
       hasThankYouPage = true;
-      thankYouPageJson =
-          checkThankYouLogics(this.Survey['thankyou_json'], _workBench,_hasThankYouLogicSkip);
+      thankYouPageJson = checkThankYouLogics(
+          this.Survey['thankyou_json'], _workBench, _hasThankYouLogicSkip);
     }
   }
 
@@ -365,10 +385,9 @@ class _QuestionsPageState extends State<QuestionsPage>
           _allQuestionList, _allowedQuestionIds, _workBench, _questionPos);
       _currentQuestionIndex = evaluatedLogics[0];
       // _hasThankYouLogicSkip
-      if(evaluatedLogics[1] is String && evaluatedLogics[1] != false){
+      if (evaluatedLogics[1] is String && evaluatedLogics[1] != false) {
         _hasThankYouLogicSkip = evaluatedLogics[1];
       }
-
     } while (_currentQuestionIndex != null);
 
     for (var question in _questionArrayToConvert) {
@@ -547,15 +566,16 @@ class _QuestionsPageState extends State<QuestionsPage>
     }
 
     if (hasThankYouPage && _pageType == "thankYou") {
-      if(_hasThankYouLogicSkip is String && _hasThankYouLogicSkip.contains("http")){
+      if (_hasThankYouLogicSkip is String &&
+          _hasThankYouLogicSkip.contains("http")) {
         this.widget.onSubmitCloseModalFunction!();
         _launchInBrowser(_hasThankYouLogicSkip);
-        return  SizedBox.shrink();
+        return SizedBox.shrink();
       }
       if (this.Survey['thankyou_json'].length > 0) {
         hasThankYouPage = true;
-        thankYouPageJson =
-            checkThankYouLogics(this.Survey['thankyou_json'], _workBench,_hasThankYouLogicSkip);
+        thankYouPageJson = checkThankYouLogics(
+            this.Survey['thankyou_json'], _workBench, _hasThankYouLogicSkip);
       }
       return Container(
         decoration: BoxDecoration(
@@ -651,12 +671,25 @@ class _QuestionsPageState extends State<QuestionsPage>
               LinearProgressIndicator(
                 value: _progressMade,
                 semanticsLabel: 'Linear progress indicator',
-                backgroundColor: Colors.transparent,
+                backgroundColor: _themeData['hasHeader']
+                    ? _surveyThemeClass.backgroundColor
+                    : Colors.transparent,
                 color: _surveyThemeClass.answerColor,
               ),
-              SizedBox(
-                height: 10,
+              if (!_themeData['hasHeader']) ...[
+                SizedBox(
+                  height: 10,
+                ),
+              ]
+            ],
+            if (_themeData['hasHeader']) ...[
+              HeaderSection(
+                theme: _themeData,
+                euiTheme: this.widget.euiTheme,
               ),
+               SizedBox(
+                  height: 10,
+                ),
             ],
             Expanded(
               flex: 1,
@@ -676,14 +709,21 @@ class _QuestionsPageState extends State<QuestionsPage>
               ),
             ),
             BottomNavigation(
-                onClickNext: () {
-                  _handleNextQuestion();
-                },
-                onClickPrevious: () {
-                  _handlePreviousQuestion();
-                },
+              onClickNext: () {
+                _handleNextQuestion();
+              },
+              onClickPrevious: () {
+                _handlePreviousQuestion();
+              },
+              euiTheme: this.widget.euiTheme,
+              theme: _themeData,
+            ),
+            if (_themeData['hasFooter']) ...[
+              FooterSection(
+                theme: _themeData,
                 euiTheme: this.widget.euiTheme,
-                theme: _themeData),
+              )
+            ],
           ],
         ),
       ),
@@ -691,19 +731,15 @@ class _QuestionsPageState extends State<QuestionsPage>
   }
 }
 
-Future<Map<dynamic, dynamic>> fetchAlbum(token) async {
-  var url1 =
-      'http://sample.surveysparrow.test/api/internal/sdk/get-survey/${token}';
-  var url2 =
-      'https://madbee.surveysparrow.com/api/internal/sdk/get-survey/${token}';
+Future<Map<dynamic, dynamic>> fetchAlbum(token, domain) async {
+  var url1 = 'http://${domain}/api/internal/sdk/get-survey/${token}';
+  var url2 = 'http://${domain}/api/internal/sdk/get-survey/${token}';
 
   final response = await http.get(Uri.parse(url2));
-  print('inital load called');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response,
     // then parse the JSON.
     final parsedJson = jsonDecode(response.body);
-    print('loaded 1 parsed json ${parsedJson}');
     return parsedJson;
   } else {
     // If the server did not return a 200 OK response,

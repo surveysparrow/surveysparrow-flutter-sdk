@@ -7,7 +7,8 @@ import 'dart:convert';
 CustomSurveyTheme customSurveyThemeFromMap(String str) =>
     CustomSurveyTheme.fromMap(json.decode(str));
 
-String customSurveyThemeToMap(CustomSurveyTheme data) => json.encode(data.toMap());
+String customSurveyThemeToMap(CustomSurveyTheme data) =>
+    json.encode(data.toMap());
 
 class CustomSurveyTheme {
   CustomSurveyTheme({
@@ -21,6 +22,8 @@ class CustomSurveyTheme {
     this.multipleChoice,
     this.email,
     this.text,
+    this.skipButton,
+    this.nextButton,
   });
 
   Question? question;
@@ -33,8 +36,11 @@ class CustomSurveyTheme {
   MultipleChoice? multipleChoice;
   Email? email;
   Email? text;
+  SkipButton? skipButton;
+  NextButton? nextButton;
 
-  factory CustomSurveyTheme.fromMap(Map<String, dynamic> json) => CustomSurveyTheme(
+  factory CustomSurveyTheme.fromMap(Map<String, dynamic> json) =>
+      CustomSurveyTheme(
         question: json["question"] == null
             ? null
             : Question.fromMap(json["question"]),
@@ -56,6 +62,12 @@ class CustomSurveyTheme {
             : MultipleChoice.fromMap(json["multipleChoice"]),
         email: json["email"] == null ? null : Email.fromMap(json["email"]),
         text: json["text"] == null ? null : Email.fromMap(json["text"]),
+        skipButton: json["skipButton"] == null
+            ? null
+            : SkipButton.fromMap(json["skipButton"]),
+        nextButton: json["nextButton"] == null
+            ? null
+            : NextButton.fromMap(json["nextButton"]),
       );
 
   Map<String, dynamic> toMap() => {
@@ -70,6 +82,8 @@ class CustomSurveyTheme {
             multipleChoice == null ? null : multipleChoice?.toMap(),
         "email": email == null ? null : email?.toMap(),
         "text": text == null ? null : text?.toMap(),
+        "skipButton": skipButton == null ? null : skipButton?.toMap(),
+        "nextButton": nextButton == null ? null : nextButton?.toMap(),
       };
 }
 
@@ -77,19 +91,47 @@ class BottomBar {
   BottomBar({
     this.showPadding,
     this.direction,
+    this.customBrandingLogo,
+    this.brandingLogoHeight,
+    this.brandingLogoWidth,
+    this.navigationButtonSize,
   });
 
   bool? showPadding;
   String? direction;
+  String? customBrandingLogo;
+  double? brandingLogoHeight;
+  double? brandingLogoWidth;
+  double? navigationButtonSize;
 
   factory BottomBar.fromMap(Map<String, dynamic> json) => BottomBar(
         showPadding: json["showPadding"] == null ? null : json["showPadding"],
         direction: json["direction"] == null ? null : json["direction"],
+        customBrandingLogo: json["customBrandingLogo"] == null
+            ? null
+            : json["customBrandingLogo"],
+        brandingLogoHeight: json["brandingLogoHeight"] == null
+            ? null
+            : json["brandingLogoHeight"],
+        brandingLogoWidth: json["brandingLogoWidth"] == null
+            ? null
+            : json["brandingLogoWidth"],
+        navigationButtonSize: json["navigationButtonSize"] == null
+            ? null
+            : json["navigationButtonSize"],
       );
 
   Map<String, dynamic> toMap() => {
         "showPadding": showPadding == null ? null : showPadding,
         "direction": direction == null ? null : direction,
+        "customBrandingLogo":
+            customBrandingLogo == null ? null : customBrandingLogo,
+        "brandingLogoHeight":
+            brandingLogoHeight == null ? null : brandingLogoHeight,
+        "brandingLogoWidth":
+            brandingLogoWidth == null ? null : brandingLogoWidth,
+        "navigationButtonSize":
+            navigationButtonSize == null ? null : navigationButtonSize,
       };
 }
 
@@ -322,6 +364,46 @@ class Question {
         "questionDescriptionFontSize": questionDescriptionFontSize == null
             ? null
             : questionDescriptionFontSize,
+      };
+}
+
+class SkipButton {
+  SkipButton({
+    this.fontSize,
+  });
+
+  double? fontSize;
+
+  factory SkipButton.fromMap(Map<String, dynamic> json) => SkipButton(
+        fontSize: json["fontSize"] == null ? null : json["fontSize"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "fontSize": fontSize == null ? null : fontSize,
+      };
+}
+
+class NextButton {
+  NextButton({
+    this.fontSize,
+    this.width,
+    this.iconSize,
+  });
+
+  double? fontSize;
+  double? width;
+  double? iconSize;
+
+  factory NextButton.fromMap(Map<String, dynamic> json) => NextButton(
+        fontSize: json["fontSize"] == null ? null : json["fontSize"],
+        width: json["width"] == null ? null : json["width"],
+        iconSize: json["iconSize"] == null ? null : json["iconSize"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "fontSize": fontSize == null ? null : fontSize,
+        "width": width == null ? null : width,
+        "iconSize": iconSize == null ? null : iconSize,
       };
 }
 

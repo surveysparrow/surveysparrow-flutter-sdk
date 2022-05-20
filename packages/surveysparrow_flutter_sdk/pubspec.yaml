@@ -21,6 +21,8 @@ dependencies:
   sizer: ^2.0.15
   easy_debounce: ^2.0.2+1
   url_launcher: ^6.1.1
+  readmore: ^2.1.0
+  expandable_text: ^2.3.0
 
 dev_dependencies:
   flutter_test:

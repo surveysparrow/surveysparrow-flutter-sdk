@@ -21,7 +21,9 @@ Future<void> main() async {
 
 class MyApp extends StatelessWidget {
   final Map<dynamic, dynamic> surveyData;
-  const MyApp({Key? key, required this.surveyData}) : super(key: key);
+  MyApp({Key? key, required this.surveyData}) : super(key: key);
+
+  var obj = FirstQuestionAnswer(rating: 2);
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +63,7 @@ class MyApp extends StatelessWidget {
                             height: 500,
                             child: SurveyModal(
                               token: 'tt-3d4efc',
+                              domain: 'sample.surveysparrow.test',
                               surveyData: surveyData,
                               onSubmitCloseModalFunction: () {
                                 Future.delayed(
@@ -115,6 +118,7 @@ class MyApp extends StatelessWidget {
                             child: SurveyModal(
                               // surveyData: surveyData,
                               token: 'tt-5f4a66',
+                              domain: 'sample.surveysparrow.test',
                               onSubmitCloseModalFunction: () {
                                 Future.delayed(
                                     const Duration(milliseconds: 500), () {
@@ -122,10 +126,11 @@ class MyApp extends StatelessWidget {
                                 });
                               },
                               firstQuestionAnswer: rating,
-                              euiTheme: CustomSurveyTheme(font: "Antons"),
+                              euiTheme: CustomSurveyTheme(bottomBar: BottomBar(brandingLogoWidth: 20.0)),
                               customParams: {
                                 'test': 'sachin 2',
-                                'ntesterR': 'sachin 3'
+                                'ntesterR': 'sachin 3',
+                                'numberparam':'21',
                               },
                               currentlyCollectedAnswers: (val) {
                                 print("currently collected answer ${val} ");
@@ -184,7 +189,8 @@ class MyApp extends StatelessWidget {
                         width: 350,
                         height: 450,
                         child: SurveyModal(
-                          token: 'tt-0e48de',
+                          token: 'tt-5f4a66',
+                          domain: 'sample.surveysparrow.test',
                           customParams: {
                             'tester': 'sachin 2',
                             'ntesterR': 'sachin 3'
@@ -246,7 +252,9 @@ class _MainButtonState extends State<MainButton> {
                 child: Container(
                   height: MediaQuery.of(context).size.height * 0.70,
                   child: SurveyModal(
-                      token: 'tt-3d4efc', customParams: {'ntesterR': 'sachin'}),
+                      token: 'tt-3d4efc',
+                      domain: 'sample.surveysparrow.test',
+                      customParams: {'ntesterR': 'sachin'}),
                 ),
               );
             },
@@ -268,8 +276,10 @@ class _TestWiddgetState extends State<TestWiddget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child:
-          SurveyModal(token: 'tt-3d4efc', customParams: {'ntesterR': 'sachin'}),
+      child: SurveyModal(
+          token: 'tt-3d4efc',
+          domain: 'sample.surveysparrow.test',
+          customParams: {'ntesterR': 'sachin'}),
     );
   }
 }
@@ -280,7 +290,7 @@ Future<Map<dynamic, dynamic>> fetchAlbumMain() async {
   var url2 =
       'https://madbee.surveysparrow.com/api/internal/sdk/get-survey/tt-3d4efc';
 
-  final response = await http.get(Uri.parse(url2));
+  final response = await http.get(Uri.parse(url1));
   print('inital load called');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response,

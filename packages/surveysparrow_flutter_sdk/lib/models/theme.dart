@@ -27,6 +27,11 @@ class SurveyThemeData {
   final List gradientColors;
   final bool showQuestionNumber;
   final bool showProgressBar;
+  final bool hasHeader;
+  final String headerText;
+  final String headerLogoUrl;
+  final bool hasFooter;
+  final String footerText;
 
   SurveyThemeData(
     this.questionColor,
@@ -53,6 +58,11 @@ class SurveyThemeData {
     this.gradientColors,
     this.showQuestionNumber,
     this.showProgressBar,
+    this.hasHeader,
+    this.headerText,
+    this.headerLogoUrl,
+    this.hasFooter,
+    this.footerText,
   );
 
   factory SurveyThemeData.fromJson({Map<String, dynamic> json = const {}}) {
@@ -134,7 +144,6 @@ class SurveyThemeData {
           return [Color(0xffD31027), Color(0xffEA384D)];
       }
     }
-
     var backGroundImage = json['properties'] != null &&
             json['properties']['backgroundImage'] != null &&
             json['properties']['backgroundImage']['url'] != null
@@ -305,6 +314,40 @@ class SurveyThemeData {
             ? json['properties']['progressBar']
             : true;
 
+    var decodedHasHeader = json['properties'] != null &&
+            json['properties']['header'] != null &&
+            json['properties']['header']['visible'] != null
+        ? json['properties']['header']['visible']
+        : false;
+
+    var decodedHeaderText = json['properties'] != null &&
+            json['properties']['header'] != null &&
+            json['properties']['header']['title'] != null
+        ? json['properties']['header']['title']
+        : "none";
+
+    var decodedHeaderImgSrc = json['properties'] != null &&
+            json['properties']['header'] != null &&
+            json['properties']['header']['logoUrl'] != null && json['properties']['header']['logoUrl'] != ''
+        ? json['properties']['header']['logoUrl']
+        : "none";
+
+    var decodedHasFooter = json['properties'] != null &&
+            json['properties']['footer'] != null &&
+            json['properties']['footer']['visible'] != null
+        ? json['properties']['footer']['visible']
+        : false;
+
+    var decodedFooterText = json['properties'] != null &&
+            json['properties']['footer'] != null &&
+            json['properties']['footer']['title'] != null &&
+            json['properties']['footer']['title'] != '' &&
+            json['properties']['footer']['title']['blocks'] !=null && 
+            json['properties']['footer']['title']['blocks'][0] !=null &&
+            json['properties']['footer']['title']['blocks'][0]['text'] !=null
+        ? json['properties']['footer']['title']['blocks'][0]['text']
+        : "";
+
     return SurveyThemeData(
       decodedQuestionColor,
       decodedQuestionDescriptionColor,
@@ -330,6 +373,11 @@ class SurveyThemeData {
       decodedGradientColors,
       decodedShowQuestionNumber,
       decodedShowProgressBar,
+      decodedHasHeader,
+      decodedHeaderText,
+      decodedHeaderImgSrc,
+      decodedHasFooter,
+      decodedFooterText,
     );
   }
 }

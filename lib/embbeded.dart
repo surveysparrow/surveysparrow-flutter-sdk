@@ -20,7 +20,8 @@ class Page2 extends StatelessWidget {
               height: double.infinity,
               child: SurveyModal(
                 // surveyData: surveyData,
-                token: 'tt-0e48de',
+                token: 'tt-5f4a66',
+                domain: 'sample.surveysparrow.test',
                 onSubmitCloseModalFunction: () {
                   Navigator.of(context).pop();
                 },

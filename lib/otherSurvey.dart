@@ -41,9 +41,10 @@ class _Page3State extends State<Page3> {
     setState(() {
       selectedChoice = newChoices;
     });
-    createAnswerPayloadOtherSurvey(
-        1246, newChoices, 'MultiChoice', surveyAns, false, 1);
-    print("nn-90 new choice is ${newChoices} ");
+    var multipleObj = CustomMultiChoice(
+        data: newChoices, skipped: false, timeTaken: 2, key: val);
+    createAnswerPayloadOtherSurvey(multipleObj, newChoices);
+    // print("nn-90 new choice is ${newChoices} ");
   }
 
   @override
@@ -65,9 +66,12 @@ class _Page3State extends State<Page3> {
                 RatingStars(
                   value: value,
                   onValueChanged: (v) {
-                    print("new rating is ${v}");
-                    createAnswerPayloadOtherSurvey(
-                        1245, v.toInt(), 'Rating', surveyAns, false, 1);
+                    var ratingObj = CustomRating(
+                        data: v.toInt(),
+                        skipped: false,
+                        timeTaken: 1,
+                        key: 1245);
+                    createAnswerPayloadOtherSurvey(ratingObj, surveyAns);
                     setState(() {
                       value = v;
                     });
@@ -138,7 +142,21 @@ class _Page3State extends State<Page3> {
                         child: Center(
                             child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [Text("Product Quality",style: TextStyle(color:selectedChoice.contains(4389) ? Colors.white : Colors.black),), Icon(Icons.check, color: selectedChoice.contains(4389) ? Colors.white : Colors.black,)],
+                          children: [
+                            Text(
+                              "Product Quality",
+                              style: TextStyle(
+                                  color: selectedChoice.contains(4389)
+                                      ? Colors.white
+                                      : Colors.black),
+                            ),
+                            Icon(
+                              Icons.check,
+                              color: selectedChoice.contains(4389)
+                                  ? Colors.white
+                                  : Colors.black,
+                            )
+                          ],
                         )),
                       ),
                     ),
@@ -158,7 +176,21 @@ class _Page3State extends State<Page3> {
                         child: Center(
                             child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [Text("Packaging",style: TextStyle(color:selectedChoice.contains(4390) ? Colors.white : Colors.black),), Icon(Icons.check, color: selectedChoice.contains(4390) ? Colors.white : Colors.black,)],
+                          children: [
+                            Text(
+                              "Packaging",
+                              style: TextStyle(
+                                  color: selectedChoice.contains(4390)
+                                      ? Colors.white
+                                      : Colors.black),
+                            ),
+                            Icon(
+                              Icons.check,
+                              color: selectedChoice.contains(4390)
+                                  ? Colors.white
+                                  : Colors.black,
+                            )
+                          ],
                         )),
                       ),
                     ),
@@ -178,7 +210,21 @@ class _Page3State extends State<Page3> {
                         child: Center(
                             child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [Text("Product Prices",style: TextStyle(color:selectedChoice.contains(4391) ? Colors.white : Colors.black),), Icon(Icons.check, color: selectedChoice.contains(4391) ? Colors.white : Colors.black,)],
+                          children: [
+                            Text(
+                              "Product Prices",
+                              style: TextStyle(
+                                  color: selectedChoice.contains(4391)
+                                      ? Colors.white
+                                      : Colors.black),
+                            ),
+                            Icon(
+                              Icons.check,
+                              color: selectedChoice.contains(4391)
+                                  ? Colors.white
+                                  : Colors.black,
+                            )
+                          ],
                         )),
                       ),
                     ),
@@ -206,8 +252,12 @@ class _Page3State extends State<Page3> {
                   value: value2,
                   onValueChanged: (v) {
                     print("new rating is ${v}");
-                    createAnswerPayloadOtherSurvey(
-                        1247, v.toInt(), 'Rating', surveyAns, false, 1);
+                    var ratingObj = CustomRating(
+                        data: v.toInt(),
+                        skipped: false,
+                        timeTaken: 1,
+                        key: 1247);
+                    createAnswerPayloadOtherSurvey(ratingObj, surveyAns);
                     setState(() {
                       value2 = v;
                     });
@@ -257,8 +307,12 @@ class _Page3State extends State<Page3> {
                     width: 390,
                     child: TextField(
                       onChanged: (text) {
-                        createAnswerPayloadOtherSurvey(
-                            1248, text, 'TextInput', surveyAns, false, 1);
+                        var textObj = CustomTextInput(
+                            data: text,
+                            skipped: false,
+                            timeTaken: 1,
+                            key: 1248);
+                        createAnswerPayloadOtherSurvey(textObj, surveyAns);
                       },
                       style: TextStyle(color: Colors.black),
                       cursorColor: Color.fromRGBO(252, 128, 25, 1.0),

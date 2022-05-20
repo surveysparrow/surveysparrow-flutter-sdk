@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:surveysparrow_flutter_sdk/models/answer.dart';
 
 getAnswerValueToStore(
     value, otherInput, otherInputText, otherInputId, isPhoneInput, phoneValue) {
@@ -22,18 +23,18 @@ getAnswerValueToStore(
   }
 }
 
-submitAnswer(_collectedAnswers, finalTime, customParams, token) async {
-    var url = Uri.parse(
-      'http://sample.surveysparrow.test/api/internal/submission/answers/${token}');
+submitAnswer(_collectedAnswers, finalTime, customParams, token, domain) async {
+  var url =
+      Uri.parse('http://${domain}/api/internal/submission/answers/${token}');
   Map<dynamic, dynamic> payload = {};
 
   var submissionObjPayload = {
     'answers': _collectedAnswers,
     'stripe': {
-    'currency': {},
-    'amount': '',
-    'cardCompleted': false,
-    'discountCoupon': {},
+      'currency': {},
+      'amount': '',
+      'cardCompleted': false,
+      'discountCoupon': {},
     },
     'customParams': customParams,
     'additionalAttributes': {},
@@ -50,11 +51,7 @@ submitAnswer(_collectedAnswers, finalTime, customParams, token) async {
   var body = json.encode(submissionObjPayload);
 
   var response = await http.post(url,
-      headers: {"Content-Type": "application/json"},
-      body: body
-  );
-
-
+      headers: {"Content-Type": "application/json"}, body: body);
 
   // final String encodedData = json.encode(payload);
   // var response = await http.post(url, body: encodedData);
@@ -82,7 +79,9 @@ createAnswerPayload(
   if (isAnswerCollected.length > 0) {
     currentAnswer = isAnswerCollected.first;
     if (value == null) {
-      currentAnswer[_surveyToMap[key]['type']]['data'] = null;
+      currentAnswer[_surveyToMap[key]['type']]
+          .removeWhere((key, value) => key == "data");
+      // currentAnswer[_surveyToMap[key]['type']]['data'] = null;
       currentAnswer[_surveyToMap[key]['type']]['skipped'] = true;
     } else {
       currentAnswer[_surveyToMap[key]['type']]['data'] = getAnswerValueToStore(
@@ -101,7 +100,6 @@ createAnswerPayload(
     if (value == null) {
       currentAnswer['question_id'] = key;
       currentAnswer[_surveyToMap[key]['type']] = {};
-      currentAnswer[_surveyToMap[key]['type']]['data'] = null;
       currentAnswer[_surveyToMap[key]['type']]['skipped'] = true;
       currentAnswer[_surveyToMap[key]['type']]['timeTaken'] = time;
     } else {
@@ -122,32 +120,43 @@ createAnswerPayload(
   }
 }
 
-createAnswerPayloadOtherSurvey(key, value, type, surArr, skipped, time) {
+createAnswerPayloadOtherSurvey(obj, surArr) {
+  if (!(obj is CustomRating ||
+      obj is CustomEmailInput ||
+      obj is CustomMultiChoice ||
+      obj is CustomTextInput ||
+      obj is CustomYesNo ||
+      obj is CustomOpinionScale ||
+      obj is CustomPhoneNumber)) {
+    throw Exception(
+        'obj has to be a instance of CustomRating or CustomEmailInput');
+  }
+
   var currentAns = {};
 
-  var isAnswerCollected = surArr.where((e) => e['question_id'] == key);
+  var isAnswerCollected = surArr.where((e) => e['question_id'] == obj.key);
   if (isAnswerCollected.length > 0) {
     currentAns = isAnswerCollected.first;
-    if (skipped) {
-      currentAns[type]['data'] = null;
-      currentAns[type]['skipped'] = true;
+    if (obj.skipped) {
+      currentAns[obj.name]['data'] = null;
+      currentAns[obj.name]['skipped'] = obj.skipped;
     } else {
-      currentAns[type]['data'] = value;
-      currentAns[type]['skipped'] = false;
+      currentAns[obj.name]['data'] = obj.data;
+      currentAns[obj.name]['skipped'] = obj.skipped;
     }
   } else {
-    if (skipped) {
-      currentAns['question_id'] = key;
-      currentAns[type] = {};
-      currentAns[type]['data'] = value;
-      currentAns[type]['skipped'] = true;
-      currentAns[type]['timeTaken'] = time;
+    if (obj.skipped) {
+      currentAns['question_id'] = obj.key;
+      currentAns[obj.name] = {};
+      currentAns[obj.name]['data'] = obj.data;
+      currentAns[obj.name]['skipped'] = obj.skipped;
+      currentAns[obj.name]['timeTaken'] = obj.timeTaken;
     } else {
-      currentAns['question_id'] = key;
-      currentAns[type] = {};
-      currentAns[type]['data'] = value;
-      currentAns[type]['skipped'] = false;
-      currentAns[type]['timeTaken'] = time;
+      currentAns['question_id'] = obj.key;
+      currentAns[obj.name] = {};
+      currentAns[obj.name]['data'] = obj.data;
+      currentAns[obj.name]['skipped'] = obj.skipped;
+      currentAns[obj.name]['timeTaken'] = obj.timeTaken;
     }
     surArr.add(currentAns);
   }
@@ -155,16 +164,29 @@ createAnswerPayloadOtherSurvey(key, value, type, surArr, skipped, time) {
 
 submitAnswerOtherSurvey(token, value) async {
   var url = Uri.parse(
-      'https://madbee.surveysparrow.com/api/internal/offline-app/v3/post-sdk-data/${token}');
+      'http://sample.surveysparrow.test/api/internal/submission/answers/${token}');
   Map<dynamic, dynamic> payload = {};
 
-  payload['answers'] = value;
-  payload['finalTime'] = 15;
-  payload['customParam'] = {};
+  var submissionObjPayload = {
+    'answers': value,
+    'stripe': {
+      'currency': {},
+      'amount': '',
+      'cardCompleted': false,
+      'discountCoupon': {},
+    },
+    'customParams': {},
+    'additionalAttributes': {},
+    'timeTaken': 24,
+    'timeZone': 'Asia/Calcutta',
+    'browserLanguage': 'en-GB',
+    'language': 'en',
+  };
 
-  final String encodedData = json.encode(payload);
-  var response = await http.post(url, body: encodedData);
+  var body = json.encode(submissionObjPayload);
 
+  var response = await http.post(url,
+      headers: {"Content-Type": "application/json"}, body: body);
   return response;
 }
 

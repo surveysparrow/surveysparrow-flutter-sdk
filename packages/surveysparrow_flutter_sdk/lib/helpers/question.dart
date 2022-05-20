@@ -164,6 +164,7 @@ convertQuestionListToWidget(
           child: Center(
             child: SingleChildScrollView(
               physics: BouncingScrollPhysics(),
+              controller: _scrollController,
               child: ColumnOpnionScale(
                 func: storeAnswers,
                 answer: _workBench,
@@ -269,4 +270,9 @@ setTheme(_themeData, _surveyThemeClass) {
   _themeData['gradientColors'] = _surveyThemeClass.gradientColors;
   _themeData['showQuestionNumber'] = _surveyThemeClass.showQuestionNumber;
   _themeData['showProgressBar'] = _surveyThemeClass.showProgressBar;
+  _themeData['hasHeader'] = _surveyThemeClass.hasHeader;
+  _themeData['headerText'] = _surveyThemeClass.headerText;
+  _themeData['headerLogoUrl'] = _surveyThemeClass.headerLogoUrl;
+  _themeData['hasFooter'] = _surveyThemeClass.hasFooter;
+  _themeData['footerText'] = _surveyThemeClass.footerText;
 }
