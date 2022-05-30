@@ -247,15 +247,15 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
           circleFontIndicatorSize =
               this.widget.euiTheme!['yesOrNo']['circleFontIndicatorSize'];
         }
-        if (this.widget.euiTheme!['yesOrNo']['customSvgStringSelected'] !=
+        if (this.widget.euiTheme!['yesOrNo']['customSvgSelected'] !=
             null) {
           customSvgStringSelected =
-              this.widget.euiTheme!['yesOrNo']['customSvgStringSelected'];
+              this.widget.euiTheme!['yesOrNo']['customSvgSelected'];
         }
-        if (this.widget.euiTheme!['yesOrNo']['customSvgStringUnSelected'] !=
+        if (this.widget.euiTheme!['yesOrNo']['customSvgUnSelected'] !=
             null) {
           customSvgStringUnSelected =
-              this.widget.euiTheme!['yesOrNo']['customSvgStringUnSelected'];
+              this.widget.euiTheme!['yesOrNo']['customSvgUnSelected'];
         }
       }
     }
@@ -321,7 +321,7 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            margin: EdgeInsets.only(top: 24.sp),
+            margin: EdgeInsets.only(top: 40),
             child: val == 1
                 ? Container(
                     width: svgWidth,
@@ -371,7 +371,7 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
                   ),
           ),
           Container(
-            margin: EdgeInsets.only(bottom: 10.sp, right: 10, left: 10),
+            margin: EdgeInsets.only(bottom: 10, right: 10, left: 10),
             // color: Colors.red,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

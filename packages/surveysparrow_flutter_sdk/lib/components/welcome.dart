@@ -143,6 +143,7 @@ class _WelcomePageState extends State<WelcomePage> {
                         decoration: TextDecoration.none,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
+                        fontFamily: customFont,
                         color: this.widget.theme['buttonStyle'] == "filled"
                             ? luminanceValue > 0.5
                                 ? Colors.black

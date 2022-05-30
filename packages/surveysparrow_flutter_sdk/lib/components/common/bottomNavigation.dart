@@ -20,8 +20,8 @@ class BottomNavigation extends StatefulWidget {
 
   @override
   State<BottomNavigation> createState() => _BottomNavigationState(
-        onClickNext: this.onClickNext,
-        onClickPrevious: this.onClickPrevious,
+        onClickNext: onClickNext,
+        onClickPrevious: onClickPrevious,
       );
 }
 
@@ -36,24 +36,24 @@ class _BottomNavigationState extends State<BottomNavigation> {
   var brandingLogoHeight = 30.0;
   var brandingLogoWidth = 155.0;
 
+  var padding = -1.0;
+
   @override
   void initState() {
     super.initState();
     if (widget.euiTheme != null) {
-      if (widget.euiTheme!['bottomSheet'] != null) {
-        if (widget.euiTheme!['bottomSheet']['showPadding'] != null) {
-          showPadding = widget.euiTheme!['bottomSheet']['showPadding'];
+      if (widget.euiTheme!['animationDirection'] != null) {
+        if (widget.euiTheme!['animationDirection'] == "horizontal") {
+          isVertical = true;
         }
-        if (widget.euiTheme!['bottomSheet']['direction'] != null) {
-          if (widget.euiTheme!['bottomSheet']['direction'] ==
-              "horizontal") {
-            isVertical = true;
-          }
+      }
+      if (widget.euiTheme!['bottomBar'] != null) {
+        if (widget.euiTheme!['bottomBar']['padding'] != null) {
+          padding = widget.euiTheme!['bottomBar']['padding'];
         }
-        if (widget.euiTheme!['bottomSheet']['navigationButtonSize'] !=
-            null) {
+        if (widget.euiTheme!['bottomBar']['navigationButtonSize'] != null) {
           navigationButtonSize =
-              widget.euiTheme!['bottomSheet']['navigationButtonSize'];
+              widget.euiTheme!['bottomBar']['navigationButtonSize'];
         }
       }
     }
@@ -70,11 +70,11 @@ class _BottomNavigationState extends State<BottomNavigation> {
           margin: EdgeInsets.only(
             left: 15.0,
             right: 15.0,
-            bottom: showPadding
+            bottom: padding == -1.0
                 ? window.viewPadding.bottom > 1.0
                     ? 20.0
                     : 10.0
-                : 10.0,
+                : padding,
           ),
           child: Row(
             mainAxisAlignment: widget.theme!['showBranding']

@@ -24,6 +24,8 @@ class CustomSurveyTheme {
     this.text,
     this.skipButton,
     this.nextButton,
+    this.animationDirection,
+    this.logo,
   });
 
   Question? question;
@@ -38,13 +40,15 @@ class CustomSurveyTheme {
   Email? text;
   SkipButton? skipButton;
   NextButton? nextButton;
+  String? animationDirection;
+  Logo? logo;
 
   factory CustomSurveyTheme.fromMap(Map<String, dynamic> json) =>
       CustomSurveyTheme(
         question: json["question"] == null
             ? null
             : Question.fromMap(json["question"]),
-        font: json["font"] == null ? null : json["font"],
+        font: json["font"],
         bottomBar: json["bottomBar"] == null
             ? null
             : BottomBar.fromMap(json["bottomBar"]),
@@ -68,11 +72,13 @@ class CustomSurveyTheme {
         nextButton: json["nextButton"] == null
             ? null
             : NextButton.fromMap(json["nextButton"]),
+        animationDirection: json["animationDirection"],
+        logo: json["logo"] == null ? null : Logo.fromMap(json["logo"]),
       );
 
   Map<String, dynamic> toMap() => {
         "question": question == null ? null : question?.toMap(),
-        "font": font == null ? null : font,
+        "font": font,
         "bottomBar": bottomBar == null ? null : bottomBar?.toMap(),
         "rating": rating == null ? null : rating?.toMap(),
         "opnionScale": opnionScale == null ? null : opnionScale?.toMap(),
@@ -84,54 +90,28 @@ class CustomSurveyTheme {
         "text": text == null ? null : text?.toMap(),
         "skipButton": skipButton == null ? null : skipButton?.toMap(),
         "nextButton": nextButton == null ? null : nextButton?.toMap(),
+        "animationDirection": animationDirection,
+        "logo": logo == null ? null : logo?.toMap(),
       };
 }
 
 class BottomBar {
   BottomBar({
-    this.showPadding,
-    this.direction,
-    this.customBrandingLogo,
-    this.brandingLogoHeight,
-    this.brandingLogoWidth,
+    this.padding,
     this.navigationButtonSize,
   });
 
-  bool? showPadding;
-  String? direction;
-  String? customBrandingLogo;
-  double? brandingLogoHeight;
-  double? brandingLogoWidth;
+  double? padding;
   double? navigationButtonSize;
 
   factory BottomBar.fromMap(Map<String, dynamic> json) => BottomBar(
-        showPadding: json["showPadding"] == null ? null : json["showPadding"],
-        direction: json["direction"] == null ? null : json["direction"],
-        customBrandingLogo: json["customBrandingLogo"] == null
-            ? null
-            : json["customBrandingLogo"],
-        brandingLogoHeight: json["brandingLogoHeight"] == null
-            ? null
-            : json["brandingLogoHeight"],
-        brandingLogoWidth: json["brandingLogoWidth"] == null
-            ? null
-            : json["brandingLogoWidth"],
-        navigationButtonSize: json["navigationButtonSize"] == null
-            ? null
-            : json["navigationButtonSize"],
+        padding: json["padding"],
+        navigationButtonSize: json["navigationButtonSize"],
       );
 
   Map<String, dynamic> toMap() => {
-        "showPadding": showPadding == null ? null : showPadding,
-        "direction": direction == null ? null : direction,
-        "customBrandingLogo":
-            customBrandingLogo == null ? null : customBrandingLogo,
-        "brandingLogoHeight":
-            brandingLogoHeight == null ? null : brandingLogoHeight,
-        "brandingLogoWidth":
-            brandingLogoWidth == null ? null : brandingLogoWidth,
-        "navigationButtonSize":
-            navigationButtonSize == null ? null : navigationButtonSize,
+        "padding": padding,
+        "navigationButtonSize": navigationButtonSize,
       };
 }
 
@@ -145,14 +125,41 @@ class Email {
   double? textFieldWidth;
 
   factory Email.fromMap(Map<String, dynamic> json) => Email(
-        fontSize: json["fontSize"] == null ? null : json["fontSize"],
-        textFieldWidth:
-            json["textFieldWidth"] == null ? null : json["textFieldWidth"],
+        fontSize: json["fontSize"],
+        textFieldWidth: json["textFieldWidth"],
       );
 
   Map<String, dynamic> toMap() => {
-        "fontSize": fontSize == null ? null : fontSize,
-        "textFieldWidth": textFieldWidth == null ? null : textFieldWidth,
+        "fontSize": fontSize,
+        "textFieldWidth": textFieldWidth,
+      };
+}
+
+class Logo {
+  Logo({
+    this.fontSize,
+    this.bannerHeight,
+    this.logoHeight,
+    this.logoWidth,
+  });
+
+  double? fontSize;
+  double? bannerHeight;
+  double? logoHeight;
+  double? logoWidth;
+
+  factory Logo.fromMap(Map<String, dynamic> json) => Logo(
+        fontSize: json["fontSize"],
+        bannerHeight: json["bannerHeight"],
+        logoHeight: json["logoHeight"],
+        logoWidth: json["logoWidth"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "fontSize": fontSize,
+        "bannerHeight": bannerHeight,
+        "logoHeight": logoHeight,
+        "logoWidth": logoWidth
       };
 }
 
@@ -176,44 +183,23 @@ class MultipleChoice {
   double? otherOptionTextFontSize;
 
   factory MultipleChoice.fromMap(Map<String, dynamic> json) => MultipleChoice(
-        choiceContainerWidth: json["choiceContainerWidth"] == null
-            ? null
-            : json["choiceContainerWidth"],
-        choiceContainerHeight: json["choiceContainerHeight"] == null
-            ? null
-            : json["choiceContainerHeight"],
-        fontSize: json["fontSize"] == null ? null : json["fontSize"],
-        circularFontContainerSize: json["circularFontContainerSize"] == null
-            ? null
-            : json["circularFontContainerSize"],
-        otherOptionTextFieldHeight: json["otherOptionTextFieldHeight"] == null
-            ? null
-            : json["otherOptionTextFieldHeight"],
-        otherOptionTextFieldWidth: json["otherOptionTextFieldWidth"] == null
-            ? null
-            : json["otherOptionTextFieldWidth"],
-        otherOptionTextFontSize: json["otherOptionTextFontSize"] == null
-            ? null
-            : json["otherOptionTextFontSize"],
+        choiceContainerWidth: json["choiceContainerWidth"],
+        choiceContainerHeight: json["choiceContainerHeight"],
+        fontSize: json["fontSize"],
+        circularFontContainerSize: json["circularFontContainerSize"],
+        otherOptionTextFieldHeight: json["otherOptionTextFieldHeight"],
+        otherOptionTextFieldWidth: json["otherOptionTextFieldWidth"],
+        otherOptionTextFontSize: json["otherOptionTextFontSize"],
       );
 
   Map<String, dynamic> toMap() => {
-        "choiceContainerWidth":
-            choiceContainerWidth == null ? null : choiceContainerWidth,
-        "choiceContainerHeight":
-            choiceContainerHeight == null ? null : choiceContainerHeight,
-        "fontSize": fontSize == null ? null : fontSize,
-        "circularFontContainerSize": circularFontContainerSize == null
-            ? null
-            : circularFontContainerSize,
-        "otherOptionTextFieldHeight": otherOptionTextFieldHeight == null
-            ? null
-            : otherOptionTextFieldHeight,
-        "otherOptionTextFieldWidth": otherOptionTextFieldWidth == null
-            ? null
-            : otherOptionTextFieldWidth,
-        "otherOptionTextFontSize":
-            otherOptionTextFontSize == null ? null : otherOptionTextFontSize,
+        "choiceContainerWidth": choiceContainerWidth,
+        "choiceContainerHeight": choiceContainerHeight,
+        "fontSize": fontSize,
+        "circularFontContainerSize": circularFontContainerSize,
+        "otherOptionTextFieldHeight": otherOptionTextFieldHeight,
+        "otherOptionTextFieldWidth": otherOptionTextFieldWidth,
+        "otherOptionTextFontSize": otherOptionTextFontSize,
       };
 }
 
@@ -225,6 +211,8 @@ class OpnionScale {
     this.innerBlockSizeHeight,
     this.labelFontSize,
     this.numberFontSize,
+    this.runSpacing,
+    this.positionedLabelTopValue,
   });
 
   double? outerBlockSizeWidth;
@@ -233,37 +221,29 @@ class OpnionScale {
   double? innerBlockSizeHeight;
   double? labelFontSize;
   double? numberFontSize;
+  double? runSpacing;
+  double? positionedLabelTopValue;
 
   factory OpnionScale.fromMap(Map<String, dynamic> json) => OpnionScale(
-        outerBlockSizeWidth: json["outerBlockSizeWidth"] == null
-            ? null
-            : json["outerBlockSizeWidth"],
-        outerBlockSizeHeight: json["outerBlockSizeHeight"] == null
-            ? null
-            : json["outerBlockSizeHeight"],
-        innerBlockSizeWidth: json["innerBlockSizeWidth"] == null
-            ? null
-            : json["innerBlockSizeWidth"],
-        innerBlockSizeHeight: json["innerBlockSizeHeight"] == null
-            ? null
-            : json["innerBlockSizeHeight"],
-        labelFontSize:
-            json["labelFontSize"] == null ? null : json["labelFontSize"],
-        numberFontSize:
-            json["numberFontSize"] == null ? null : json["numberFontSize"],
+        outerBlockSizeWidth: json["outerBlockSizeWidth"],
+        outerBlockSizeHeight: json["outerBlockSizeHeight"],
+        innerBlockSizeWidth: json["innerBlockSizeWidth"],
+        innerBlockSizeHeight: json["innerBlockSizeHeight"],
+        labelFontSize: json["labelFontSize"],
+        numberFontSize: json["numberFontSize"],
+        runSpacing: json["runSpacing"],
+        positionedLabelTopValue: json["positionedLabelTopValue"],
       );
 
   Map<String, dynamic> toMap() => {
-        "outerBlockSizeWidth":
-            outerBlockSizeWidth == null ? null : outerBlockSizeWidth,
-        "outerBlockSizeHeight":
-            outerBlockSizeHeight == null ? null : outerBlockSizeHeight,
-        "innerBlockSizeWidth":
-            innerBlockSizeWidth == null ? null : innerBlockSizeWidth,
-        "innerBlockSizeHeight":
-            innerBlockSizeHeight == null ? null : innerBlockSizeHeight,
-        "labelFontSize": labelFontSize == null ? null : labelFontSize,
-        "numberFontSize": numberFontSize == null ? null : numberFontSize,
+        "outerBlockSizeWidth": outerBlockSizeWidth,
+        "outerBlockSizeHeight": outerBlockSizeHeight,
+        "innerBlockSizeWidth": innerBlockSizeWidth,
+        "innerBlockSizeHeight": innerBlockSizeHeight,
+        "labelFontSize": labelFontSize,
+        "numberFontSize": numberFontSize,
+        "runSpacing":runSpacing,
+        "positionedLabelTopValue":positionedLabelTopValue
       };
 }
 
@@ -289,47 +269,25 @@ class PhoneNumber {
   double? countryCodeNumberInputWidth;
 
   factory PhoneNumber.fromMap(Map<String, dynamic> json) => PhoneNumber(
-        defaultNumber:
-            json["defaultNumber"] == null ? null : json["defaultNumber"],
-        fontSize: json["fontSize"] == null ? null : json["fontSize"],
-        countryPickerWidth: json["countryPickerWidth"] == null
-            ? null
-            : json["countryPickerWidth"],
-        countryPickerHeight: json["countryPickerHeight"] == null
-            ? null
-            : json["countryPickerHeight"],
-        countryCodeInputWidth: json["countryCodeInputWidth"] == null
-            ? null
-            : json["countryCodeInputWidth"],
-        countryCodeInputHeight: json["countryCodeInputHeight"] == null
-            ? null
-            : json["countryCodeInputHeight"],
-        countryCodeNumberInputHeight:
-            json["countryCodeNumberInputHeight"] == null
-                ? null
-                : json["countryCodeNumberInputHeight"],
-        countryCodeNumberInputWidth: json["countryCodeNumberInputWidth"] == null
-            ? null
-            : json["countryCodeNumberInputWidth"],
+        defaultNumber: json["defaultNumber"],
+        fontSize: json["fontSize"],
+        countryPickerWidth: json["countryPickerWidth"],
+        countryPickerHeight: json["countryPickerHeight"],
+        countryCodeInputWidth: json["countryCodeInputWidth"],
+        countryCodeInputHeight: json["countryCodeInputHeight"],
+        countryCodeNumberInputHeight: json["countryCodeNumberInputHeight"],
+        countryCodeNumberInputWidth: json["countryCodeNumberInputWidth"],
       );
 
   Map<String, dynamic> toMap() => {
-        "defaultNumber": defaultNumber == null ? null : defaultNumber,
-        "fontSize": fontSize == null ? null : fontSize,
-        "countryPickerWidth":
-            countryPickerWidth == null ? null : countryPickerWidth,
-        "countryPickerHeight":
-            countryPickerHeight == null ? null : countryPickerHeight,
-        "countryCodeInputWidth":
-            countryCodeInputWidth == null ? null : countryCodeInputWidth,
-        "countryCodeInputHeight":
-            countryCodeInputHeight == null ? null : countryCodeInputHeight,
-        "countryCodeNumberInputHeight": countryCodeNumberInputHeight == null
-            ? null
-            : countryCodeNumberInputHeight,
-        "countryCodeNumberInputWidth": countryCodeNumberInputWidth == null
-            ? null
-            : countryCodeNumberInputWidth,
+        "defaultNumber": defaultNumber,
+        "fontSize": fontSize,
+        "countryPickerWidth": countryPickerWidth,
+        "countryPickerHeight": countryPickerHeight,
+        "countryCodeInputWidth": countryCodeInputWidth,
+        "countryCodeInputHeight": countryCodeInputHeight,
+        "countryCodeNumberInputHeight": countryCodeNumberInputHeight,
+        "countryCodeNumberInputWidth": countryCodeNumberInputWidth,
       };
 }
 
@@ -345,25 +303,15 @@ class Question {
   double? questionDescriptionFontSize;
 
   factory Question.fromMap(Map<String, dynamic> json) => Question(
-        questionNumberFontSize: json["questionNumberFontSize"] == null
-            ? null
-            : json["questionNumberFontSize"],
-        questionHeadingFontSize: json["questionHeadingFontSize"] == null
-            ? null
-            : json["questionHeadingFontSize"],
-        questionDescriptionFontSize: json["questionDescriptionFontSize"] == null
-            ? null
-            : json["questionDescriptionFontSize"],
+        questionNumberFontSize: json["questionNumberFontSize"],
+        questionHeadingFontSize: json["questionHeadingFontSize"],
+        questionDescriptionFontSize: json["questionDescriptionFontSize"],
       );
 
   Map<String, dynamic> toMap() => {
-        "questionNumberFontSize":
-            questionNumberFontSize == null ? null : questionNumberFontSize,
-        "questionHeadingFontSize":
-            questionHeadingFontSize == null ? null : questionHeadingFontSize,
-        "questionDescriptionFontSize": questionDescriptionFontSize == null
-            ? null
-            : questionDescriptionFontSize,
+        "questionNumberFontSize": questionNumberFontSize,
+        "questionHeadingFontSize": questionHeadingFontSize,
+        "questionDescriptionFontSize": questionDescriptionFontSize,
       };
 }
 
@@ -375,11 +323,11 @@ class SkipButton {
   double? fontSize;
 
   factory SkipButton.fromMap(Map<String, dynamic> json) => SkipButton(
-        fontSize: json["fontSize"] == null ? null : json["fontSize"],
+        fontSize: json["fontSize"],
       );
 
   Map<String, dynamic> toMap() => {
-        "fontSize": fontSize == null ? null : fontSize,
+        "fontSize": fontSize,
       };
 }
 
@@ -395,54 +343,47 @@ class NextButton {
   double? iconSize;
 
   factory NextButton.fromMap(Map<String, dynamic> json) => NextButton(
-        fontSize: json["fontSize"] == null ? null : json["fontSize"],
-        width: json["width"] == null ? null : json["width"],
-        iconSize: json["iconSize"] == null ? null : json["iconSize"],
+        fontSize: json["fontSize"],
+        width: json["width"],
+        iconSize: json["iconSize"],
       );
 
   Map<String, dynamic> toMap() => {
-        "fontSize": fontSize == null ? null : fontSize,
-        "width": width == null ? null : width,
-        "iconSize": iconSize == null ? null : iconSize,
+        "fontSize": fontSize,
+        "width": width,
+        "iconSize": iconSize,
       };
 }
 
 class Rating {
   Rating({
-    this.showNumber,
+    this.hasNumber,
     this.customRatingSvgUnselected,
     this.customRatingSvgSelected,
     this.svgHeight,
     this.svgWidth,
   });
 
-  bool? showNumber;
+  bool? hasNumber;
   String? customRatingSvgUnselected;
   String? customRatingSvgSelected;
   double? svgHeight;
   double? svgWidth;
 
   factory Rating.fromMap(Map<String, dynamic> json) => Rating(
-        showNumber: json["showNumber"] == null ? null : json["showNumber"],
-        customRatingSvgUnselected: json["customRatingSVGUnselected"] == null
-            ? null
-            : json["customRatingSVGUnselected"],
-        customRatingSvgSelected: json["customRatingSVGSelected"] == null
-            ? null
-            : json["customRatingSVGSelected"],
-        svgHeight: json["svgHeight"] == null ? null : json["svgHeight"],
-        svgWidth: json["svgWidth"] == null ? null : json["svgWidth"],
+        hasNumber: json["hasNumber"],
+        customRatingSvgUnselected: json["customRatingSVGUnselected"],
+        customRatingSvgSelected: json["customRatingSVGSelected"],
+        svgHeight: json["svgHeight"],
+        svgWidth: json["svgWidth"],
       );
 
   Map<String, dynamic> toMap() => {
-        "showNumber": showNumber == null ? null : showNumber,
-        "customRatingSVGUnselected": customRatingSvgUnselected == null
-            ? null
-            : customRatingSvgUnselected,
-        "customRatingSVGSelected":
-            customRatingSvgSelected == null ? null : customRatingSvgSelected,
-        "svgHeight": svgHeight == null ? null : svgHeight,
-        "svgWidth": svgWidth == null ? null : svgWidth,
+        "hasNumber": hasNumber,
+        "customRatingSVGUnselected": customRatingSvgUnselected,
+        "customRatingSVGSelected": customRatingSvgSelected,
+        "svgHeight": svgHeight,
+        "svgWidth": svgWidth,
       };
 }
 
@@ -454,8 +395,8 @@ class YesOrNo {
     this.outerContainerHeight,
     this.fontSize,
     this.circleFontIndicatorSize,
-    this.customSvgStringSelected,
-    this.customSvgStringUnSelected,
+    this.customSvgSelected,
+    this.customSvgUnSelected,
   });
 
   double? svgWidth;
@@ -464,44 +405,28 @@ class YesOrNo {
   double? outerContainerHeight;
   double? fontSize;
   double? circleFontIndicatorSize;
-  String? customSvgStringSelected;
-  String? customSvgStringUnSelected;
+  String? customSvgSelected;
+  String? customSvgUnSelected;
 
   factory YesOrNo.fromMap(Map<String, dynamic> json) => YesOrNo(
-        svgWidth: json["svgWidth"] == null ? null : json["svgWidth"],
-        svgHeight: json["svgHeight"] == null ? null : json["svgHeight"],
-        outerContainerWidth: json["outerContainerWidth"] == null
-            ? null
-            : json["outerContainerWidth"],
-        outerContainerHeight: json["outerContainerHeight"] == null
-            ? null
-            : json["outerContainerHeight"],
-        fontSize: json["fontSize"] == null ? null : json["fontSize"],
-        circleFontIndicatorSize: json["circleFontIndicatorSize"] == null
-            ? null
-            : json["circleFontIndicatorSize"],
-        customSvgStringSelected: json["customSvgStringSelected"] == null
-            ? null
-            : json["customSvgStringSelected"],
-        customSvgStringUnSelected: json["customSvgStringUnSelected"] == null
-            ? null
-            : json["customSvgStringUnSelected"],
+        svgWidth: json["svgWidth"],
+        svgHeight: json["svgHeight"],
+        outerContainerWidth: json["outerContainerWidth"],
+        outerContainerHeight: json["outerContainerHeight"],
+        fontSize: json["fontSize"],
+        circleFontIndicatorSize: json["circleFontIndicatorSize"],
+        customSvgSelected: json["customSvgSelected"],
+        customSvgUnSelected: json["customSvgUnSelected"],
       );
 
   Map<String, dynamic> toMap() => {
-        "svgWidth": svgWidth == null ? null : svgWidth,
-        "svgHeight": svgHeight == null ? null : svgHeight,
-        "outerContainerWidth":
-            outerContainerWidth == null ? null : outerContainerWidth,
-        "outerContainerHeight":
-            outerContainerHeight == null ? null : outerContainerHeight,
-        "fontSize": fontSize == null ? null : fontSize,
-        "circleFontIndicatorSize":
-            circleFontIndicatorSize == null ? null : circleFontIndicatorSize,
-        "customSvgStringSelected":
-            customSvgStringSelected == null ? null : customSvgStringSelected,
-        "customSvgStringUnSelected": customSvgStringUnSelected == null
-            ? null
-            : customSvgStringUnSelected,
+        "svgWidth": svgWidth,
+        "svgHeight": svgHeight,
+        "outerContainerWidth": outerContainerWidth,
+        "outerContainerHeight": outerContainerHeight,
+        "fontSize": fontSize,
+        "circleFontIndicatorSize": circleFontIndicatorSize,
+        "customSvgSelected": customSvgSelected,
+        "customSvgUnSelected": customSvgUnSelected,
       };
 }

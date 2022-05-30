@@ -251,7 +251,6 @@ class _Page3State extends State<Page3> {
                 RatingStars(
                   value: value2,
                   onValueChanged: (v) {
-                    print("new rating is ${v}");
                     var ratingObj = CustomRating(
                         data: v.toInt(),
                         skipped: false,

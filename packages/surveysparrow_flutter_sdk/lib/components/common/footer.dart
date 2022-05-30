@@ -30,11 +30,19 @@ class _FooterSectionState extends State<FooterSection> {
 
   var luminanceValue = 0.5;
 
+  var customFont = null;
+
   @override
   void initState() {
     super.initState();
 
     luminanceValue = this.widget.theme!['backgroundColor'].computeLuminance();
+
+    if (this.widget.euiTheme != null) {
+      if (this.widget.euiTheme!['font'] != null) {
+        customFont = this.widget.euiTheme!['font'];
+      }    
+    }
 
     if (widget.euiTheme != null) {
       if (widget.euiTheme!['bottomSheet'] != null) {
@@ -79,9 +87,9 @@ class _FooterSectionState extends State<FooterSection> {
           collapseOnTextTap: true,
           maxLines: 1,
           linkColor: this.widget.theme!['questionNumberColor'],
-          linkStyle: TextStyle(decoration: TextDecoration.underline),
+          linkStyle: TextStyle(decoration: TextDecoration.underline,fontFamily: customFont),
           linkEllipsis: false,
-          style: TextStyle(color: this.widget.theme!['questionNumberColor'],fontSize: 14),
+          style: TextStyle(color: this.widget.theme!['questionNumberColor'],fontSize: 14,fontFamily: customFont),
         ),
       ),
     );

@@ -21,26 +21,15 @@ class _MyHomePageState extends State<MyHomePage2> {
           child: SurveyModal(
             domain: "sample.surveysparrow.com",
             token: "tt-3d4efc",
-            onSubmitCloseModalFunction: () {
-              Future.delayed(const Duration(milliseconds: 500), () {
-                Navigator.of(context).pop();
-              });
-            },
-            currentlyCollectedAnswers: (val) {
+            onNext: (val) {
               print("Answers that has been collected so far ${val}");
             },
-            allCollectedAnswers: (val) {
+            onSubmit: (val) {
               print("All the answers that was collected is ${val}");
             },
-            firstQuestionAnswer: 2,
-            euiTheme: CustomSurveyTheme(
+            customSurveyTheme: CustomSurveyTheme(
               font: "Antons",
               bottomBar: BottomBar(
-                brandingLogoHeight: 20.0,
-                brandingLogoWidth: 20.0,
-                customBrandingLogo:
-                    '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.656 15.75H6.344a1.688 1.688 0 0 1-1.683-1.558l-.723-9.41h10.124l-.723 9.41a1.687 1.687 0 0 1-1.683 1.558v0ZM15 4.781H3M6.89 2.25h4.22a.844.844 0 0 1 .843.844V4.78H6.047V3.094a.844.844 0 0 1 .844-.844v0Zm.61 10.5h3" stroke="#EC6772" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-                showPadding: false,
               ),
               skipButton: SkipButton(fontSize: 20.0),
               nextButton: NextButton(
@@ -60,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage2> {
                     '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.656 15.75H6.344a1.688 1.688 0 0 1-1.683-1.558l-.723-9.41h10.124l-.723 9.41a1.687 1.687 0 0 1-1.683 1.558v0ZM15 4.781H3M6.89 2.25h4.22a.844.844 0 0 1 .843.844V4.78H6.047V3.094a.844.844 0 0 1 .844-.844v0Zm.61 10.5h3" stroke="#EC6772" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
                 svgHeight: 20.0,
                 svgWidth: 20.0,
-                showNumber: false,
+                hasNumber: false,
               ),
               yesOrNo: YesOrNo(
                 circleFontIndicatorSize: 20.0,

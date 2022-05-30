@@ -301,7 +301,7 @@ class _RatingQuestionState extends State<RatingQuestion> {
                   opacity: widget1Opacity,
                   duration: const Duration(milliseconds: 200),
                   child: Text(
-                    showNumber ? (index + 1).toString() : '',
+                    hasNumber ? (index + 1).toString() : '',
                     style:
                         TextStyle(color: this.theme['decodedOpnionLabelColor']),
                   ),
@@ -329,7 +329,7 @@ class _RatingQuestionState extends State<RatingQuestion> {
                 opacity: widget1Opacity,
                 duration: const Duration(milliseconds: 200),
                 child: Text(
-                  showNumber ? (index + 1).toString() : '',
+                  hasNumber ? (index + 1).toString() : '',
                   style:
                       TextStyle(color: this.theme['decodedOpnionLabelColor']),
                 ),
@@ -366,7 +366,7 @@ class _RatingQuestionState extends State<RatingQuestion> {
                   opacity: widget1Opacity,
                   duration: const Duration(milliseconds: 200),
                   child: Text(
-                    showNumber ? (index + 1).toString() : '',
+                    hasNumber ? (index + 1).toString() : '',
                     style:
                         TextStyle(color: this.theme['decodedOpnionLabelColor']),
                   ),
@@ -402,7 +402,7 @@ class _RatingQuestionState extends State<RatingQuestion> {
                 opacity: widget1Opacity,
                 duration: const Duration(milliseconds: 200),
                 child: Text(
-                  showNumber ? (index + 1).toString() : '',
+                  hasNumber ? (index + 1).toString() : '',
                   style:
                       TextStyle(color: this.theme['decodedOpnionLabelColor']),
                 ),
@@ -417,7 +417,7 @@ class _RatingQuestionState extends State<RatingQuestion> {
     }
   }
 
-  bool showNumber = true;
+  bool hasNumber = true;
   var customSvgSelected = null;
   var svgHeight = 42.0;
   var svgWidth = 42.0;
@@ -427,8 +427,8 @@ class _RatingQuestionState extends State<RatingQuestion> {
     super.initState();
     if (this.widget.euiTheme != null) {
       if (this.widget.euiTheme!['rating'] != null) {
-        if (this.widget.euiTheme!['rating']['showNumber'] != null) {
-          showNumber = this.widget.euiTheme!['rating']['showNumber'];
+        if (this.widget.euiTheme!['rating']['hasNumber'] != null) {
+          hasNumber = this.widget.euiTheme!['rating']['hasNumber'];
         }
         if (this.widget.euiTheme!['rating']['customRatingSVGUnselected'] != null) {
           customSvg = this.widget.euiTheme!['rating']['customRatingSVGUnselected'];

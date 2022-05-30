@@ -152,6 +152,7 @@ class _ColumnPhoneState extends State<ColumnPhone> {
               : true,
           showSubmit: isLastQuestion == true ? true : false,
           onClickNext: () {
+            FocusScope.of(context).requestFocus(new FocusNode());
             final phoneParser =
                 PhoneNumber.fromCountryCode(_countryCode, _phoneNumber)
                     .validate();
@@ -180,6 +181,7 @@ class _ColumnPhoneState extends State<ColumnPhone> {
             }
           },
           theme: theme,
+          euiTheme: this.widget.euiTheme,
         )
       ],
     );
@@ -228,8 +230,9 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
   Function handleCountryCodeSubmit;
   final Map<dynamic, dynamic> theme;
   bool erroredInput;
-  Country _selectedDialogCountry =
-      CountryPickerUtils.getCountryByPhoneCode('91');
+  var initalCountryCode = "91";
+  late Country _selectedDialogCountry;
+
   TextEditingController ContryCodeInputController = new TextEditingController();
   TextEditingController PhoneInputController = new TextEditingController();
 
@@ -244,9 +247,20 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
   double countryCodeNumberInputHeight = 50.0;
   double countryCodeNumberInputWidth = 48.w;
 
+  var customFont = null;
+
   @override
   initState() {
     super.initState();
+
+    _selectedDialogCountry =
+        CountryPickerUtils.getCountryByPhoneCode(initalCountryCode);
+
+    if (this.widget.euiTheme != null) {
+      if (this.widget.euiTheme!['font'] != null) {
+        customFont = this.widget.euiTheme!['font'];
+      }    
+    }
 
     if (this.widget.euiTheme!['phoneNumber'] != null) {
       if (this.widget.euiTheme!['phoneNumber']['fontSize'] != null) {
@@ -298,10 +312,6 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
           CountryPickerUtils.getCountryByPhoneCode(phoneCode);
       this.handleCountryCodeSubmit(phoneCode);
       this.handlePhoneNumberSubmit(number);
-
-      // setState(() {
-      //   _selectedOption = convertBoolToIndex(this.answer[this.question['id']]);
-      // });
     } else {
       if (this.widget.euiTheme != null) {
         if (this.widget.euiTheme!['phoneNumber'] != null) {
@@ -312,12 +322,23 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
                 this.widget.euiTheme!['phoneNumber']['defaultNumber']);
             this.handleCountryCodeSubmit(
                 this.widget.euiTheme!['phoneNumber']['defaultNumber']);
+          } else {
+            ContryCodeInputController.text = '+${initalCountryCode}';
+            _selectedDialogCountry =
+                CountryPickerUtils.getCountryByPhoneCode(initalCountryCode);
+            this.handleCountryCodeSubmit(initalCountryCode);
           }
+        } else {
+          ContryCodeInputController.text = '+${initalCountryCode}';
+          _selectedDialogCountry =
+              CountryPickerUtils.getCountryByPhoneCode(initalCountryCode);
+          this.handleCountryCodeSubmit(initalCountryCode);
         }
       } else {
-        ContryCodeInputController.text = '+91';
-        _selectedDialogCountry = CountryPickerUtils.getCountryByPhoneCode('91');
-        this.handleCountryCodeSubmit('91');
+        ContryCodeInputController.text = '+${initalCountryCode}';
+        _selectedDialogCountry =
+            CountryPickerUtils.getCountryByPhoneCode(initalCountryCode);
+        this.handleCountryCodeSubmit(initalCountryCode);
       }
     }
   }
@@ -350,9 +371,9 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
         context: context,
         builder: (context) => CountryPickerDialog(
           titlePadding: EdgeInsets.all(8.0),
-          searchInputDecoration: InputDecoration(hintText: 'Search...'),
+          searchInputDecoration: InputDecoration(hintText: 'Search...',hintStyle:TextStyle(fontFamily: customFont)),
           isSearchable: true,
-          title: Text('Select your phone code'),
+          title: Text('Select your phone code',style: TextStyle(fontFamily: customFont),),
           onValuePicked: (Country country) {
             ContryCodeInputController.text = '+${country.phoneCode}';
             setState(() => _selectedDialogCountry = country);
@@ -379,7 +400,7 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
                 },
                 child: Container(
                   color: this.theme['decodedOpnionBackgroundColorUnSelected'],
-                  constraints: BoxConstraints(maxWidth: 65),
+                  // constraints: BoxConstraints(maxWidth: 65),
                   width: countryPickerWidth,
                   height: countryPickerHeight,
                   padding: EdgeInsets.all(10),
@@ -439,7 +460,7 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
                     ),
                     hintText: "Phone Number",
                     hintStyle:
-                        TextStyle(color: this.theme['questionNumberColor']),
+                        TextStyle(color: this.theme['questionNumberColor'],fontFamily: customFont),
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(
                         color: this.theme['questionDescriptionColor'],
@@ -460,7 +481,7 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
                 ),
                 Text(
                   "The phone number isn't valid",
-                  style: TextStyle(color: Colors.red, fontSize: 10),
+                  style: TextStyle(color: Colors.red, fontSize: 10,fontFamily: customFont),
                 ),
               ]
             ],

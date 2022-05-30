@@ -16,6 +16,7 @@ class MultiChoice extends StatefulWidget {
   final bool isLastQuestion;
   final Function submitData;
   final Map<dynamic, dynamic>? euiTheme;
+  final Function toggleNextButtonBlock;
 
   const MultiChoice({
     Key? key,
@@ -28,6 +29,7 @@ class MultiChoice extends StatefulWidget {
     required this.isLastQuestion,
     required this.submitData,
     this.euiTheme,
+    required this.toggleNextButtonBlock,
   }) : super(key: key);
 
   @override
@@ -59,6 +61,8 @@ class _MultiChoiceState extends State<MultiChoice> {
   var inputErrorMsg = "Please select 1 or more choice";
   var inputErrorType = -1;
 
+  var otherInputDisabled = false;
+
   _MultiChoiceState({
     required this.func,
     required this.answer,
@@ -88,12 +92,22 @@ class _MultiChoiceState extends State<MultiChoice> {
     if (this.answer['${this.question['id']}_other'] != null) {
       hasOtherInputText = this.answer['${this.question['id']}_other'];
       hasNextButton = this.question['multipleAnswers'];
+      if (_selectedOptions.contains(otherInputId)) {
+        if (this.answer['${this.question['id']}_other'] == "") {
+          this.widget.toggleNextButtonBlock(true);
+          otherInputDisabled = true;
+        } else {
+          this.widget.toggleNextButtonBlock(false);
+          otherInputDisabled = false;
+        }
+      }
     } else {
       hasNextButton = this.question['multipleAnswers'];
     }
 
     if (this.answer[this.question['id']] != null) {
       _selectedOptions = this.answer[this.question['id']];
+      checkIfSelectedOptionsValid();
     }
   }
 
@@ -101,6 +115,7 @@ class _MultiChoiceState extends State<MultiChoice> {
     setState(() {
       _selectedOptions = options;
     });
+    checkIfSelectedOptionsValid();
   }
 
   setShowNextButton(val) {
@@ -114,6 +129,19 @@ class _MultiChoiceState extends State<MultiChoice> {
 
   setOtherTextInput(val) {
     hasOtherInputText = val;
+    if (_selectedOptions.contains(otherInputId)) {
+      if (val == "") {
+        this.widget.toggleNextButtonBlock(true);
+        setState(() {
+          otherInputDisabled = true;
+        });
+      } else {
+        this.widget.toggleNextButtonBlock(false);
+        setState(() {
+          otherInputDisabled = false;
+        });
+      }
+    }
   }
 
   setChoiceError(error, msg) {
@@ -124,6 +152,42 @@ class _MultiChoiceState extends State<MultiChoice> {
       });
     } else {
       inputError = false;
+    }
+  }
+
+  checkIfSelectedOptionsValid() {
+    print(
+        "called here tap ${_selectedOptions.contains(otherInputId)} ${hasOtherInputText}");
+
+    if (otherInputId != -1 && !_selectedOptions.contains(otherInputId)) {
+      this.widget.toggleNextButtonBlock(false);
+      setState(() {
+        otherInputDisabled = false;
+      });
+    }
+
+    if (this.question['properties']['data']['type'] == 'EXACT') {
+      if (_selectedOptions.length ==
+          int.parse(this.question['properties']['data']['exactChoices'])) {
+        // set blocked false
+        this.widget.toggleNextButtonBlock(false);
+      } else {
+        // set blocked true
+        this.widget.toggleNextButtonBlock(true);
+      }
+    } else if (this.question['properties']['data']['type'] == 'RANGE') {
+      if (_selectedOptions.length >=
+              int.parse(this.question['properties']['data']['minLimit']) &&
+          _selectedOptions.length <=
+              int.parse(this.question['properties']['data']['maxLimit'])) {
+        this.widget.toggleNextButtonBlock(false);
+        // set blocked false
+      } else {
+        // set blocked true
+        this.widget.toggleNextButtonBlock(true);
+      }
+    } else {
+      this.widget.toggleNextButtonBlock(false);
     }
   }
 
@@ -155,11 +219,16 @@ class _MultiChoiceState extends State<MultiChoice> {
               inputError: inputError,
               inputErrorMsg: inputErrorMsg,
               euiTheme: this.widget.euiTheme,
+              toggleNextButtonBlock: this.widget.toggleNextButtonBlock,
             ),
             const SizedBox(height: 30),
             SkipAndNextButtons(
               key: UniqueKey(),
-              disabled: _selectedOptions.length > 0 ? false : true,
+              disabled: otherInputDisabled == true
+                  ? true
+                  : _selectedOptions.length > 0
+                      ? false
+                      : true,
               showNext: hasNextButton || this.widget.isLastQuestion,
               showSkip:
                   (this.question['required'] || this.widget.isLastQuestion)
@@ -194,8 +263,8 @@ class _MultiChoiceState extends State<MultiChoice> {
                         otherInputText: hasOtherInputText);
                     setChoiceError(false, "");
                   } else {
-                    setChoiceError(
-                        true, "Please select choices between a range");
+                    setChoiceError(true,
+                        "Please select choices between ${int.parse(this.question['properties']['data']['minLimit'])} and ${int.parse(this.question['properties']['data']['maxLimit'])} ");
                   }
                 } else {
                   if (_selectedOptions.length > 0) {
@@ -213,6 +282,7 @@ class _MultiChoiceState extends State<MultiChoice> {
                 }
               },
               onClickSkip: () {
+                this.widget.toggleNextButtonBlock(false);
                 this.func(null, question['id']);
               },
               theme: theme,
@@ -237,6 +307,7 @@ class MultipleChoiceRow extends StatefulWidget {
   final bool inputError;
   final String inputErrorMsg;
   final Map<dynamic, dynamic>? euiTheme;
+  final Function toggleNextButtonBlock;
 
   MultipleChoiceRow({
     Key? key,
@@ -250,6 +321,7 @@ class MultipleChoiceRow extends StatefulWidget {
     required this.inputError,
     required this.inputErrorMsg,
     this.euiTheme,
+    required this.toggleNextButtonBlock,
   }) : super(key: key);
 
   @override
@@ -269,7 +341,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
   final Map<dynamic, dynamic> theme;
   var _selectedOption = [];
   var choiceToUpdateIs = [];
-  bool _isRadioSelected = false;
+
   var luminanceValue = 0.5;
   var isMultipleAnswer = false;
   var hasNoneOfOption = -1;
@@ -284,6 +356,8 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
   var hasNoneOfOptionJson = {};
   var hasAllOfOptionJson = {};
   var hasOtherOptionJson = {};
+
+  var isNextButtonBlocked = false;
 
   _MultipleChoiceRowState({
     required this.func,
@@ -303,9 +377,19 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
   var otherOptionTextFieldWidth;
   double otherOptionTextFontSize = 20.0;
 
+  var multipleChoiceChoices = [];
+
+  var shuffle = false;
+
   @override
   initState() {
     super.initState();
+
+    isNextButtonBlocked = false;
+
+    if(this.question['randomized'] != null){
+      shuffle = this.question['randomized'];
+    }
 
     if (this.widget.euiTheme != null) {
       if (this.widget.euiTheme!['font'] != null) {
@@ -370,6 +454,26 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
       initilizeChoices(question['choices'][i], question['choices'][i]['id']);
     }
 
+    var jumbledArray = [];
+    var normalChoices = [];
+    var specialChoices = [];
+
+  //     var hasNoneOfOption = -1;
+  // var hasAllOfOption = -1;
+  // var hasOtherOption = -1;
+    for(var i = 0;i< question['choices'].length;i++){
+      if(question['choices'][i]['id'] == hasAllOfOption || question['choices'][i]['id'] == hasNoneOfOption || question['choices'][i]['id'] == hasOtherOption){
+        specialChoices.add(question['choices'][i]);
+      }
+      else{
+        normalChoices.add(question['choices'][i]);
+      }
+    }
+    if(shuffle){
+      normalChoices.shuffle();
+    }    
+
+    multipleChoiceChoices = [...normalChoices,...specialChoices];
     if (this.answer[this.question['id']] != null) {
       setState(() {
         _selectedOption = this.answer[this.question['id']];
@@ -495,6 +599,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
         _selectedOption = multiSelected;
       });
       this.widget.setSelectedOptions!(multiSelected);
+      this.func(multiSelected, question['id'], changePage: false);
     }
   }
 
@@ -507,6 +612,8 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
       this.widget.setSelectedOptions!(currentSelectedOptions);
       if (isMultipleAnswer == false) {
         this.func(currentSelectedOptions, question['id']);
+      } else {
+        this.func(currentSelectedOptions, question['id'], changePage: false);
       }
     } else {
       var currentSelectedOptions = [..._selectedOption];
@@ -518,6 +625,8 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
       this.widget.setSelectedOptions!(currentSelectedOptions);
       if (isMultipleAnswer == false) {
         this.func(currentSelectedOptions, question['id']);
+      } else {
+        this.func(currentSelectedOptions, question['id'], changePage: false);
       }
     }
   }
@@ -552,29 +661,40 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
     final bool useMobileLayout = shortestSide < 600;
     List<Widget> list = List<Widget>.empty(growable: true);
     var charc = 65;
-    for (var i = 0; i < question['choices'].length; i++) {
+    for (var i = 0; i < multipleChoiceChoices.length; i++) {
       list.add(
         GestureDetector(
           onTap: () {
+            // handle here block
+            // if(isNextButtonBlocked == false ){
+            //   isNextButtonBlocked = true;
+            //   this.widget.toggleNextButtonBlock(true);
+            // }
+
             var isNoneAboveChoice = hasNoneOfOption == -1 ? false : true;
             choiceToUpdateIs = [];
-            choiceToUpdateIs.add(question['choices'][i]['id']);
+            choiceToUpdateIs.add(multipleChoiceChoices[i]['id']);
 
             var choicePresent =
-                _selectedOption.contains(question['choices'][i]['id']);
+                _selectedOption.contains(multipleChoiceChoices[i]['id']);
 
             if (choicePresent) {
-              removeChoice(question['choices'][i]['id']);
+              removeChoice(multipleChoiceChoices[i]['id']);
             } else {
               updateChoice(choiceToUpdateIs, isNoneAboveChoice);
             }
+
+            if (multipleChoiceChoices[i]['id'] == hasOtherOption) {}
+            this.widget.setOtherTextInput!(inputController.text);
+            print(
+                "choice val is ${multipleChoiceChoices[i]['id']} ${hasOtherOption} ");
           },
           child: Container(
             constraints: BoxConstraints(
                 maxHeight: choiceContainerHeight,
                 maxWidth: choiceContainerWidth),
             decoration: BoxDecoration(
-              color: _selectedOption.contains(question['choices'][i]['id'])
+              color: _selectedOption.contains(multipleChoiceChoices[i]['id'])
                   ? this.theme['decodedOpnionBackgroundColorSelected']
                   : this.theme['decodedOpnionBackgroundColorUnSelected'],
               border: Border.all(
@@ -590,7 +710,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(question['choices'][i]['txt'],
+                    Text(multipleChoiceChoices[i]['txt'],
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: customFont,
@@ -598,7 +718,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
                           fontSize: fontSize,
                           fontWeight: FontWeight.w400,
                           color: _selectedOption
-                                  .contains(question['choices'][i]['id'])
+                                  .contains(multipleChoiceChoices[i]['id'])
                               ? luminanceValue > 0.5
                                   ? Colors.black
                                   : Colors.white
@@ -710,14 +830,5 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
         ],
       ),
     );
-
-    // Wrap(
-    //   crossAxisAlignment: WrapCrossAlignment.center,
-    //   alignment: WrapAlignment.center,
-    //   spacing: 10,
-    //   runSpacing: 10,
-    //   direction: Axis.vertical,
-    //   children: [...list],
-    // );
   }
 }

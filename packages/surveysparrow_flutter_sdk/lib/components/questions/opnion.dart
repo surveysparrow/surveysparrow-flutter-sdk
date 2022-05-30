@@ -147,11 +147,15 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
   var _start;
   var _mid;
   var _end;
+  var _step;
   var luminanceValue = 0.5;
   var reversedOrder = false;
   var startLabel;
   var midLabel;
   var endLabel;
+
+  var runSpacing = 5.0;
+  var positionedLabelTopValue = -8.0;
 
   int _selectedOption = -1;
   _OpnionScaleQuestionState({
@@ -173,8 +177,10 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
     _start = start;
     var totalOptions = start == 0 ? step + 1 : step;
 
-    _mid = totalOptions % 2 == 0 ? -1 : ((totalOptions - 1) / 2).round();
+    _mid = totalOptions % 2 == 0 ? -1 : ((start == 0 ? totalOptions - 1 : totalOptions) / 2).ceil();
     _end = step;
+
+    _step = start == 0 ? step + 1 : step;
   }
 
   var customFont = null ;
@@ -217,6 +223,12 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
         if(this.widget.euiTheme!['opnionScale']['numberFontSize'] != null ){
           numberFontSize = this.widget.euiTheme!['opnionScale']['numberFontSize'];
         }
+        if(this.widget.euiTheme!['opnionScale']['runSpacing'] != null ){
+          runSpacing = this.widget.euiTheme!['opnionScale']['runSpacing'];
+        }
+        if(this.widget.euiTheme!['opnionScale']['positionedLabelTopValue'] != null ){
+          positionedLabelTopValue = this.widget.euiTheme!['opnionScale']['positionedLabelTopValue'];
+        }
       }
 
     }
@@ -253,27 +265,32 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
     }
   }
 
+  transformLabel(text){
+    var value = text.length > 12 ? '${text.substring(0, 12)}..' : text;
+    return value;
+  }
+
   generateOpmionBlock(val, isSelectedOption) {
     return Container(
       width: opnionBlockSizeWidth,
       height: opnionBlockSizeHeight,
       margin:
-          val == 0 ? EdgeInsets.only(left: 0.0) : EdgeInsets.only(left: 0.0),
+        _step == 3 ?  val == 0 ? EdgeInsets.only(left: 0.0) : EdgeInsets.only(right: 30.0):null,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           if (val == _start) ...[
             Positioned(
-              top: -8,
+              top: positionedLabelTopValue,
               left: -1,
               child: Container(
                   child: Text(
-                reversedOrder ? endLabel : startLabel,
+                reversedOrder ? transformLabel(endLabel) : transformLabel(startLabel),
                 style: TextStyle(
                   decoration: TextDecoration.none,
                   fontSize: opnionLabelFontSize,
                   fontWeight: FontWeight.w400,
-                  overflow: TextOverflow.ellipsis,
+                  // overflow: TextOverflow.ellipsis,
                   // color: Color.fromRGBO(67, 67, 67, 1),
                   color: this.theme['decodedOpnionLabelColor'],
                   fontFamily: customFont,
@@ -281,14 +298,14 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
               )),
             ),
           ]
-          // possible style change can be changing the right to -1 and -8 depending on the width
+          // possible style change can be changing the right to -1 and positionedLabelTopValue depending on the width
           else if (val == _mid) ...[
             Positioned(
-                top: -8,
+                top: positionedLabelTopValue,
                 left: -1,
                 child: Container(
                   child: Text(
-                    midLabel,
+                    transformLabel(midLabel),
                     style: TextStyle(
                       decoration: TextDecoration.none,
                       fontSize: opnionLabelFontSize,
@@ -301,11 +318,11 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
                 )),
           ] else if (val == _end) ...[
             Positioned(
-              top: -8,
+              top: positionedLabelTopValue,
               left: -1,
               child: Container(
                 child: Text(
-                  reversedOrder ? startLabel : endLabel,
+                  reversedOrder ? transformLabel(startLabel) : transformLabel(endLabel),
                   style: TextStyle(
                     decoration: TextDecoration.none,
                     fontSize: opnionLabelFontSize,
@@ -399,8 +416,8 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
     return Container(
       child: Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
-        alignment: useMobileLayout ? WrapAlignment.center : WrapAlignment.start,
-        runSpacing: 5,
+        alignment: WrapAlignment.center,
+        runSpacing: runSpacing,
         direction: Axis.horizontal,
         children: [...list],
       ),

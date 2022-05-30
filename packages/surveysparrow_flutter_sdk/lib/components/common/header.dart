@@ -28,25 +28,41 @@ class _HeaderSectionState extends State<HeaderSection> {
 
   var luminanceValue = 0.5;
 
+  var bannerHeight = 60.0;
+  var fontSize = 14.0;
+  var logoHeight = 120.0;
+  var logoWidth = 120.0;
+
+  var customFont = null;
+
   @override
   void initState() {
     super.initState();
 
-    luminanceValue = this.widget.theme!['backgroundColor'].computeLuminance();
+    luminanceValue = widget.theme!['backgroundColor'].computeLuminance();
+
+    if (this.widget.euiTheme != null) {
+      if (this.widget.euiTheme!['font'] != null) {
+        customFont = this.widget.euiTheme!['font'];
+      }    
+    }
 
     if (widget.euiTheme != null) {
-      if (widget.euiTheme!['bottomSheet'] != null) {
-        if (widget.euiTheme!['bottomSheet']['showPadding'] != null) {
-          showPadding = widget.euiTheme!['bottomSheet']['showPadding'];
+      if (widget.euiTheme!['logo'] != null) {
+        if (widget.euiTheme!['logo']['bannerHeight'] != null) {
+          bannerHeight = widget.euiTheme!['logo']['bannerHeight'];
         }
-        if (widget.euiTheme!['bottomSheet']['direction'] != null) {
-          if (widget.euiTheme!['bottomSheet']['direction'] == "horizontal") {
-            isVertical = true;
-          }
+        
+        if (widget.euiTheme!['logo']['fontSize'] != null) {
+          fontSize = widget.euiTheme!['logo']['fontSize'];
         }
-        if (widget.euiTheme!['bottomSheet']['navigationButtonSize'] != null) {
-          navigationButtonSize =
-              widget.euiTheme!['bottomSheet']['navigationButtonSize'];
+
+        if (widget.euiTheme!['logo']['logoHeight'] != null) {
+          logoHeight = widget.euiTheme!['logo']['logoHeight'];
+        }
+
+        if (widget.euiTheme!['logo']['logoWidth'] != null) {
+          logoWidth = widget.euiTheme!['logo']['logoWidth'];
         }
       }
     }
@@ -55,37 +71,40 @@ class _HeaderSectionState extends State<HeaderSection> {
   _HeaderSectionState({this.onClickNext, this.onClickPrevious});
   @override
   Widget build(BuildContext context) {
-    var bottomPadding = window.viewPadding.bottom;
-    var textWidget = Text(this.widget.theme!['headerText'],
+    var textWidget = Text(widget.theme!['headerText'],
         style: TextStyle(
           decoration: TextDecoration.none,
-          fontSize: 14,
+          fontSize: fontSize,
           fontWeight: FontWeight.bold,
           color: luminanceValue > 0.5 ? Colors.black : Colors.white,
+          fontFamily: customFont
         )
         // fontFamily: customFont),
         );
 
     return Container(
       decoration: BoxDecoration(
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
               offset: Offset(1, 2),
               blurRadius: 6,
               color: Color.fromRGBO(38, 38, 39, 0.12))
         ],
-        color: this.widget.theme!['backgroundColor'],
+        color: widget.theme!['backgroundColor'],
       ),
-      height: 60,
+      height: bannerHeight,
       width: double.maxFinite,
       child: Center(
-        child: this.widget.theme!['headerLogoUrl'] == "none"
+        child: widget.theme!['headerLogoUrl'] == "none"
             ? textWidget
             : Container(
-              height: 120,
-              width: 120,
+                height: logoHeight,
+                width: logoWidth,
                 margin: EdgeInsets.only(top: 4.0, bottom: 4.0),
-                child: Image.network(this.widget.theme!['headerLogoUrl'],fit: BoxFit.contain,),
+                child: Image.network(
+                  widget.theme!['headerLogoUrl'],
+                  fit: BoxFit.contain,
+                ),
               ),
       ),
     );

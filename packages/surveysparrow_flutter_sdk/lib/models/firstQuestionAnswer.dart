@@ -4,46 +4,55 @@
 
 import 'dart:convert';
 
-FirstQuestionAnswer firstQuestionAnswerFromMap(String str) => FirstQuestionAnswer.fromMap(json.decode(str));
+import 'package:surveysparrow_flutter_sdk/models/answer.dart';
 
-String firstQuestionAnswerToMap(FirstQuestionAnswer data) => json.encode(data.toMap());
+String firstQuestionAnswerToMap(FirstQuestionAnswer data) =>
+    json.encode(data.toMap());
 
 class FirstQuestionAnswer {
-    FirstQuestionAnswer({
-        this.rating,
-        this.text,
-        this.opnionScale,
-        this.email,
-        this.yesOrNo,
-        this.phoneNumber,
-        this.multipleChoice,
-    });
+  FirstQuestionAnswer({
+    required this.pageNumber,
+    required this.answers,
+  });
 
-    int? rating;
-    String? text;
-    int? opnionScale;
-    String? email;
-    bool? yesOrNo;
-    String? phoneNumber;
-    List<int>? multipleChoice;
+  int pageNumber;
+  List<Answer> answers;
 
-    factory FirstQuestionAnswer.fromMap(Map<String, dynamic> json) => FirstQuestionAnswer(
-        rating: json["rating"] == null ? null : json["rating"],
-        text: json["text"] == null ? null : json["text"],
-        opnionScale: json["opnionScale"] == null ? null : json["opnionScale"],
-        email: json["email"] == null ? null : json["email"],
-        yesOrNo: json["yesOrNo"] == null ? null : json["yesOrNo"],
-        phoneNumber: json["phoneNumber"] == null ? null : json["phoneNumber"],
-        multipleChoice: json["multipleChoice"] == null ? null : List<int>.from(json["multipleChoice"].map((x) => x)),
-    );
+  Map<String, dynamic> toMap() => {
+        "pageNumber":
+            pageNumber == null ? null : pageNumber,
+        "answers": answers == null
+            ? null
+            : List<dynamic>.from(answers.map((x) => x.toMap())),
+      };
+}
 
-    Map<String, dynamic> toMap() => {
-        "rating": rating == null ? null : rating,
-        "text": text == null ? null : text,
-        "opnionScale": opnionScale == null ? null : opnionScale,
-        "email": email == null ? null : email,
-        "yesOrNo": yesOrNo == null ? null : yesOrNo,
-        "phoneNumber": phoneNumber == null ? null : phoneNumber,
-        "multipleChoice": multipleChoice == null ? null : List<dynamic>.from(multipleChoice!.map((x) => x)),
-    };
+class Answer {
+  Answer({
+    this.rating,
+    this.text,
+    this.opnionScale,
+    this.email,
+    this.yesOrNo,
+    this.phoneNumber,
+    this.multipleChoice,
+  });
+  CustomRating? rating;
+  CustomTextInput? text;
+  CustomOpinionScale? opnionScale;
+  CustomEmailInput? email;
+  CustomYesNo? yesOrNo;
+  CustomPhoneNumber? phoneNumber;
+  CustomMultiChoice? multipleChoice;
+
+  Map<String, dynamic> toMap() => {
+        "rating": rating == null ? null : rating?.toMap(),
+        "text": text == null ? null : text?.toMap(),
+        "opnionScale": opnionScale == null ? null : opnionScale?.toMap(),
+        "email": email == null ? null : email?.toMap(),
+        "yesOrNo": yesOrNo == null ? null : yesOrNo?.toMap(),
+        "phoneNumber": phoneNumber == null ? null : phoneNumber?.toMap(),
+        "multipleChoice":
+            multipleChoice == null ? null : multipleChoice?.toMap(),
+      };
 }

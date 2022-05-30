@@ -15,7 +15,9 @@ import 'package:surveysparrow_flutter_sdk/components/welcome.dart';
 import 'package:surveysparrow_flutter_sdk/helpers/question.dart';
 import 'package:surveysparrow_flutter_sdk/logics/displayLogic.dart';
 import 'package:surveysparrow_flutter_sdk/logics/thankYou.dart';
+import 'package:surveysparrow_flutter_sdk/models/answer.dart';
 import 'package:surveysparrow_flutter_sdk/models/customSurveyTheme.dart';
+import 'package:surveysparrow_flutter_sdk/models/firstQuestionAnswer.dart';
 import 'package:surveysparrow_flutter_sdk/models/theme.dart';
 import 'dart:convert';
 import 'package:sizer/sizer.dart';
@@ -26,25 +28,25 @@ import 'package:url_launcher/url_launcher.dart';
 class SurveyModal extends StatelessWidget {
   final String token;
   final String domain;
-  final Map<String, String>? customParams;
-  final dynamic? firstQuestionAnswer;
-  final CustomSurveyTheme? euiTheme;
-  final Function? currentlyCollectedAnswers;
-  final Function? allCollectedAnswers;
-  final Map<dynamic, dynamic>? surveyData;
-  final Function? onSubmitCloseModalFunction;
+  final Map<String, String>? variables;
+  final FirstQuestionAnswer? firstQuestionAnswer;
+  final CustomSurveyTheme? customSurveyTheme;
+  final Function? onNext;
+  final Function? onSubmit;
+  final Map<dynamic, dynamic>? survey;
+  final Function? onError;
 
   SurveyModal({
     Key? key,
     required this.token,
     required this.domain,
-    this.customParams,
-    this.euiTheme,
+    this.variables,
+    this.customSurveyTheme,
     this.firstQuestionAnswer,
-    this.currentlyCollectedAnswers,
-    this.allCollectedAnswers,
-    this.surveyData,
-    this.onSubmitCloseModalFunction,
+    this.onNext,
+    this.onSubmit,
+    this.survey,
+    this.onError,
   }) : super(key: key);
 
   late Future<Map<dynamic, dynamic>> testeru =
@@ -52,20 +54,20 @@ class SurveyModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (this.surveyData != null) {
+    if (this.survey != null) {
       return Container(
         child: Sizer(
           builder: (context, orientation, deviceType) {
             return QuestionsPage(
               token: this.token,
               domain: this.domain,
-              Questions: this.surveyData!,
-              customParams: customParams ?? {},
+              Questions: this.survey!,
+              customParams: variables ?? {},
               firstQuestionAnswer: firstQuestionAnswer,
-              currentlyCollectedAnswers: currentlyCollectedAnswers,
-              allCollectedAnswers: allCollectedAnswers,
-              onSubmitCloseModalFunction: onSubmitCloseModalFunction,
-              euiTheme: euiTheme?.toMap() ?? {},
+              onNext: onNext,
+              onSubmit: onSubmit,
+              euiTheme: customSurveyTheme?.toMap() ?? {},
+              onError: this.onError,
             );
           },
         ),
@@ -77,21 +79,40 @@ class SurveyModal extends StatelessWidget {
         future: testeru,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.hasData) {
-            return Sizer(
-              builder: (context, orientation, deviceType) {
-                return QuestionsPage(
-                  token: this.token,
-                  domain: this.domain,
-                  Questions: snapshot.data,
-                  customParams: customParams ?? {},
-                  firstQuestionAnswer: firstQuestionAnswer,
-                  currentlyCollectedAnswers: currentlyCollectedAnswers,
-                  allCollectedAnswers: allCollectedAnswers,
-                  onSubmitCloseModalFunction: onSubmitCloseModalFunction,
-                  euiTheme: euiTheme?.toMap() ?? {},
-                );
-              },
-            );
+            if (snapshot.data['sections'].length == 0) {
+              if (onError != null) {
+                onError!();
+              }
+              throw Exception('No question is added');
+            } else if (snapshot.data['survey_type'] != 'ClassicForm') {
+              if (onError != null) {
+                onError!();
+              }
+              throw Exception('unSupported Survey Type');
+            } else {
+              return Sizer(
+                builder: (context, orientation, deviceType) {
+                  return QuestionsPage(
+                    token: this.token,
+                    domain: this.domain,
+                    Questions: snapshot.data,
+                    customParams: variables ?? {},
+                    firstQuestionAnswer: firstQuestionAnswer,
+                    onNext: onNext,
+                    onSubmit: onSubmit,
+                    euiTheme: customSurveyTheme?.toMap() ?? {},
+                    onError: this.onError,
+                  );
+                },
+              );
+            }
+          }
+
+          if (snapshot.hasError) {
+            if (onError != null) {
+              onError!();
+            }
+            throw Exception('Some Error Occurred while fetching survey Object');
           }
           return const LoadingScreen();
         },
@@ -105,24 +126,26 @@ class QuestionsPage extends StatefulWidget {
   final String domain;
   final Map<dynamic, dynamic> Questions;
   final Map<String, String> customParams;
-  final dynamic? firstQuestionAnswer;
-  final Function? currentlyCollectedAnswers;
-  final Function? allCollectedAnswers;
+  final FirstQuestionAnswer? firstQuestionAnswer;
+  final Function? onNext;
+  final Function? onSubmit;
   final Map<dynamic, dynamic>? euiTheme;
   final Function? onSubmitCloseModalFunction;
+  final Function? onError;
 
-  const QuestionsPage({
-    Key? key,
-    required this.token,
-    required this.domain,
-    required this.Questions,
-    required this.customParams,
-    this.firstQuestionAnswer,
-    this.currentlyCollectedAnswers,
-    this.allCollectedAnswers,
-    this.onSubmitCloseModalFunction,
-    this.euiTheme,
-  }) : super(key: key);
+  const QuestionsPage(
+      {Key? key,
+      required this.token,
+      required this.domain,
+      required this.Questions,
+      required this.customParams,
+      this.firstQuestionAnswer,
+      this.onNext,
+      this.onSubmit,
+      this.onSubmitCloseModalFunction,
+      this.euiTheme,
+      this.onError})
+      : super(key: key);
 
   @override
   State<QuestionsPage> createState() => _QuestionsPageState(
@@ -136,7 +159,7 @@ class _QuestionsPageState extends State<QuestionsPage>
   final Map<String, String> customParams;
   final Map<dynamic, dynamic> _questionPos = {};
   final Map<dynamic, dynamic> _surveyToMap = {};
-  final dynamic? firstQuestionAnswer;
+  final FirstQuestionAnswer? firstQuestionAnswer;
   _QuestionsPageState(
       this.token, this.Survey, this.customParams, this.firstQuestionAnswer);
   List<Map<dynamic, dynamic>> _allQuestionList = [];
@@ -161,6 +184,9 @@ class _QuestionsPageState extends State<QuestionsPage>
   int _scrollCountTop = 0;
   int _scrollCountBottom = 0;
 
+  // nxt-20
+  bool blockNextButton = false;
+
   final allowedQuestionTypes = [
     'OpinionScale',
     'Rating',
@@ -171,12 +197,80 @@ class _QuestionsPageState extends State<QuestionsPage>
     'EmailInput',
   ];
 
-  storeAnswers(value, key,
-      {bool otherInput = false,
-      String otherInputText = "",
-      int otherInputId = 0,
-      bool isPhoneInput = false,
-      String phoneValue = ""}) {
+  storePrefilledAnswers(answers) {
+    var _workBenchDatas = {};
+
+    for (var i = 0; i < firstQuestionAnswer!.answers.length; i++) {
+      if (firstQuestionAnswer!.answers[i].rating != null) {
+        var key = firstQuestionAnswer!.answers[i].rating?.key;
+        var data = firstQuestionAnswer!.answers[i].rating?.data;
+        var skipped = firstQuestionAnswer!.answers[i].rating!.skipped;
+        var timeTaken = firstQuestionAnswer!.answers[i].rating?.timeTaken;
+        _workBenchDatas[key] = data?.toDouble();
+
+        createAnswerPayload(
+          _collectedAnswers,
+          key,
+          skipped != null && skipped == true ? null : data,
+          _surveyToMap,
+          false,
+          "",
+          0,
+          false,
+          "",
+          timeTaken,
+        );
+      }
+
+      if (firstQuestionAnswer!.answers[i].opnionScale != null) {
+        var key = firstQuestionAnswer!.answers[i].opnionScale?.key;
+        var data = firstQuestionAnswer!.answers[i].opnionScale?.data;
+        var skipped = firstQuestionAnswer!.answers[i].opnionScale!.skipped;
+        var timeTaken = firstQuestionAnswer!.answers[i].opnionScale?.timeTaken;
+
+        // print(
+        //     "fir-21 rating check ${firstQuestionAnswer!.answers[i].rating?.key} ${firstQuestionAnswer!.answers[i].rating?.data}");
+        _workBenchDatas[key] = data;
+
+        createAnswerPayload(
+          _collectedAnswers,
+          key,
+          skipped != null && skipped == true ? null : data,
+          _surveyToMap,
+          false,
+          "",
+          0,
+          false,
+          "",
+          timeTaken,
+        );
+      }
+    }
+
+    var _cloneWorkBench = {..._workBench};
+    setState(() {
+      _workBench = _workBenchDatas;
+    });
+    widget.onNext!(_collectedAnswers);
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _handleNextQuestion(
+          customOffsetNumber: firstQuestionAnswer!.pageNumber,
+          hasCustomOffset: true);
+    });
+  }
+
+  storeAnswers(
+    value,
+    key, {
+    bool otherInput = false,
+    String otherInputText = "",
+    int otherInputId = 0,
+    bool isPhoneInput = false,
+    String phoneValue = "",
+    bool isLastQuestionHandle = false,
+    bool changePage = true,
+    bool handlePreFilledResponses = false,
+  }) {
     createAnswerPayload(
       _collectedAnswers,
       key,
@@ -189,6 +283,7 @@ class _QuestionsPageState extends State<QuestionsPage>
       phoneValue,
       (_stopwatch.elapsedMilliseconds / 1000).round(),
     );
+
     var _cloneWorkBench = {..._workBench};
 
     var newWorkBench = getWorkBenchData(
@@ -206,15 +301,11 @@ class _QuestionsPageState extends State<QuestionsPage>
       _workBench = {...newWorkBench};
     });
 
-    widget.currentlyCollectedAnswers!(_collectedAnswers);
+    widget.onNext!(_collectedAnswers);
 
     Future.delayed(const Duration(milliseconds: 500), () {
-      _handleNextQuestion();
+      _handleNextQuestion(changePage: changePage);
     });
-
-    if (_lastQuestion['id'] == key) {
-      widget.allCollectedAnswers!(_collectedAnswers);
-    }
   }
 
   submitData() async {
@@ -223,7 +314,7 @@ class _QuestionsPageState extends State<QuestionsPage>
         _pageType = 'thankYou';
       });
     } else {
-      this.widget.onSubmitCloseModalFunction!();
+      widget.onSubmit!(_collectedAnswers);
     }
 
     var data = await submitAnswer(
@@ -291,11 +382,9 @@ class _QuestionsPageState extends State<QuestionsPage>
     super.initState();
     incrementCount(token, this.widget.domain);
 
-    if (widget.euiTheme!['bottomSheet'] != null) {
-      if (widget.euiTheme!['bottomSheet']['direction'] != null) {
-        if (widget.euiTheme!['bottomSheet']['direction'] == "horizontal") {
-          isVertical = true;
-        }
+    if (widget.euiTheme!['animationDirection'] != null) {
+      if (widget.euiTheme!['animationDirection'] == "horizontal") {
+        isVertical = true;
       }
     }
 
@@ -339,23 +428,28 @@ class _QuestionsPageState extends State<QuestionsPage>
 
     if (this.Survey['welcome_rtxt'] == null) {
       if (firstQuestionAnswer != null) {
-        this.storeAnswers(firstQuestionAnswer, _allowedQuestionIds[0]);
+        var customRating =
+            CustomRating(key: 1304, skipped: false, timeTaken: 1, data: 2);
+        var customOpnion = CustomOpinionScale(
+            key: 1305, skipped: false, timeTaken: 1, data: 5);
+        var answerk = firstQuestionAnswer?.answers;
+        this.storePrefilledAnswers([customRating, customOpnion]);
       }
 
       setState(() {
         questionList = convertQuestionListToWidget(
-          _allQuestionList,
-          _currentQuestionToRender,
-          storeAnswers,
-          _workBench,
-          _themeData,
-          customParams,
-          _currentQuestionNumber,
-          submitData,
-          _lastQuestion,
-          _scrollControler,
-          this.widget.euiTheme,
-        );
+            _allQuestionList,
+            _currentQuestionToRender,
+            storeAnswers,
+            _workBench,
+            _themeData,
+            customParams,
+            _currentQuestionNumber,
+            submitData,
+            _lastQuestion,
+            _scrollControler,
+            this.widget.euiTheme,
+            toggleNextButtonBlock);
         _currentQuestionToRender = _allQuestionList[_pageNumber];
       });
     }
@@ -374,7 +468,14 @@ class _QuestionsPageState extends State<QuestionsPage>
     super.dispose();
   }
 
-  generateQuestionList(hadleNextSelect) {
+  generateQuestionList(
+    hadleNextSelect, {
+    bool handleFinalNext = false,
+    int curLastQuestionId = 0,
+    bool changePage = true,
+    bool hasCustomOffset = false,
+    int customOffsetNumber = 0,
+  }) {
     List<Map<dynamic, dynamic>> _questionsToConvert = [];
     var _questionArrayToConvert = [];
     var _currentQuestionIndex = _allQuestionList[0]['id'];
@@ -384,7 +485,7 @@ class _QuestionsPageState extends State<QuestionsPage>
       var evaluatedLogics = handleDisplayLogic(_currentQuestionIndex,
           _allQuestionList, _allowedQuestionIds, _workBench, _questionPos);
       _currentQuestionIndex = evaluatedLogics[0];
-      // _hasThankYouLogicSkip
+
       if (evaluatedLogics[1] is String && evaluatedLogics[1] != false) {
         _hasThankYouLogicSkip = evaluatedLogics[1];
       }
@@ -399,70 +500,122 @@ class _QuestionsPageState extends State<QuestionsPage>
       _currentQuestionInView = _questionsToConvert[_pageNumber];
     });
 
-    if (hadleNextSelect == true) {
-      if (_pageNumber + 1 < _questionsToConvert.length) {
-        var updatedQuestionNumber = _currentQuestionNumber + 1;
-        _currentQuestionNumber = _currentQuestionNumber + 1;
-        setState(() {
-          _currentQuestionToRender = _questionsToConvert[_pageNumber + 1];
-        });
+    if (changePage) {
+      if (hadleNextSelect == true) {
+        if (hasCustomOffset) {
+          if (_pageNumber + customOffsetNumber < _questionsToConvert.length) {
+            _currentQuestionNumber =
+                _currentQuestionNumber + customOffsetNumber;
+            setState(() {
+              _currentQuestionToRender =
+                  _questionsToConvert[_pageNumber + customOffsetNumber];
+            });
+          }
+        } else {
+          if (_pageNumber + 1 < _questionsToConvert.length) {
+            _currentQuestionNumber = _currentQuestionNumber + 1;
+            setState(() {
+              _currentQuestionToRender = _questionsToConvert[_pageNumber + 1];
+            });
+          }
+        }
+      }
+
+      if (hadleNextSelect == false) {
+        if (_pageNumber > 0) {
+          var updatedQuestionNumber = _currentQuestionNumber - 1;
+          _currentQuestionNumber = _currentQuestionNumber - 1;
+          setState(() {
+            _currentQuestionToRender = _questionsToConvert[_pageNumber - 1];
+          });
+        }
       }
     }
 
-    if (hadleNextSelect == false) {
-      if (_pageNumber > 0) {
-        var updatedQuestionNumber = _currentQuestionNumber - 1;
-        _currentQuestionNumber = _currentQuestionNumber - 1;
-        setState(() {
-          _currentQuestionToRender = _questionsToConvert[_pageNumber - 1];
-        });
-      }
-    }
     setState(() {
       questionList = convertQuestionListToWidget(
-        _questionsToConvert,
-        _currentQuestionToRender,
-        storeAnswers,
-        _workBench,
-        _themeData,
-        customParams,
-        _currentQuestionNumber,
-        submitData,
-        _lastQuestion,
-        _scrollControler,
-        this.widget.euiTheme,
-      );
+          _questionsToConvert,
+          _currentQuestionToRender,
+          storeAnswers,
+          _workBench,
+          _themeData,
+          customParams,
+          _currentQuestionNumber,
+          submitData,
+          _lastQuestion,
+          _scrollControler,
+          this.widget.euiTheme,
+          toggleNextButtonBlock);
       _progressMade =
           (_collectedAnswers.length / _questionsToConvert.length).toDouble();
     });
   }
 
-  _handleNextQuestion({int time = 400}) {
+  toggleNextButtonBlock(val) {
+    blockNextButton = val;
+  }
+
+  // nxt-20
+  _handleNextQuestion({
+    int time = 400,
+    bool handleFinalNext = false,
+    int lastQuestionId = 0,
+    bool changePage = true,
+    bool hasCustomOffset = false,
+    int customOffsetNumber = 0,
+  }) {
+    if (blockNextButton) return;
     var canUpdateQuestions = true;
 
-    if (this._currentQuestionToRender['required']) {
+    if (this._currentQuestionToRender['required'] != null &&
+        this._currentQuestionToRender['required'] == true) {
       if (_workBench[_currentQuestionToRender['id']] == null) {
         canUpdateQuestions = false;
       } else {
         canUpdateQuestions = true;
       }
+    } else {
+      canUpdateQuestions = true;
     }
 
     if (canUpdateQuestions) {
-      generateQuestionList(true);
-      if (_pageNumber + 1 < questionList.length) {
-        var updatedPageNumber = _pageNumber + 1;
-        setState(() {
-          _pageNumber = updatedPageNumber;
-        });
+      generateQuestionList(
+        true,
+        handleFinalNext: handleFinalNext,
+        curLastQuestionId: lastQuestionId,
+        changePage: changePage,
+        customOffsetNumber: customOffsetNumber,
+        hasCustomOffset: hasCustomOffset,
+      );
 
-        controller.animateToPage(updatedPageNumber,
-            duration: Duration(milliseconds: time), curve: Curves.easeIn);
+      if (changePage) {
+        if (hasCustomOffset) {
+          if (_pageNumber + customOffsetNumber < questionList.length) {
+            var updatedPageNumber = _pageNumber + customOffsetNumber;
+            setState(() {
+              _pageNumber = updatedPageNumber;
+            });
+
+            controller.animateToPage(updatedPageNumber,
+                duration: Duration(milliseconds: time), curve: Curves.easeIn);
+          }
+        } else {
+          if (_pageNumber + 1 < questionList.length) {
+            var updatedPageNumber = _pageNumber + 1;
+            setState(() {
+              _pageNumber = updatedPageNumber;
+            });
+
+            controller.animateToPage(updatedPageNumber,
+                duration: Duration(milliseconds: time), curve: Curves.easeIn);
+          }
+        }
       }
     }
   }
 
   _handlePreviousQuestion() {
+    toggleNextButtonBlock(false);
     generateQuestionList(false);
     if (_pageNumber != 0) {
       var updatedPageNumber = _pageNumber - 1;
@@ -488,22 +641,23 @@ class _QuestionsPageState extends State<QuestionsPage>
         _pageType = val;
       });
       if (firstQuestionAnswer != null) {
+        //ques120
         this.storeAnswers(firstQuestionAnswer, _allowedQuestionIds[0]);
       }
       setState(() {
         questionList = convertQuestionListToWidget(
-          _allQuestionList,
-          _currentQuestionToRender,
-          storeAnswers,
-          _workBench,
-          _themeData,
-          customParams,
-          _currentQuestionNumber,
-          submitData,
-          _lastQuestion,
-          _scrollControler,
-          this.widget.euiTheme,
-        );
+            _allQuestionList,
+            _currentQuestionToRender,
+            storeAnswers,
+            _workBench,
+            _themeData,
+            customParams,
+            _currentQuestionNumber,
+            submitData,
+            _lastQuestion,
+            _scrollControler,
+            this.widget.euiTheme,
+            toggleNextButtonBlock);
         _currentQuestionToRender = _allQuestionList[_pageNumber];
       });
     });
@@ -568,7 +722,7 @@ class _QuestionsPageState extends State<QuestionsPage>
     if (hasThankYouPage && _pageType == "thankYou") {
       if (_hasThankYouLogicSkip is String &&
           _hasThankYouLogicSkip.contains("http")) {
-        this.widget.onSubmitCloseModalFunction!();
+        widget.onSubmit!(_collectedAnswers);
         _launchInBrowser(_hasThankYouLogicSkip);
         return SizedBox.shrink();
       }
@@ -577,6 +731,11 @@ class _QuestionsPageState extends State<QuestionsPage>
         thankYouPageJson = checkThankYouLogics(
             this.Survey['thankyou_json'], _workBench, _hasThankYouLogicSkip);
       }
+
+      thankYouCloseFunction() {
+        widget.onSubmit!(_collectedAnswers);
+      }
+
       return Container(
         decoration: BoxDecoration(
           color: _surveyThemeClass.backgroundImage != 'noImage'
@@ -609,7 +768,8 @@ class _QuestionsPageState extends State<QuestionsPage>
               welcomeDesc: this.welcomeDesc,
               welcomeEntity: this.welcomeEntity,
               thankYouPageJson: thankYouPageJson,
-              closeModalFunction: widget.onSubmitCloseModalFunction,
+              closeModalFunction: thankYouCloseFunction,
+              euiTheme: this.widget.euiTheme,
             ),
           ),
         ),
@@ -687,9 +847,9 @@ class _QuestionsPageState extends State<QuestionsPage>
                 theme: _themeData,
                 euiTheme: this.widget.euiTheme,
               ),
-               SizedBox(
-                  height: 10,
-                ),
+              SizedBox(
+                height: 10,
+              ),
             ],
             Expanded(
               flex: 1,
@@ -733,7 +893,7 @@ class _QuestionsPageState extends State<QuestionsPage>
 
 Future<Map<dynamic, dynamic>> fetchAlbum(token, domain) async {
   var url1 = 'http://${domain}/api/internal/sdk/get-survey/${token}';
-  var url2 = 'http://${domain}/api/internal/sdk/get-survey/${token}';
+  var url2 = 'https://${domain}/api/internal/sdk/get-survey/${token}';
 
   final response = await http.get(Uri.parse(url2));
   if (response.statusCode == 200) {
@@ -742,6 +902,7 @@ Future<Map<dynamic, dynamic>> fetchAlbum(token, domain) async {
     final parsedJson = jsonDecode(response.body);
     return parsedJson;
   } else {
+    print("response failed");
     // If the server did not return a 200 OK response,
     // then throw an exception.
     throw Exception('Failed to load album');

@@ -14,6 +14,7 @@ class ThankYouPage extends StatefulWidget {
   final dynamic welcomeButtonDesc;
   final Map<dynamic, dynamic> welcomeEntity;
   final Map<dynamic, dynamic> thankYouPageJson;
+  final Map<dynamic, dynamic>? euiTheme;
 
   const ThankYouPage({
     Key? key,
@@ -25,6 +26,7 @@ class ThankYouPage extends StatefulWidget {
     required this.welcomeEntity,
     required this.thankYouPageJson,
     this.closeModalFunction,
+    this.euiTheme,
   }) : super(key: key);
 
   @override
@@ -49,10 +51,19 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
   var hasRedirection = false;
   var redirectUrl = "";
+
+  var customFont = null;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+
+    if(this.widget.euiTheme != null){
+      if(this.widget.euiTheme!['font'] != null ){
+        customFont = this.widget.euiTheme!['font'];
+      }
+    }
 
     if (this.widget.thankYouPageJson['redirectBoolean'] != null) {
       hasRedirection = this.widget.thankYouPageJson['redirectBoolean'];
@@ -95,7 +106,11 @@ class _ThankYouPageState extends State<ThankYouPage> {
     }
 
     if (this.widget.thankYouPageJson['message'] != null &&
-        this.widget.thankYouPageJson['message']['entityMap'] != null) {
+        this.widget.thankYouPageJson['message']['entityMap'] != null &&
+        this.widget.thankYouPageJson['message']['entityMap']['0'] != null && 
+        this.widget.thankYouPageJson['message']['entityMap']['0']['data'] != null &&
+        this.widget.thankYouPageJson['message']['entityMap']['0']['data']['src'] != null
+        ) {
       hasImage = true;
       imageSrc = this.widget.thankYouPageJson['message']['entityMap']['0']
           ['data']['src'];
@@ -137,10 +152,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
               fontSize: 28,
               fontWeight: FontWeight.w400,
               color: this.widget.theme['questionColor'],
-              // fontFamily: 'Antons'
-
-              fontFamily: null,
-              package: 'surveyTest',
+              fontFamily: customFont,
             ),
           ),
           SizedBox(
@@ -165,10 +177,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
               fontSize: 20,
               fontWeight: FontWeight.w500,
               color: this.widget.theme['questionColor'],
-              // fontFamily: 'Antons'
-
-              fontFamily: null,
-              package: 'surveyTest',
+              fontFamily: customFont,
             ),
           ),
           SizedBox(
@@ -180,10 +189,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
                 color: this.widget.theme['questionDescriptionColor'],
-                // fontFamily: 'Antons'
-
-                fontFamily: null,
-                package: 'surveyTest',
+                fontFamily: customFont,
               )),
 
           if (hasThankYouButton) ...[
@@ -223,6 +229,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                         decoration: TextDecoration.none,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
+                        fontFamily: customFont,
                         color: this.widget.theme['buttonStyle'] == "filled"
                             ? luminanceValue > 0.5
                                 ? Colors.black

@@ -13,6 +13,7 @@ class TextRating extends StatefulWidget {
   final bool isLastQuestion;
   final Function submitData;
   final Map<dynamic, dynamic>? euiTheme;
+  final Function toggleNextButtonBlock;
 
   const TextRating({
     Key? key,
@@ -25,6 +26,7 @@ class TextRating extends StatefulWidget {
     required this.isLastQuestion,
     required this.submitData,
     this.euiTheme,
+    required this.toggleNextButtonBlock,
   }) : super(key: key);
 
   @override
@@ -96,10 +98,44 @@ class _TextRatingState extends State<TextRating> {
     }
 
     if (this.answer[this.question['id']] != null) {
+      if (this.question['type'] == 'EmailInput') {
+        checkIfEmailValid(this.answer[this.question['id']]);
+        setState(() {
+          inputController.text = this.answer[this.question['id']];
+        });
+      } else {
+        var disabledState = false;
+        if (this.answer[this.question['id']] == "") {
+          disabledState = true;
+        }
+        setState(() {
+          disabled = disabledState;
+          inputController.text = this.answer[this.question['id']];
+        });
+      }
+    }
+  }
+
+  checkIfEmailValid(value) {
+    if (value == "") {
+      this.widget.toggleNextButtonBlock(false);
       setState(() {
-        disabled = false;
-        inputController.text = this.answer[this.question['id']];
+        disabled = true;
       });
+      return;
+    }
+    if (this.question['type'] == 'EmailInput') {
+      if (!validateEmail(value)) {
+        this.widget.toggleNextButtonBlock(true);
+        setState(() {
+          disabled = true;
+        });
+      } else {
+        this.widget.toggleNextButtonBlock(false);
+        setState(() {
+          disabled = false;
+        });
+      }
     }
   }
 
@@ -139,15 +175,7 @@ class _TextRatingState extends State<TextRating> {
               child: TextField(
                 onChanged: (value) {
                   if (this.question['type'] == 'EmailInput') {
-                    if (!validateEmail(value)) {
-                      setState(() {
-                        disabled = true;
-                      });
-                    } else {
-                      setState(() {
-                        disabled = false;
-                      });
-                    }
+                    checkIfEmailValid(value);
                   } else {
                     if (value.length == 0) {
                       setState(() {
@@ -159,6 +187,13 @@ class _TextRatingState extends State<TextRating> {
                       });
                     }
                   }
+                  if (value == '') {
+                    this.widget.toggleNextButtonBlock(false);
+                    this.func(null, question['id'],changePage: false);
+                    return;
+                  }
+                  this.func(inputController.text, question['id'],
+                      changePage: false);
                 },
                 maxLines:
                     this.question['properties']['data']['type'] == "MULTI_LINE"
@@ -197,14 +232,21 @@ class _TextRatingState extends State<TextRating> {
                       ? false
                       : true,
               onClickNext: () {
+                FocusScope.of(context).requestFocus(new FocusNode());
                 if (!disabled) {
-                  this.func(inputController.text, question['id']);
+                  if (this.widget.isLastQuestion) {
+                    this.func(inputController.text, question['id'],
+                        isLastQuestionHandle: true);
+                  } else {
+                    this.func(inputController.text, question['id']);
+                  }
                 }
                 if (!disabled && this.widget.isLastQuestion) {
                   this.widget.submitData();
                 }
               },
               onClickSkip: () {
+                this.widget.toggleNextButtonBlock(false);
                 this.func(null, question['id']);
               },
               theme: theme,

@@ -15,7 +15,7 @@ import 'dart:async';
 
 Future<void> main() async {
 // Do whatever you need to do here
-  var surveyData = await fetchAlbumMain();
+  var surveyData = {};
   return runApp(MyApp(surveyData: surveyData));
 }
 
@@ -23,10 +23,27 @@ class MyApp extends StatelessWidget {
   final Map<dynamic, dynamic> surveyData;
   MyApp({Key? key, required this.surveyData}) : super(key: key);
 
-  var obj = FirstQuestionAnswer(rating: 2);
+  var obj = FirstQuestionAnswer(pageNumber: 1, answers: [
+    Answer(
+        rating: CustomRating(key: 1304, data: 3, timeTaken: 1, skipped: false)),
+    Answer(
+        opnionScale: CustomOpinionScale(
+            key: 1305, data: 6, timeTaken: 1, skipped: false))
+  ]);
 
+  final tokenController = TextEditingController();
+  final domainController = TextEditingController();
+  final customThemeController = TextEditingController();
+  final customParamController = TextEditingController();
+
+  final Map<String, dynamic> testJosn = {
+    "question": {"questionNumberFontSize": 20.0}
+  };
+
+//'tt-04bfb5'
   @override
   Widget build(BuildContext context) {
+    var survey_theme = CustomSurveyTheme.fromMap(testJosn);
     return MaterialApp(
       title: 'Welcome to Flutter',
       home: Scaffold(
@@ -34,145 +51,73 @@ class MyApp extends StatelessWidget {
           title: const Text('Welcome to Flutter'),
         ),
         body: Builder(
-          builder: (context) => Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Center(
-                child: RatingBar.builder(
-                  initialRating: 0,
-                  minRating: 1,
-                  direction: Axis.horizontal,
-                  allowHalfRating: true,
-                  itemCount: 5,
-                  itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
-                  itemBuilder: (context, _) => Icon(
-                    Icons.star,
-                    color: Color.fromARGB(255, 255, 243, 7),
-                  ),
-                  onRatingUpdate: (rating) {
-                    showModalBottomSheet(
-                      isScrollControlled: true,
-                      enableDrag: true,
-                      isDismissible: true,
-                      context: context,
-                      builder: (BuildContext context) {
-                        return Padding(
-                          padding: MediaQuery.of(context).viewInsets,
-                          child: Container(
-                            height: 500,
-                            child: SurveyModal(
-                              token: 'tt-3d4efc',
-                              domain: 'sample.surveysparrow.test',
-                              surveyData: surveyData,
-                              onSubmitCloseModalFunction: () {
-                                Future.delayed(
-                                    const Duration(milliseconds: 500), () {
-                                  Navigator.of(context).pop();
-                                });
-                              },
-                              // tt-3d4efc
-                              firstQuestionAnswer: rating,
-                              customParams: {
-                                'tester': 'sachin 2',
-                                'ntesterR': 'sachin 3'
-                              },
-                              currentlyCollectedAnswers: (val) {
-                                print("currently collected answer ${val} ");
-                              },
-                              allCollectedAnswers: (val) {
-                                print(" All collected answer ${val} ");
-                              },
-                            ),
+          builder: (context) => Center(
+            child: SingleChildScrollView(
+              child: Center(
+                child: Container(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        TextField(
+                          controller: tokenController,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Token',
                           ),
-                        );
-                      },
-                    );
-                  },
+                        ),
+                        SizedBox(
+                          height: 40,
+                        ),
+                        TextField(
+                          controller: domainController,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Domain',
+                          ),
+                        ),
+                        SizedBox(
+                          height: 40,
+                        ),
+                        TextField(
+                          controller: customThemeController,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Custom Theme',
+                          ),
+                        ),
+                        SizedBox(
+                          height: 40,
+                        ),
+                        TextField(
+                          controller: customParamController,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Custom Param',
+                          ),
+                        ),
+                        SizedBox(
+                          height: 40,
+                        ),
+                        ElevatedButton(
+                          onPressed: (() {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => Page2(
+                                  token: tokenController.text,
+                                  domain: domainController.text,
+                                  customTheme: customThemeController.text,
+                                  customParam: customParamController.text,
+                                ),
+                              ),
+                            );
+                          }),
+                          child: Text("load survey"),
+                        ),
+                      ]),
                 ),
               ),
-              Text("test", style: TextStyle(fontFamily: 'Antons')),
-              Center(
-                child: RatingBar.builder(
-                  initialRating: 0,
-                  minRating: 1,
-                  direction: Axis.horizontal,
-                  allowHalfRating: true,
-                  itemCount: 5,
-                  itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
-                  itemBuilder: (context, _) => Icon(
-                    Icons.star,
-                    color: Colors.amber,
-                  ),
-                  onRatingUpdate: (rating) {
-                    showModalBottomSheet(
-                      isScrollControlled: true,
-                      enableDrag: true,
-                      isDismissible: true,
-                      context: context,
-                      builder: (BuildContext context) {
-                        return Padding(
-                          padding: MediaQuery.of(context).viewInsets,
-                          child: Container(
-                            height: 500,
-                            child: SurveyModal(
-                              // surveyData: surveyData,
-                              token: 'tt-5f4a66',
-                              domain: 'sample.surveysparrow.test',
-                              onSubmitCloseModalFunction: () {
-                                Future.delayed(
-                                    const Duration(milliseconds: 500), () {
-                                  Navigator.of(context).pop();
-                                });
-                              },
-                              firstQuestionAnswer: rating,
-                              euiTheme: CustomSurveyTheme(bottomBar: BottomBar(brandingLogoWidth: 20.0)),
-                              customParams: {
-                                'test': 'sachin 2',
-                                'ntesterR': 'sachin 3',
-                                'numberparam':'21',
-                              },
-                              currentlyCollectedAnswers: (val) {
-                                print("currently collected answer ${val} ");
-                              },
-                              allCollectedAnswers: (val) {
-                                print("All collected answer ${val} ");
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-              ElevatedButton(
-                onPressed: (() {
-                  Navigator.of(context)
-                      .push(MaterialPageRoute(builder: (context) => Page2()));
-                }),
-                child: Text("embbed survey"),
-              ),
-              ElevatedButton(
-                onPressed: (() {
-                  showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (BuildContext context) {
-                        return Padding(
-                          padding: MediaQuery.of(context).viewInsets,
-                          child: Container(
-                            height: 510,
-                            child: (Page3()),
-                          ),
-                        );
-                      });
-                  // Navigator.of(context).push(
-                  //     MaterialPageRoute(builder: (context) => FullPage3()));
-                }),
-                child: Text("Custom survey"),
-              )
-            ],
+            ),
           ),
         ),
         floatingActionButton: Builder(
@@ -189,19 +134,17 @@ class MyApp extends StatelessWidget {
                         width: 350,
                         height: 450,
                         child: SurveyModal(
-                          token: 'tt-5f4a66',
+                          token: 'tt-04bfb5',
                           domain: 'sample.surveysparrow.test',
-                          customParams: {
+                          variables: {
                             'tester': 'sachin 2',
                             'ntesterR': 'sachin 3'
                           },
-                          currentlyCollectedAnswers: (val) {
+                          onNext: (val) {
                             print("currently collected answer ${val} ");
                           },
-                          allCollectedAnswers: (val) {
+                          onSubmit: (val) {
                             print("All collected answer ${val} ");
-                          },
-                          onSubmitCloseModalFunction: () {
                             Future.delayed(const Duration(milliseconds: 500),
                                 () {
                               Navigator.of(context).pop();
@@ -228,7 +171,7 @@ class MainButton extends StatefulWidget {
 
 class _MainButtonState extends State<MainButton> {
   late Future<Map<dynamic, dynamic>> testeru;
-  final Map<String, String> customParams = {'tester': 'some test val'};
+  final Map<String, String> variables = {'tester': 'some test val'};
 
   @override
   void initState() {
@@ -254,7 +197,7 @@ class _MainButtonState extends State<MainButton> {
                   child: SurveyModal(
                       token: 'tt-3d4efc',
                       domain: 'sample.surveysparrow.test',
-                      customParams: {'ntesterR': 'sachin'}),
+                      variables: {'ntesterR': 'sachin'}),
                 ),
               );
             },
@@ -279,18 +222,18 @@ class _TestWiddgetState extends State<TestWiddget> {
       child: SurveyModal(
           token: 'tt-3d4efc',
           domain: 'sample.surveysparrow.test',
-          customParams: {'ntesterR': 'sachin'}),
+          variables: {'ntesterR': 'sachin'}),
     );
   }
 }
 
 Future<Map<dynamic, dynamic>> fetchAlbumMain() async {
   var url1 =
-      'http://sample.surveysparrow.test/api/internal/sdk/get-survey/tt-3d4efc';
+      'http://sample.surveysparrow.test/api/internal/sdk/get-survey/tt-04bfb5';
   var url2 =
-      'https://madbee.surveysparrow.com/api/internal/sdk/get-survey/tt-3d4efc';
+      'https://madbee.surveysparrow.com/api/internal/sdk/get-survey/tt-04bfb5';
 
-  final response = await http.get(Uri.parse(url1));
+  final response = await http.get(Uri.parse(url2));
   print('inital load called');
   if (response.statusCode == 200) {
     // If the server did return a 200 OK response,
@@ -306,10 +249,199 @@ Future<Map<dynamic, dynamic>> fetchAlbumMain() async {
 }
 
 
+
+
+
+
+
+// Column(
+//             mainAxisAlignment: MainAxisAlignment.center,
+//             crossAxisAlignment: CrossAxisAlignment.center,
+//             children: [
+//               Center(
+//                 child: RatingBar.builder(
+//                   initialRating: 0,
+//                   minRating: 1,
+//                   direction: Axis.horizontal,
+//                   allowHalfRating: true,
+//                   itemCount: 5,
+//                   itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+//                   itemBuilder: (context, _) => Icon(
+//                     Icons.star,
+//                     color: Color.fromARGB(255, 255, 243, 7),
+//                   ),
+//                   onRatingUpdate: (rating) {
+//                     showModalBottomSheet(
+//                       isScrollControlled: true,
+//                       enableDrag: true,
+//                       isDismissible: true,
+//                       context: context,
+//                       builder: (BuildContext context) {
+//                         return Padding(
+//                           padding: MediaQuery.of(context).viewInsets,
+//                           child: Container(
+//                             height: 500,
+//                             child: SurveyModal(
+//                               token: 'tt-04bfb5',
+//                               domain: 'sample.surveysparrow.test',
+//                               survey: surveyData,
+//                               // tt-3d4efc
+//                               firstQuestionAnswer: FirstQuestionAnswer(
+//                                 pageNumber: 1,
+//                                 answers: [
+//                                   Answer(
+//                                     rating: CustomRating(
+//                                         key: 1304,
+//                                         data: rating.toInt(),
+//                                         timeTaken: 1,
+//                                         skipped: false),
+//                                   ),
+//                                   Answer(
+//                                     opnionScale: CustomOpinionScale(
+//                                         key: 1305,
+//                                         data: 6,
+//                                         timeTaken: 1,
+//                                         skipped: false),
+//                                   )
+//                                 ],
+//                               ),
+//                               variables: {
+//                                 'tester': 'sachin 2',
+//                                 'ntesterR': 'sachin 3'
+//                               },
+//                               onNext: (val) {
+//                                 print("currently collected answer ${val} ");
+//                               },
+//                               onSubmit: (val) {
+//                                 print(" All collected answer 88 ${val} ");
+                                // Future.delayed(
+                                //     const Duration(milliseconds: 500), () {
+                                //   Navigator.pop(context);
+                                // });
+//                               },
+//                             ),
+//                           ),
+//                         );
+//                       },
+//                     );
+//                   },
+//                 ),
+//               ),
+//               Text("test", style: TextStyle(fontFamily: 'Antons')),
+//               Center(
+//                 child: RatingBar.builder(
+//                   initialRating: 0,
+//                   minRating: 1,
+//                   direction: Axis.horizontal,
+//                   allowHalfRating: true,
+//                   itemCount: 5,
+//                   itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+//                   itemBuilder: (context, _) => Icon(
+//                     Icons.star,
+//                     color: Colors.amber,
+//                   ),
+//                   onRatingUpdate: (rating) {
+//                     showModalBottomSheet(
+//                       isScrollControlled: true,
+//                       enableDrag: true,
+//                       isDismissible: true,
+//                       context: context,
+//                       builder: (BuildContext context) {
+//                         return Padding(
+//                           padding: MediaQuery.of(context).viewInsets,
+//                           child: Container(
+//                             height: 500,
+//                             child: SurveyModal(
+//                               // surveyData: surveyData,
+//                               token: 'tt-04bfb5',
+//                               domain: 'sample.surveysparrow.test',
+//                               firstQuestionAnswer: FirstQuestionAnswer(
+//                                 pageNumber: 2,
+//                                 answers: [
+//                                   Answer(
+//                                     rating: CustomRating(
+//                                       key: 1304,
+//                                       data: rating.toInt(),
+//                                       timeTaken: 1,
+//                                       skipped: false,
+//                                     ),
+//                                   ),
+//                                   Answer(
+//                                     opnionScale: CustomOpinionScale(
+//                                       key: 1305,
+//                                       data: 5,
+//                                       timeTaken: 1,
+//                                       skipped: false,
+//                                     ),
+//                                   )
+//                                 ],
+//                               ),
+//                               customSurveyTheme: CustomSurveyTheme(
+//                                   animationDirection: "horizontal",
+//                                   phoneNumber:
+//                                       PhoneNumber(defaultNumber: "65")),
+//                               variables: {
+//                                 'test': 'sachin 2',
+//                                 'ntesterR': 'sachin 3',
+//                                 'numberparam': '21',
+//                               },
+//                               onNext: (val) {
+//                                 print("currently collected answer ${val} ");
+//                               },
+//                               onSubmit: (val) {
+//                                 print("All collected answer ${val} ");
+//                                 Future.delayed(
+//                                     const Duration(milliseconds: 500), () {
+//                                   Navigator.of(context).pop();
+//                                 });
+//                               },
+//                             ),
+//                           ),
+//                         );
+//                       },
+//                     );
+//                   },
+//                 ),
+//               ),
+              // ElevatedButton(
+              //   onPressed: (() {
+              //     Navigator.of(context).push(
+              //       MaterialPageRoute(
+              //         builder: (context) => Page2(
+              //             token: 'tt-04bfb5',
+              //             domain: "sample.surveysparrow.test"),
+              //       ),
+              //     );
+              //   }),
+              //   child: Text("embbed survey"),
+              // ),
+//               ElevatedButton(
+//                 onPressed: (() {
+//                   showModalBottomSheet(
+//                       context: context,
+//                       isScrollControlled: true,
+//                       builder: (BuildContext context) {
+//                         return Padding(
+//                           padding: MediaQuery.of(context).viewInsets,
+//                           child: Container(
+//                             height: 510,
+//                             child: (Page3()),
+//                           ),
+//                         );
+//                       });
+//                   // Navigator.of(context).push(
+//                   //     MaterialPageRoute(builder: (context) => FullPage3()));
+//                 }),
+//                 child: Text("Custom survey"),
+//               )
+//             ],
+//           )
+
+
 // extra parameters 
 
 // "skipButton":{
-//                                   "fontSize": 18.0,
+//   "fontSize": 18.0,
 //                                 },
 //                                 "nextButton":{
 //                                   "fontSize":29.0,
@@ -317,7 +449,7 @@ Future<Map<dynamic, dynamic>> fetchAlbumMain() async {
 //                                   "iconSize": 32.0,
 //                                 },
 //                                 "rating": {
-//                                   "showNumber": true,
+//                                   "hasNumber": true,
 //                                   "svgHeight": 50.0,
 //                                   "svgWidth": 50.0,
 //                                 },

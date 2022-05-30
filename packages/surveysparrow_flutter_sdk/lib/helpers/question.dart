@@ -59,6 +59,7 @@ convertQuestionListToWidget(
   _lastQuestion,
   _scrollController,
   euiTheme,
+  toggleNextButtonBlock
 ) {
   List<Widget> _newquestionList = List<Widget>.empty(growable: true);
 
@@ -117,6 +118,7 @@ convertQuestionListToWidget(
                 isLastQuestion: question['id'] == _lastQuestion['id'],
                 submitData: submitData,
                 euiTheme: euiTheme,
+                toggleNextButtonBlock:toggleNextButtonBlock
               ),
             ),
           ),
@@ -146,6 +148,7 @@ convertQuestionListToWidget(
                 submitData: submitData,
                 isLastQuestion: question['id'] == _lastQuestion['id'],
                 euiTheme: euiTheme,
+                toggleNextButtonBlock:toggleNextButtonBlock,
               ),
             ),
           ),

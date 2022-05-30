@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:surveysparrow_flutter_sdk/models/answer.dart';
+import 'package:fk_user_agent/fk_user_agent.dart';
+import 'package:ua_client_hints/ua_client_hints.dart';
 
 getAnswerValueToStore(
     value, otherInput, otherInputText, otherInputId, isPhoneInput, phoneValue) {
@@ -23,10 +26,27 @@ getAnswerValueToStore(
   }
 }
 
+Future initPlatformState() async {
+    String platformVersion;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      platformVersion = FkUserAgent.userAgent!;
+      print(platformVersion);
+    } on PlatformException {
+      platformVersion = 'Failed to get platform version.';
+    }
+
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    return platformVersion;
+  }
+
 submitAnswer(_collectedAnswers, finalTime, customParams, token, domain) async {
   var url =
-      Uri.parse('http://${domain}/api/internal/submission/answers/${token}');
+      Uri.parse('https://${domain}/api/internal/submission/answers/${token}');
   Map<dynamic, dynamic> payload = {};
+  final ua = await userAgent();
 
   var submissionObjPayload = {
     'answers': _collectedAnswers,
@@ -51,10 +71,8 @@ submitAnswer(_collectedAnswers, finalTime, customParams, token, domain) async {
   var body = json.encode(submissionObjPayload);
 
   var response = await http.post(url,
-      headers: {"Content-Type": "application/json"}, body: body);
+      headers: {"Content-Type": "application/json","User-Agent":ua}, body: body);
 
-  // final String encodedData = json.encode(payload);
-  // var response = await http.post(url, body: encodedData);
   return response;
 }
 
@@ -70,6 +88,7 @@ createAnswerPayload(
   phoneValue,
   time,
 ) {
+
   var currentAnswer;
   var currentAnswerToSync;
 
