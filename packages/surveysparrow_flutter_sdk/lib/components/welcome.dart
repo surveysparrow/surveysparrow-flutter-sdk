@@ -10,17 +10,16 @@ class WelcomePage extends StatefulWidget {
   final Map<dynamic, dynamic> welcomeEntity;
   final Map<dynamic, dynamic>? euiTheme;
 
-  const WelcomePage(
-      {Key? key,
-      required this.setPageType,
-      required this.theme,
-      required this.welcomePageData,
-      required this.welcomeDesc,
-      required this.welcomeButtonDesc,
-      required this.welcomeEntity,
-      this.euiTheme,
-      })
-      : super(key: key);
+  const WelcomePage({
+    Key? key,
+    required this.setPageType,
+    required this.theme,
+    required this.welcomePageData,
+    required this.welcomeDesc,
+    required this.welcomeButtonDesc,
+    required this.welcomeEntity,
+    this.euiTheme,
+  }) : super(key: key);
 
   @override
   State<WelcomePage> createState() => _WelcomePageState();
@@ -31,19 +30,60 @@ class _WelcomePageState extends State<WelcomePage> {
   var imageSrc = null;
   var customFont = null;
 
+  var headerFontSize = 20.0;
+  var imageDescriptionFontSize = 20.0;
+  var descriptionFontSize = 14.0;
+  var imageHeight = 150.sp;
+  var imageWidth = 200.sp;
+  var buttonFontSize = 14.0;
+  var buttonWidth = 110.0;
+  var buttonIconSize = 22.0;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    if(this.widget.euiTheme != null){
-      if(this.widget.euiTheme!['font'] != null ){
+    if (this.widget.euiTheme != null) {
+      if (this.widget.euiTheme!['welcome'] != null) {
+        if (this.widget.euiTheme!['welcome']['headerFontSize'] != null) {
+          headerFontSize = this.widget.euiTheme!['welcome']['headerFontSize'];
+        }
+        if (this.widget.euiTheme!['welcome']['imageDescriptionFontSize'] !=
+            null) {
+          imageDescriptionFontSize =
+              this.widget.euiTheme!['welcome']['imageDescriptionFontSize'];
+        }
+        if (this.widget.euiTheme!['welcome']['descriptionFontSize'] != null) {
+          descriptionFontSize =
+              this.widget.euiTheme!['welcome']['descriptionFontSize'];
+        }
+        if (this.widget.euiTheme!['welcome']['imageHeight'] != null) {
+          imageHeight = this.widget.euiTheme!['welcome']['imageHeight'];
+        }
+        if (this.widget.euiTheme!['welcome']['imageWidth'] != null) {
+          imageWidth = this.widget.euiTheme!['welcome']['imageWidth'];
+        }
+        if (this.widget.euiTheme!['welcome']['buttonFontSize'] != null) {
+          buttonFontSize = this.widget.euiTheme!['welcome']['buttonFontSize'];
+        }
+        if (this.widget.euiTheme!['welcome']['buttonWidth'] != null) {
+          buttonWidth = this.widget.euiTheme!['welcome']['buttonWidth'];
+        }
+        if (this.widget.euiTheme!['welcome']['buttonIconSize'] != null) {
+          buttonIconSize = this.widget.euiTheme!['welcome']['buttonIconSize'];
+        }
+      }
+    }
+
+    if (this.widget.euiTheme != null) {
+      if (this.widget.euiTheme!['font'] != null) {
         customFont = this.widget.euiTheme!['font'];
       }
     }
 
     if (this.widget.welcomeEntity != null &&
         this.widget.welcomeEntity['0'] != null &&
-         this.widget.welcomeEntity['0']['type'] != null &&
+        this.widget.welcomeEntity['0']['type'] != null &&
         this.widget.welcomeEntity['0']['type'] == 'IMAGE') {
       imageSrc = this.widget.welcomeEntity['0']['data']['src'];
     }
@@ -60,23 +100,22 @@ class _WelcomePageState extends State<WelcomePage> {
           Text(
             this.widget.welcomePageData['blocks'][0]['text'],
             style: TextStyle(
-              decoration: TextDecoration.none,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: this.widget.theme['questionColor'],
-              fontFamily: customFont
-            ),
+                decoration: TextDecoration.none,
+                fontSize: headerFontSize,
+                fontWeight: FontWeight.bold,
+                color: this.widget.theme['questionColor'],
+                fontFamily: customFont),
           ),
           SizedBox(
             height: 10,
           ),
           if (imageSrc != null) ...[
             Container(
-              height: 150.sp,
-              width: 200.sp,
+              height: imageHeight,
+              width: imageWidth,
               child: Image(
-                image: NetworkImage(
-                    imageSrc),
+                fit: BoxFit.contain,
+                image: NetworkImage(imageSrc),
               ),
             ),
           ],
@@ -90,24 +129,22 @@ class _WelcomePageState extends State<WelcomePage> {
                 ? this.widget.welcomePageData['blocks'][2]['text']
                 : '',
             style: TextStyle(
-              decoration: TextDecoration.none,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: this.widget.theme['questionColor'],
-              fontFamily: customFont
-            ),
+                decoration: TextDecoration.none,
+                fontSize: imageDescriptionFontSize,
+                fontWeight: FontWeight.bold,
+                color: this.widget.theme['questionColor'],
+                fontFamily: customFont),
           ),
           SizedBox(
             height: 10,
           ),
           Text(this.widget.welcomeDesc,
               style: TextStyle(
-                decoration: TextDecoration.none,
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: this.widget.theme['questionDescriptionColor'],
-                fontFamily: customFont
-              )),
+                  decoration: TextDecoration.none,
+                  fontSize: descriptionFontSize,
+                  fontWeight: FontWeight.w400,
+                  color: this.widget.theme['questionDescriptionColor'],
+                  fontFamily: customFont)),
           SizedBox(
             height: 10,
           ),
@@ -133,15 +170,18 @@ class _WelcomePageState extends State<WelcomePage> {
                           color: this.widget.theme['ctaButtonColor']),
                     ),
               child: Container(
-                width: 110,
+                width: buttonWidth,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Text(
-                      this.widget.welcomeButtonDesc == "builder.welcome_yes_proceed" ? "Sure,ask." : this.widget.welcomeButtonDesc,
+                      this.widget.welcomeButtonDesc ==
+                              "builder.welcome_yes_proceed"
+                          ? "Sure,ask."
+                          : this.widget.welcomeButtonDesc,
                       style: TextStyle(
                         decoration: TextDecoration.none,
-                        fontSize: 14,
+                        fontSize: buttonFontSize,
                         fontWeight: FontWeight.bold,
                         fontFamily: customFont,
                         color: this.widget.theme['buttonStyle'] == "filled"
@@ -158,6 +198,7 @@ class _WelcomePageState extends State<WelcomePage> {
                               ? Colors.black
                               : Colors.white
                           : this.widget.theme['ctaButtonColor'],
+                      size: buttonIconSize,
                     ),
                   ],
                 ),

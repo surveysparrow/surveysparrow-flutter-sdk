@@ -26,6 +26,8 @@ class CustomSurveyTheme {
     this.nextButton,
     this.animationDirection,
     this.logo,
+    this.welcome,
+    this.thankYouPage,
   });
 
   Question? question;
@@ -42,6 +44,8 @@ class CustomSurveyTheme {
   NextButton? nextButton;
   String? animationDirection;
   Logo? logo;
+  WelcomePageTheme? welcome;
+  ThankYouPageTheme? thankYouPage;
 
   factory CustomSurveyTheme.fromMap(Map<String, dynamic> json) =>
       CustomSurveyTheme(
@@ -74,6 +78,11 @@ class CustomSurveyTheme {
             : NextButton.fromMap(json["nextButton"]),
         animationDirection: json["animationDirection"],
         logo: json["logo"] == null ? null : Logo.fromMap(json["logo"]),
+        welcome:
+            json["welcome"] == null ? null : WelcomePageTheme.fromMap(json["welcome"]),
+        thankYouPage: json["thankYouPage"] == null
+            ? null
+            : ThankYouPageTheme.fromMap(json["thankYouPage"]),
       );
 
   Map<String, dynamic> toMap() => {
@@ -92,6 +101,100 @@ class CustomSurveyTheme {
         "nextButton": nextButton == null ? null : nextButton?.toMap(),
         "animationDirection": animationDirection,
         "logo": logo == null ? null : logo?.toMap(),
+        "welcome": welcome == null ? null : welcome?.toMap(),
+        "thankYouPage": thankYouPage == null ? null : thankYouPage?.toMap(),
+      };
+}
+
+class WelcomePageTheme {
+  WelcomePageTheme({
+    this.headerFontSize,
+    this.imageDescriptionFontSize,
+    this.descriptionFontSize,
+    this.imageHeight,
+    this.imageWidth,
+    this.buttonFontSize,
+    this.buttonWidth,
+    this.buttonIconSize,
+  });
+
+  double? headerFontSize;
+  double? descriptionFontSize;
+  double? imageDescriptionFontSize;
+  double? imageWidth;
+  double? imageHeight;
+  double? buttonFontSize;
+  double? buttonWidth;
+  double? buttonIconSize;
+
+  factory WelcomePageTheme.fromMap(Map<String, dynamic> json) => WelcomePageTheme(
+        headerFontSize: json["headerFontSize"],
+        imageDescriptionFontSize: json["imageDescriptionFontSize"],
+        descriptionFontSize: json["descriptionFontSize"],
+        imageHeight: json["imageHeight"],
+        imageWidth: json["imageWidth"],
+        buttonFontSize: json["buttonFontSize"],
+        buttonWidth: json["buttonWidth"],
+        buttonIconSize: json["buttonIconSize"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "headerFontSize": headerFontSize,
+        "imageDescriptionFontSize": imageDescriptionFontSize,
+        "descriptionFontSize": descriptionFontSize,
+        "imageHeight": imageHeight,
+        "imageWidth": imageWidth,
+        "buttonFontSize": buttonFontSize,
+        "buttonWidth": buttonWidth,
+        "buttonIconSize": buttonIconSize,
+      };
+}
+
+class ThankYouPageTheme {
+  ThankYouPageTheme({
+    this.headerFontSize,
+    this.imageDescriptionFontSize,
+    this.descriptionFontSize,
+    this.imageHeight,
+    this.imageWidth,
+    this.buttonFontSize,
+    this.buttonWidth,
+    this.buttonIconSize,
+    this.visibilityTime
+  });
+
+  double? headerFontSize;
+  double? descriptionFontSize;
+  double? imageDescriptionFontSize;
+  double? imageWidth;
+  double? imageHeight;
+  double? buttonFontSize;
+  double? buttonWidth;
+  double? buttonIconSize;
+  int? visibilityTime;
+
+  factory ThankYouPageTheme.fromMap(Map<String, dynamic> json) => ThankYouPageTheme(
+        headerFontSize: json["headerFontSize"],
+        imageDescriptionFontSize: json["imageDescriptionFontSize"],
+        descriptionFontSize: json["descriptionFontSize"],
+        imageHeight: json["imageHeight"],
+        imageWidth: json["imageWidth"],
+        buttonFontSize: json["buttonFontSize"],
+        buttonWidth: json["buttonWidth"],
+        buttonIconSize: json["buttonIconSize"],
+        visibilityTime: json["visibilityTime"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "headerFontSize": headerFontSize,
+        "imageDescriptionFontSize": imageDescriptionFontSize,
+        "descriptionFontSize": descriptionFontSize,
+        "imageHeight": imageHeight,
+        "imageWidth": imageWidth,
+        "buttonFontSize": buttonFontSize,
+        "buttonWidth": buttonWidth,
+        "buttonIconSize": buttonIconSize,
+        "visibilityTime": visibilityTime,
       };
 }
 
@@ -242,8 +345,8 @@ class OpnionScale {
         "innerBlockSizeHeight": innerBlockSizeHeight,
         "labelFontSize": labelFontSize,
         "numberFontSize": numberFontSize,
-        "runSpacing":runSpacing,
-        "positionedLabelTopValue":positionedLabelTopValue
+        "runSpacing": runSpacing,
+        "positionedLabelTopValue": positionedLabelTopValue
       };
 }
 

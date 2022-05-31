@@ -42,9 +42,8 @@ class _Page3State extends State<Page3> {
       selectedChoice = newChoices;
     });
     var multipleObj = CustomMultiChoice(
-        data: newChoices, skipped: false, timeTaken: 2, key: val);
-    createAnswerPayloadOtherSurvey(multipleObj, newChoices);
-    // print("nn-90 new choice is ${newChoices} ");
+        data: newChoices, skipped: false, timeTaken: 2, key: 1246);
+    createAnswerPayloadOtherSurvey(multipleObj, surveyAns);
   }
 
   @override

@@ -50,7 +50,7 @@ class SurveyModal extends StatelessWidget {
   }) : super(key: key);
 
   late Future<Map<dynamic, dynamic>> testeru =
-      fetchAlbum(this.token, this.domain);
+      fetchSurvey(this.token, this.domain);
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +84,8 @@ class SurveyModal extends StatelessWidget {
                 onError!();
               }
               throw Exception('No question is added');
-            } else if (snapshot.data['survey_type'] != 'ClassicForm') {
+            } else if (snapshot.data['survey_type'] != null &&
+                snapshot.data['survey_type'] != 'ClassicForm') {
               if (onError != null) {
                 onError!();
               }
@@ -197,7 +198,7 @@ class _QuestionsPageState extends State<QuestionsPage>
     'EmailInput',
   ];
 
-  storePrefilledAnswers(answers) {
+  storePrefilledAnswers() {
     var _workBenchDatas = {};
 
     for (var i = 0; i < firstQuestionAnswer!.answers.length; i++) {
@@ -227,9 +228,115 @@ class _QuestionsPageState extends State<QuestionsPage>
         var data = firstQuestionAnswer!.answers[i].opnionScale?.data;
         var skipped = firstQuestionAnswer!.answers[i].opnionScale!.skipped;
         var timeTaken = firstQuestionAnswer!.answers[i].opnionScale?.timeTaken;
+        _workBenchDatas[key] = data;
 
-        // print(
-        //     "fir-21 rating check ${firstQuestionAnswer!.answers[i].rating?.key} ${firstQuestionAnswer!.answers[i].rating?.data}");
+        createAnswerPayload(
+          _collectedAnswers,
+          key,
+          skipped != null && skipped == true ? null : data,
+          _surveyToMap,
+          false,
+          "",
+          0,
+          false,
+          "",
+          timeTaken,
+        );
+      }
+
+      if (firstQuestionAnswer!.answers[i].yesOrNo != null) {
+        var key = firstQuestionAnswer!.answers[i].yesOrNo?.key;
+        var data = firstQuestionAnswer!.answers[i].yesOrNo?.data;
+        var skipped = firstQuestionAnswer!.answers[i].yesOrNo!.skipped;
+        var timeTaken = firstQuestionAnswer!.answers[i].yesOrNo?.timeTaken;
+        _workBenchDatas[key] = data;
+
+        createAnswerPayload(
+          _collectedAnswers,
+          key,
+          skipped != null && skipped == true ? null : data,
+          _surveyToMap,
+          false,
+          "",
+          0,
+          false,
+          "",
+          timeTaken,
+        );
+      }
+
+      if (firstQuestionAnswer!.answers[i].phoneNumber != null) {
+        var key = firstQuestionAnswer!.answers[i].phoneNumber?.key;
+        var data =
+            firstQuestionAnswer!.answers[i].phoneNumber?.data.split(" ")[1];
+        var phoneData = firstQuestionAnswer!.answers[i].phoneNumber?.data;
+        var skipped = firstQuestionAnswer!.answers[i].phoneNumber!.skipped;
+        var timeTaken = firstQuestionAnswer!.answers[i].phoneNumber?.timeTaken;
+
+        _workBenchDatas[key] = data;
+        _workBenchDatas['${key}_phone'] = phoneData;
+
+        createAnswerPayload(
+          _collectedAnswers,
+          key,
+          skipped != null && skipped == true ? null : data,
+          _surveyToMap,
+          false,
+          "",
+          0,
+          true,
+          phoneData,
+          timeTaken,
+        );
+      }
+
+      if (firstQuestionAnswer!.answers[i].text != null) {
+        var key = firstQuestionAnswer!.answers[i].text?.key;
+        var data = firstQuestionAnswer!.answers[i].text?.data;
+        var skipped = firstQuestionAnswer!.answers[i].text!.skipped;
+        var timeTaken = firstQuestionAnswer!.answers[i].text?.timeTaken;
+        _workBenchDatas[key] = data;
+
+        createAnswerPayload(
+          _collectedAnswers,
+          key,
+          skipped != null && skipped == true ? null : data,
+          _surveyToMap,
+          false,
+          "",
+          0,
+          false,
+          "",
+          timeTaken,
+        );
+      }
+
+      if (firstQuestionAnswer!.answers[i].email != null) {
+        var key = firstQuestionAnswer!.answers[i].email?.key;
+        var data = firstQuestionAnswer!.answers[i].email?.data;
+        var skipped = firstQuestionAnswer!.answers[i].email!.skipped;
+        var timeTaken = firstQuestionAnswer!.answers[i].email?.timeTaken;
+        _workBenchDatas[key] = data;
+
+        createAnswerPayload(
+          _collectedAnswers,
+          key,
+          skipped != null && skipped == true ? null : data,
+          _surveyToMap,
+          false,
+          "",
+          0,
+          false,
+          "",
+          timeTaken,
+        );
+      }
+
+      if (firstQuestionAnswer!.answers[i].multipleChoice != null) {
+        var key = firstQuestionAnswer!.answers[i].multipleChoice?.key;
+        var data = firstQuestionAnswer!.answers[i].multipleChoice?.data;
+        var skipped = firstQuestionAnswer!.answers[i].multipleChoice!.skipped;
+        var timeTaken = firstQuestionAnswer!.answers[i].multipleChoice?.timeTaken;
         _workBenchDatas[key] = data;
 
         createAnswerPayload(
@@ -428,12 +535,7 @@ class _QuestionsPageState extends State<QuestionsPage>
 
     if (this.Survey['welcome_rtxt'] == null) {
       if (firstQuestionAnswer != null) {
-        var customRating =
-            CustomRating(key: 1304, skipped: false, timeTaken: 1, data: 2);
-        var customOpnion = CustomOpinionScale(
-            key: 1305, skipped: false, timeTaken: 1, data: 5);
-        var answerk = firstQuestionAnswer?.answers;
-        this.storePrefilledAnswers([customRating, customOpnion]);
+        storePrefilledAnswers();
       }
 
       setState(() {
@@ -641,8 +743,7 @@ class _QuestionsPageState extends State<QuestionsPage>
         _pageType = val;
       });
       if (firstQuestionAnswer != null) {
-        //ques120
-        this.storeAnswers(firstQuestionAnswer, _allowedQuestionIds[0]);
+        storePrefilledAnswers();
       }
       setState(() {
         questionList = convertQuestionListToWidget(
@@ -891,7 +992,7 @@ class _QuestionsPageState extends State<QuestionsPage>
   }
 }
 
-Future<Map<dynamic, dynamic>> fetchAlbum(token, domain) async {
+Future<Map<dynamic, dynamic>> fetchSurvey(token, domain) async {
   var url1 = 'http://${domain}/api/internal/sdk/get-survey/${token}';
   var url2 = 'https://${domain}/api/internal/sdk/get-survey/${token}';
 

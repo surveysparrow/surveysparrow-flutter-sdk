@@ -287,11 +287,15 @@ class _RatingQuestionState extends State<RatingQuestion> {
           children: [
             Column(
               children: [
-                SvgPicture.string(
-                  getSmiliySvg(
-                    this.question['properties']['data']['ratingScale'],
-                    true,
-                    index,
+                Container(
+                  height: svgHeight,
+                  width: svgWidth,
+                  child: SvgPicture.string(
+                    getSmiliySvg(
+                      this.question['properties']['data']['ratingScale'],
+                      true,
+                      index,
+                    ),
                   ),
                 ),
                 SizedBox(
@@ -318,9 +322,15 @@ class _RatingQuestionState extends State<RatingQuestion> {
         children: [
           Column(
             children: [
-              SvgPicture.string(
-                getSmiliySvg(this.question['properties']['data']['ratingScale'],
-                    false, index),
+              Container(
+                height: svgHeight,
+                width: svgWidth,
+                child: SvgPicture.string(
+                  getSmiliySvg(
+                      this.question['properties']['data']['ratingScale'],
+                      false,
+                      index),
+                ),
               ),
               SizedBox(
                 height: 10,
@@ -430,11 +440,15 @@ class _RatingQuestionState extends State<RatingQuestion> {
         if (this.widget.euiTheme!['rating']['hasNumber'] != null) {
           hasNumber = this.widget.euiTheme!['rating']['hasNumber'];
         }
-        if (this.widget.euiTheme!['rating']['customRatingSVGUnselected'] != null) {
-          customSvg = this.widget.euiTheme!['rating']['customRatingSVGUnselected'];
+        if (this.widget.euiTheme!['rating']['customRatingSVGUnselected'] !=
+            null) {
+          customSvg =
+              this.widget.euiTheme!['rating']['customRatingSVGUnselected'];
         }
-        if (this.widget.euiTheme!['rating']['customRatingSVGSelected'] != null) {
-          customSvgSelected = this.widget.euiTheme!['rating']['customRatingSVGSelected'];
+        if (this.widget.euiTheme!['rating']['customRatingSVGSelected'] !=
+            null) {
+          customSvgSelected =
+              this.widget.euiTheme!['rating']['customRatingSVGSelected'];
         }
         if (this.widget.euiTheme!['rating']['svgHeight'] != null) {
           svgHeight = this.widget.euiTheme!['rating']['svgHeight'];

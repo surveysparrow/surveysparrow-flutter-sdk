@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:my_app/embbeded.dart';
 import 'package:my_app/otherSurvey.dart';
+import 'package:my_app/preLoadedSurvey.dart';
+import 'package:my_app/surveyScreen.dart';
 import 'package:surveysparrow_flutter_sdk/surveysparrow.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
@@ -103,17 +105,31 @@ class MyApp extends StatelessWidget {
                           onPressed: (() {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => Page2(
-                                  token: tokenController.text,
-                                  domain: domainController.text,
-                                  customTheme: customThemeController.text,
-                                  customParam: customParamController.text,
-                                ),
+                                builder: (context) => SurveyScreen(),
                               ),
                             );
                           }),
                           child: Text("load survey"),
                         ),
+                        ElevatedButton(
+                          onPressed: (() {
+                            showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                builder: (BuildContext context) {
+                                  return Padding(
+                                    padding: MediaQuery.of(context).viewInsets,
+                                    child: Container(
+                                      height: 510,
+                                      child: (Page3()),
+                                    ),
+                                  );
+                                });
+                            // Navigator.of(context).push(
+                            //     MaterialPageRoute(builder: (context) => FullPage3()));
+                          }),
+                          child: Text("Custom survey"),
+                        )
                       ]),
                 ),
               ),
@@ -131,26 +147,26 @@ class MyApp extends StatelessWidget {
                     contentPadding: EdgeInsets.zero,
                     insetPadding: EdgeInsets.all(0),
                     content: Container(
-                        width: 350,
-                        height: 450,
-                        child: SurveyModal(
-                          token: 'tt-04bfb5',
-                          domain: 'sample.surveysparrow.test',
-                          variables: {
-                            'tester': 'sachin 2',
-                            'ntesterR': 'sachin 3'
-                          },
-                          onNext: (val) {
-                            print("currently collected answer ${val} ");
-                          },
-                          onSubmit: (val) {
-                            print("All collected answer ${val} ");
-                            Future.delayed(const Duration(milliseconds: 500),
-                                () {
-                              Navigator.of(context).pop();
-                            });
-                          },
-                        )),
+                      width: 350,
+                      height: 450,
+                      child: SurveyModal(
+                        token: 'tt-04bfb5',
+                        domain: 'sample.surveysparrow.test',
+                        variables: {
+                          'tester': 'sachin 2',
+                          'ntesterR': 'sachin 3'
+                        },
+                        onNext: (val) {
+                          print("currently collected answer ${val} ");
+                        },
+                        onSubmit: (val) {
+                          print("All collected answer ${val} ");
+                          Future.delayed(const Duration(milliseconds: 500), () {
+                            Navigator.of(context).pop();
+                          });
+                        },
+                      ),
+                    ),
                   );
                 },
               );

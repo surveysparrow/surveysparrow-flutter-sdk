@@ -54,13 +54,63 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
   var customFont = null;
 
+  var headerFontSize = 28.0;
+  var imageDescriptionFontSize = 20.0;
+  var descriptionFontSize = 14.0;
+  var imageHeight = 150.sp;
+  var imageWidth = 200.sp;
+  var buttonFontSize = 14.0;
+  var buttonWidth = 110.0;
+  var buttonIconSize = 22.0;
+  var visibilityTime = 2000;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
 
-    if(this.widget.euiTheme != null){
-      if(this.widget.euiTheme!['font'] != null ){
+    if (this.widget.euiTheme != null) {
+      if (this.widget.euiTheme!['thankYouPage'] != null) {
+        if (this.widget.euiTheme!['thankYouPage']['headerFontSize'] != null) {
+          headerFontSize =
+              this.widget.euiTheme!['thankYouPage']['headerFontSize'];
+        }
+        if (this.widget.euiTheme!['thankYouPage']['imageDescriptionFontSize'] !=
+            null) {
+          imageDescriptionFontSize =
+              this.widget.euiTheme!['thankYouPage']['imageDescriptionFontSize'];
+        }
+        if (this.widget.euiTheme!['thankYouPage']['descriptionFontSize'] !=
+            null) {
+          descriptionFontSize =
+              this.widget.euiTheme!['thankYouPage']['descriptionFontSize'];
+        }
+        if (this.widget.euiTheme!['thankYouPage']['imageHeight'] != null) {
+          imageHeight = this.widget.euiTheme!['thankYouPage']['imageHeight'];
+        }
+        if (this.widget.euiTheme!['thankYouPage']['imageWidth'] != null) {
+          imageWidth = this.widget.euiTheme!['thankYouPage']['imageWidth'];
+        }
+        if (this.widget.euiTheme!['thankYouPage']['buttonFontSize'] != null) {
+          buttonFontSize =
+              this.widget.euiTheme!['thankYouPage']['buttonFontSize'];
+        }
+        if (this.widget.euiTheme!['thankYouPage']['buttonWidth'] != null) {
+          buttonWidth = this.widget.euiTheme!['thankYouPage']['buttonWidth'];
+        }
+        if (this.widget.euiTheme!['thankYouPage']['buttonIconSize'] != null) {
+          buttonIconSize =
+              this.widget.euiTheme!['thankYouPage']['buttonIconSize'];
+        }
+        if (this.widget.euiTheme!['thankYouPage']['visibilityTime'] != null) {
+          visibilityTime =
+              this.widget.euiTheme!['thankYouPage']['visibilityTime'];
+        }
+      }
+    }
+
+    if (this.widget.euiTheme != null) {
+      if (this.widget.euiTheme!['font'] != null) {
         customFont = this.widget.euiTheme!['font'];
       }
     }
@@ -107,10 +157,12 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
     if (this.widget.thankYouPageJson['message'] != null &&
         this.widget.thankYouPageJson['message']['entityMap'] != null &&
-        this.widget.thankYouPageJson['message']['entityMap']['0'] != null && 
-        this.widget.thankYouPageJson['message']['entityMap']['0']['data'] != null &&
-        this.widget.thankYouPageJson['message']['entityMap']['0']['data']['src'] != null
-        ) {
+        this.widget.thankYouPageJson['message']['entityMap']['0'] != null &&
+        this.widget.thankYouPageJson['message']['entityMap']['0']['data'] !=
+            null &&
+        this.widget.thankYouPageJson['message']['entityMap']['0']['data']
+                ['src'] !=
+            null) {
       hasImage = true;
       imageSrc = this.widget.thankYouPageJson['message']['entityMap']['0']
           ['data']['src'];
@@ -122,8 +174,8 @@ class _ThankYouPageState extends State<ThankYouPage> {
       this.widget.closeModalFunction!();
       _launchInBrowser(redirectUrl);
     } else {
-      Future.delayed(const Duration(milliseconds: 2000), () {
-        this.widget.closeModalFunction!();
+      Future.delayed(Duration(milliseconds: visibilityTime), () {
+        widget.closeModalFunction!();
       });
     }
   }
@@ -149,7 +201,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
             thankYouPageheading,
             style: TextStyle(
               decoration: TextDecoration.none,
-              fontSize: 28,
+              fontSize: headerFontSize,
               fontWeight: FontWeight.w400,
               color: this.widget.theme['questionColor'],
               fontFamily: customFont,
@@ -160,9 +212,10 @@ class _ThankYouPageState extends State<ThankYouPage> {
           ),
           if (hasImage) ...[
             Container(
-              height: 150.sp,
-              width: 200.sp,
+              height: imageHeight,
+              width: imageWidth,
               child: Image(
+                fit: BoxFit.contain,
                 image: NetworkImage(imageSrc),
               ),
             ),
@@ -174,7 +227,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
             thankYouPageDescritpion,
             style: TextStyle(
               decoration: TextDecoration.none,
-              fontSize: 20,
+              fontSize: imageDescriptionFontSize,
               fontWeight: FontWeight.w500,
               color: this.widget.theme['questionColor'],
               fontFamily: customFont,
@@ -186,7 +239,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
           Text(thanYouPageBottomDescritpion,
               style: TextStyle(
                 decoration: TextDecoration.none,
-                fontSize: 14,
+                fontSize: descriptionFontSize,
                 fontWeight: FontWeight.w400,
                 color: this.widget.theme['questionDescriptionColor'],
                 fontFamily: customFont,
@@ -219,7 +272,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                           color: this.widget.theme['ctaButtonColor']),
                     ),
               child: Container(
-                width: 110,
+                width: buttonWidth,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -227,7 +280,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                       thankYouButtonText,
                       style: TextStyle(
                         decoration: TextDecoration.none,
-                        fontSize: 14,
+                        fontSize: buttonFontSize,
                         fontWeight: FontWeight.bold,
                         fontFamily: customFont,
                         color: this.widget.theme['buttonStyle'] == "filled"
@@ -244,6 +297,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                               ? Colors.black
                               : Colors.white
                           : this.widget.theme['ctaButtonColor'],
+                      size: buttonIconSize,
                     ),
                   ],
                 ),

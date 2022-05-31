@@ -255,6 +255,7 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
         this.question['properties']['data']['start']);
 
     if (this.answer[this.question['id']] != null) {
+      print("first question answer ffr ${this.answer[this.question['id']]} ");
       setState(() {
         _selectedOption = this.answer[this.question['id']];
       });
