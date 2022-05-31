@@ -28,7 +28,7 @@ class SurveyScreen extends StatelessWidget {
                   "custom_number": "2"
                 },
                 firstQuestionAnswer: FirstQuestionAnswer(
-                  pageNumber: 1,
+                  pageNumber: 1, // number of pages to skip when the user takes the survey
                   answers: [
                     Answer(
                       opnionScale: CustomOpinionScale(
@@ -87,7 +87,7 @@ class SurveyScreen extends StatelessWidget {
                       countryPickerHeight: 80.0,
                       countryCodeNumberInputWidth: 240.0,
                       fontSize: 28.0),
-                  opnionScale: OpnionScale(
+                  opinionScale: OpinionScale(
                     outerBlockSizeWidth: 80,
                     outerBlockSizeHeight: 80,
                     innerBlockSizeWidth: 70,

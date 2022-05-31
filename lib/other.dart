@@ -67,7 +67,7 @@ class _MyHomePageState extends State<MyHomePage2> {
                 fontSize: 20.0,
                 textFieldWidth: 500.0,
               ),
-              opnionScale: OpnionScale(
+              opinionScale: OpinionScale(
                 outerBlockSizeHeight: 20.0,
                 outerBlockSizeWidth: 30.0,
                 innerBlockSizeHeight: 30.0,

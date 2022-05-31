@@ -16,7 +16,7 @@ class CustomSurveyTheme {
     this.font,
     this.bottomBar,
     this.rating,
-    this.opnionScale,
+    this.opinionScale,
     this.phoneNumber,
     this.yesOrNo,
     this.multipleChoice,
@@ -34,7 +34,7 @@ class CustomSurveyTheme {
   String? font;
   BottomBar? bottomBar;
   Rating? rating;
-  OpnionScale? opnionScale;
+  OpinionScale? opinionScale;
   PhoneNumber? phoneNumber;
   YesOrNo? yesOrNo;
   MultipleChoice? multipleChoice;
@@ -57,9 +57,9 @@ class CustomSurveyTheme {
             ? null
             : BottomBar.fromMap(json["bottomBar"]),
         rating: json["rating"] == null ? null : Rating.fromMap(json["rating"]),
-        opnionScale: json["opnionScale"] == null
+        opinionScale: json["opinionScale"] == null
             ? null
-            : OpnionScale.fromMap(json["opnionScale"]),
+            : OpinionScale.fromMap(json["opinionScale"]),
         phoneNumber: json["phoneNumber"] == null
             ? null
             : PhoneNumber.fromMap(json["phoneNumber"]),
@@ -90,7 +90,7 @@ class CustomSurveyTheme {
         "font": font,
         "bottomBar": bottomBar == null ? null : bottomBar?.toMap(),
         "rating": rating == null ? null : rating?.toMap(),
-        "opnionScale": opnionScale == null ? null : opnionScale?.toMap(),
+        "opinionScale": opinionScale == null ? null : opinionScale?.toMap(),
         "phoneNumber": phoneNumber == null ? null : phoneNumber?.toMap(),
         "yesOrNo": yesOrNo == null ? null : yesOrNo?.toMap(),
         "multipleChoice":
@@ -306,8 +306,8 @@ class MultipleChoice {
       };
 }
 
-class OpnionScale {
-  OpnionScale({
+class OpinionScale {
+  OpinionScale({
     this.outerBlockSizeWidth,
     this.outerBlockSizeHeight,
     this.innerBlockSizeWidth,
@@ -327,7 +327,7 @@ class OpnionScale {
   double? runSpacing;
   double? positionedLabelTopValue;
 
-  factory OpnionScale.fromMap(Map<String, dynamic> json) => OpnionScale(
+  factory OpinionScale.fromMap(Map<String, dynamic> json) => OpinionScale(
         outerBlockSizeWidth: json["outerBlockSizeWidth"],
         outerBlockSizeHeight: json["outerBlockSizeHeight"],
         innerBlockSizeWidth: json["innerBlockSizeWidth"],

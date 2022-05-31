@@ -203,31 +203,31 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
         customFont = this.widget.euiTheme!['font'];
       }
 
-      if(this.widget.euiTheme!['opnionScale'] != null){
-        if(this.widget.euiTheme!['opnionScale']['outerBlockSizeWidth'] != null ){
-          opnionBlockSizeWidth = this.widget.euiTheme!['opnionScale']['outerBlockSizeWidth'];
+      if(this.widget.euiTheme!['opinionScale'] != null){
+        if(this.widget.euiTheme!['opinionScale']['outerBlockSizeWidth'] != null ){
+          opnionBlockSizeWidth = this.widget.euiTheme!['opinionScale']['outerBlockSizeWidth'];
         }
-        if(this.widget.euiTheme!['opnionScale']['outerBlockSizeHeight'] != null ){
-          opnionBlockSizeHeight = this.widget.euiTheme!['opnionScale']['outerBlockSizeHeight'];
+        if(this.widget.euiTheme!['opinionScale']['outerBlockSizeHeight'] != null ){
+          opnionBlockSizeHeight = this.widget.euiTheme!['opinionScale']['outerBlockSizeHeight'];
         }
 
-        if(this.widget.euiTheme!['opnionScale']['innerBlockSizeWidth'] != null ){
-          innerOpnionBlockSizeWidth = this.widget.euiTheme!['opnionScale']['innerBlockSizeWidth'];
+        if(this.widget.euiTheme!['opinionScale']['innerBlockSizeWidth'] != null ){
+          innerOpnionBlockSizeWidth = this.widget.euiTheme!['opinionScale']['innerBlockSizeWidth'];
         }
-        if(this.widget.euiTheme!['opnionScale']['innerBlockSizeHeight'] != null ){
-          innerOpnionBlockSizeHeight = this.widget.euiTheme!['opnionScale']['innerBlockSizeHeight'];
+        if(this.widget.euiTheme!['opinionScale']['innerBlockSizeHeight'] != null ){
+          innerOpnionBlockSizeHeight = this.widget.euiTheme!['opinionScale']['innerBlockSizeHeight'];
         }
-        if(this.widget.euiTheme!['opnionScale']['labelFontSize'] != null ){
-          opnionLabelFontSize = this.widget.euiTheme!['opnionScale']['labelFontSize'];
+        if(this.widget.euiTheme!['opinionScale']['labelFontSize'] != null ){
+          opnionLabelFontSize = this.widget.euiTheme!['opinionScale']['labelFontSize'];
         }
-        if(this.widget.euiTheme!['opnionScale']['numberFontSize'] != null ){
-          numberFontSize = this.widget.euiTheme!['opnionScale']['numberFontSize'];
+        if(this.widget.euiTheme!['opinionScale']['numberFontSize'] != null ){
+          numberFontSize = this.widget.euiTheme!['opinionScale']['numberFontSize'];
         }
-        if(this.widget.euiTheme!['opnionScale']['runSpacing'] != null ){
-          runSpacing = this.widget.euiTheme!['opnionScale']['runSpacing'];
+        if(this.widget.euiTheme!['opinionScale']['runSpacing'] != null ){
+          runSpacing = this.widget.euiTheme!['opinionScale']['runSpacing'];
         }
-        if(this.widget.euiTheme!['opnionScale']['positionedLabelTopValue'] != null ){
-          positionedLabelTopValue = this.widget.euiTheme!['opnionScale']['positionedLabelTopValue'];
+        if(this.widget.euiTheme!['opinionScale']['positionedLabelTopValue'] != null ){
+          positionedLabelTopValue = this.widget.euiTheme!['opinionScale']['positionedLabelTopValue'];
         }
       }
 
