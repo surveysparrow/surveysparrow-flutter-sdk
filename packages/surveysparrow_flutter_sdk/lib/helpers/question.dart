@@ -8,7 +8,13 @@ import '../components/questions/rating.dart';
 import '../components/questions/text.dart';
 
 parsedHeading(question, replacementVal) {
- 
+  if (question['rtxt'] == null ||
+      question['rtxt']['blocks'] == null ||
+      question['rtxt']['blocks'][0] == null ||
+      question['rtxt']['blocks'][0]['text'] == null) {
+    return '';
+  }
+
   var entityRanges = question['rtxt']['blocks'][0]['entityRanges'];
   var entityMapping = question['rtxt']['entityMap'];
   final Map<dynamic, dynamic> stringToReplace = {};
@@ -19,7 +25,7 @@ parsedHeading(question, replacementVal) {
 
   var replacedString = question['rtxt']['blocks'][0]['text'];
   var extraOffset = 0;
-  
+
   for (var i = 0; i < entityRanges.length; i++) {
     var currentEntity = entityRanges[i];
     var textToReplace =
@@ -48,24 +54,22 @@ parsedHeading(question, replacementVal) {
 }
 
 convertQuestionListToWidget(
-  questionsToConvert,
-  _currentQuestionToRender,
-  storeAnswers,
-  _workBench,
-  _themeData,
-  customParams,
-  _currentQuestionNumber,
-  submitData,
-  _lastQuestion,
-  _scrollController,
-  euiTheme,
-  toggleNextButtonBlock
-) {
+    questionsToConvert,
+    _currentQuestionToRender,
+    storeAnswers,
+    _workBench,
+    _themeData,
+    customParams,
+    _currentQuestionNumber,
+    submitData,
+    _lastQuestion,
+    _scrollController,
+    euiTheme,
+    toggleNextButtonBlock) {
   List<Widget> _newquestionList = List<Widget>.empty(growable: true);
 
   var i = 0;
 
-  
   for (var question in questionsToConvert) {
     if (question['type'] == 'Rating') {
       _newquestionList.add(
@@ -109,17 +113,16 @@ convertQuestionListToWidget(
             child: SingleChildScrollView(
               physics: BouncingScrollPhysics(),
               child: TextRating(
-                func: storeAnswers,
-                answer: _workBench,
-                question: question,
-                theme: _themeData,
-                customParams: customParams,
-                currentQuestionNumber: i + 1,
-                isLastQuestion: question['id'] == _lastQuestion['id'],
-                submitData: submitData,
-                euiTheme: euiTheme,
-                toggleNextButtonBlock:toggleNextButtonBlock
-              ),
+                  func: storeAnswers,
+                  answer: _workBench,
+                  question: question,
+                  theme: _themeData,
+                  customParams: customParams,
+                  currentQuestionNumber: i + 1,
+                  isLastQuestion: question['id'] == _lastQuestion['id'],
+                  submitData: submitData,
+                  euiTheme: euiTheme,
+                  toggleNextButtonBlock: toggleNextButtonBlock),
             ),
           ),
         ),
@@ -148,7 +151,7 @@ convertQuestionListToWidget(
                 submitData: submitData,
                 isLastQuestion: question['id'] == _lastQuestion['id'],
                 euiTheme: euiTheme,
-                toggleNextButtonBlock:toggleNextButtonBlock,
+                toggleNextButtonBlock: toggleNextButtonBlock,
               ),
             ),
           ),

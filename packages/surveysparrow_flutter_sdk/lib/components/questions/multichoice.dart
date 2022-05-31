@@ -369,7 +369,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
   var customFont = null;
   var newList = [];
 
-  double choiceContainerWidth = 250.0;
+  double choiceContainerWidth = 290.0;
   double choiceContainerHeight = 50.0;
   double fontSize = 16.0;
   double circularFontContainerSize = 32.0;

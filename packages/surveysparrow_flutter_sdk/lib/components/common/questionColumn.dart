@@ -108,7 +108,12 @@ class _QuestionColumnState extends State<QuestionColumn> {
                 color: theme['questionColor']),
           ),
           Text(
-            this.question['rdesc']['blocks'][0]['text'],
+            this.question['rdesc'] != null &&
+                    this.question['rdesc']['blocks'] != null &&
+                    this.question['rdesc']['blocks'][0] != null &&
+                    this.question['rdesc']['blocks'][0]['text'] != null
+                ? this.question['rdesc']['blocks'][0]['text']
+                : '',
             textAlign: TextAlign.left,
             style: TextStyle(
               fontFamily: customFont,

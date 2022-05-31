@@ -111,10 +111,10 @@ class SurveyModal extends StatelessWidget {
           }
 
           if (snapshot.hasError) {
-            if (onError != null) {
-              onError!();
-            }
-            throw Exception('Some Error Occurred while fetching survey Object');
+            // if (onError != null) {
+            //   onError!();
+            // }
+            throw Exception('Some Error Occurred while fetching survey Object ${snapshot.error}');
           }
           return const LoadingScreen();
         },

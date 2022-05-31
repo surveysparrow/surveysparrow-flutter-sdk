@@ -88,6 +88,8 @@ class _WelcomePageState extends State<WelcomePage> {
       imageSrc = this.widget.welcomeEntity['0']['data']['src'];
     }
     luminanceValue = this.widget.theme['ctaButtonColor'].computeLuminance();
+
+    print("welcome page ${this.widget.welcomePageData['blocks']}");
   }
 
   @override
@@ -138,13 +140,16 @@ class _WelcomePageState extends State<WelcomePage> {
           SizedBox(
             height: 10,
           ),
-          Text(this.widget.welcomeDesc,
-              style: TextStyle(
-                  decoration: TextDecoration.none,
-                  fontSize: descriptionFontSize,
-                  fontWeight: FontWeight.w400,
-                  color: this.widget.theme['questionDescriptionColor'],
-                  fontFamily: customFont)),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            child: Text(this.widget.welcomeDesc,
+                style: TextStyle(
+                    decoration: TextDecoration.none,
+                    fontSize: descriptionFontSize,
+                    fontWeight: FontWeight.w400,
+                    color: this.widget.theme['questionDescriptionColor'],
+                    fontFamily: customFont)),
+          ),
           SizedBox(
             height: 10,
           ),

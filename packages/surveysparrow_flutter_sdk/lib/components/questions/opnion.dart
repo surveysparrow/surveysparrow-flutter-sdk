@@ -177,13 +177,15 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
     _start = start;
     var totalOptions = start == 0 ? step + 1 : step;
 
-    _mid = totalOptions % 2 == 0 ? -1 : ((start == 0 ? totalOptions - 1 : totalOptions) / 2).ceil();
+    _mid = totalOptions % 2 == 0
+        ? -1
+        : ((start == 0 ? totalOptions - 1 : totalOptions) / 2).ceil();
     _end = step;
 
     _step = start == 0 ? step + 1 : step;
   }
 
-  var customFont = null ;
+  var customFont = null;
 
   var opnionBlockSizeWidth = 48.0;
   var opnionBlockSizeHeight = 60.0;
@@ -198,39 +200,50 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
   initState() {
     super.initState();
 
-     if(this.widget.euiTheme != null){
-      if(this.widget.euiTheme!['font'] != null){
+    if (this.widget.euiTheme != null) {
+      if (this.widget.euiTheme!['font'] != null) {
         customFont = this.widget.euiTheme!['font'];
       }
 
-      if(this.widget.euiTheme!['opinionScale'] != null){
-        if(this.widget.euiTheme!['opinionScale']['outerBlockSizeWidth'] != null ){
-          opnionBlockSizeWidth = this.widget.euiTheme!['opinionScale']['outerBlockSizeWidth'];
+      if (this.widget.euiTheme!['opinionScale'] != null) {
+        if (this.widget.euiTheme!['opinionScale']['outerBlockSizeWidth'] !=
+            null) {
+          opnionBlockSizeWidth =
+              this.widget.euiTheme!['opinionScale']['outerBlockSizeWidth'];
         }
-        if(this.widget.euiTheme!['opinionScale']['outerBlockSizeHeight'] != null ){
-          opnionBlockSizeHeight = this.widget.euiTheme!['opinionScale']['outerBlockSizeHeight'];
+        if (this.widget.euiTheme!['opinionScale']['outerBlockSizeHeight'] !=
+            null) {
+          opnionBlockSizeHeight =
+              this.widget.euiTheme!['opinionScale']['outerBlockSizeHeight'];
         }
 
-        if(this.widget.euiTheme!['opinionScale']['innerBlockSizeWidth'] != null ){
-          innerOpnionBlockSizeWidth = this.widget.euiTheme!['opinionScale']['innerBlockSizeWidth'];
+        if (this.widget.euiTheme!['opinionScale']['innerBlockSizeWidth'] !=
+            null) {
+          innerOpnionBlockSizeWidth =
+              this.widget.euiTheme!['opinionScale']['innerBlockSizeWidth'];
         }
-        if(this.widget.euiTheme!['opinionScale']['innerBlockSizeHeight'] != null ){
-          innerOpnionBlockSizeHeight = this.widget.euiTheme!['opinionScale']['innerBlockSizeHeight'];
+        if (this.widget.euiTheme!['opinionScale']['innerBlockSizeHeight'] !=
+            null) {
+          innerOpnionBlockSizeHeight =
+              this.widget.euiTheme!['opinionScale']['innerBlockSizeHeight'];
         }
-        if(this.widget.euiTheme!['opinionScale']['labelFontSize'] != null ){
-          opnionLabelFontSize = this.widget.euiTheme!['opinionScale']['labelFontSize'];
+        if (this.widget.euiTheme!['opinionScale']['labelFontSize'] != null) {
+          opnionLabelFontSize =
+              this.widget.euiTheme!['opinionScale']['labelFontSize'];
         }
-        if(this.widget.euiTheme!['opinionScale']['numberFontSize'] != null ){
-          numberFontSize = this.widget.euiTheme!['opinionScale']['numberFontSize'];
+        if (this.widget.euiTheme!['opinionScale']['numberFontSize'] != null) {
+          numberFontSize =
+              this.widget.euiTheme!['opinionScale']['numberFontSize'];
         }
-        if(this.widget.euiTheme!['opinionScale']['runSpacing'] != null ){
+        if (this.widget.euiTheme!['opinionScale']['runSpacing'] != null) {
           runSpacing = this.widget.euiTheme!['opinionScale']['runSpacing'];
         }
-        if(this.widget.euiTheme!['opinionScale']['positionedLabelTopValue'] != null ){
-          positionedLabelTopValue = this.widget.euiTheme!['opinionScale']['positionedLabelTopValue'];
+        if (this.widget.euiTheme!['opinionScale']['positionedLabelTopValue'] !=
+            null) {
+          positionedLabelTopValue =
+              this.widget.euiTheme!['opinionScale']['positionedLabelTopValue'];
         }
       }
-
     }
 
     startLabel = this.question['properties']['data']['min'] ==
@@ -249,7 +262,11 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
     luminanceValue =
         this.theme['decodedOpnionBackgroundColorUnSelected'].computeLuminance();
 
-    reversedOrder = this.question['properties']['data']['reversedOrder'];
+    if (this.question['properties'] != null &&
+        this.question['properties']['data'] != null &&
+        this.question['properties']['data']['reversedOrder'] != null) {
+      reversedOrder = this.question['properties']['data']['reversedOrder'];
+    }
 
     this.generateStartStep(this.question['properties']['data']['step'],
         this.question['properties']['data']['start']);
@@ -266,7 +283,7 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
     }
   }
 
-  transformLabel(text){
+  transformLabel(text) {
     var value = text.length > 12 ? '${text.substring(0, 12)}..' : text;
     return value;
   }
@@ -275,8 +292,11 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
     return Container(
       width: opnionBlockSizeWidth,
       height: opnionBlockSizeHeight,
-      margin:
-        _step == 3 ?  val == 0 ? EdgeInsets.only(left: 0.0) : EdgeInsets.only(right: 30.0):null,
+      margin: _step == 3
+          ? val == 0
+              ? EdgeInsets.only(left: 0.0)
+              : EdgeInsets.only(right: 30.0)
+          : null,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -286,7 +306,9 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
               left: -1,
               child: Container(
                   child: Text(
-                reversedOrder ? transformLabel(endLabel) : transformLabel(startLabel),
+                reversedOrder
+                    ? transformLabel(endLabel)
+                    : transformLabel(startLabel),
                 style: TextStyle(
                   decoration: TextDecoration.none,
                   fontSize: opnionLabelFontSize,
@@ -323,7 +345,9 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
               left: -1,
               child: Container(
                 child: Text(
-                  reversedOrder ? transformLabel(startLabel) : transformLabel(endLabel),
+                  reversedOrder
+                      ? transformLabel(startLabel)
+                      : transformLabel(endLabel),
                   style: TextStyle(
                     decoration: TextDecoration.none,
                     fontSize: opnionLabelFontSize,

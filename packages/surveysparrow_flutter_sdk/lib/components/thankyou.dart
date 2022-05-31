@@ -197,14 +197,17 @@ class _ThankYouPageState extends State<ThankYouPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            thankYouPageheading,
-            style: TextStyle(
-              decoration: TextDecoration.none,
-              fontSize: headerFontSize,
-              fontWeight: FontWeight.w400,
-              color: this.widget.theme['questionColor'],
-              fontFamily: customFont,
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            child: Text(
+              thankYouPageheading,
+              style: TextStyle(
+                decoration: TextDecoration.none,
+                fontSize: headerFontSize,
+                fontWeight: FontWeight.w400,
+                color: this.widget.theme['questionColor'],
+                fontFamily: customFont,
+              ),
             ),
           ),
           SizedBox(
@@ -223,27 +226,33 @@ class _ThankYouPageState extends State<ThankYouPage> {
           SizedBox(
             height: 5,
           ),
-          Text(
-            thankYouPageDescritpion,
-            style: TextStyle(
-              decoration: TextDecoration.none,
-              fontSize: imageDescriptionFontSize,
-              fontWeight: FontWeight.w500,
-              color: this.widget.theme['questionColor'],
-              fontFamily: customFont,
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            child: Text(
+              thankYouPageDescritpion,
+              style: TextStyle(
+                decoration: TextDecoration.none,
+                fontSize: imageDescriptionFontSize,
+                fontWeight: FontWeight.w500,
+                color: this.widget.theme['questionColor'],
+                fontFamily: customFont,
+              ),
             ),
           ),
           SizedBox(
             height: 5,
           ),
-          Text(thanYouPageBottomDescritpion,
-              style: TextStyle(
-                decoration: TextDecoration.none,
-                fontSize: descriptionFontSize,
-                fontWeight: FontWeight.w400,
-                color: this.widget.theme['questionDescriptionColor'],
-                fontFamily: customFont,
-              )),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            child: Text(thanYouPageBottomDescritpion,
+                style: TextStyle(
+                  decoration: TextDecoration.none,
+                  fontSize: descriptionFontSize,
+                  fontWeight: FontWeight.w400,
+                  color: this.widget.theme['questionDescriptionColor'],
+                  fontFamily: customFont,
+                )),
+          ),
 
           if (hasThankYouButton) ...[
             SizedBox(
