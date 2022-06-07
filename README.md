@@ -291,14 +291,13 @@ question questionNumberFontSize(double)
  DESC -> question number font size 
 
 questionHeadingFontSize(double)
- DESC -> question number font size 
+ DESC -> question header font size 
 
 questionDescriptionFontSize(double)
  DESC -> question description font size
 ```
 Skip button customizations:
 ```dart
-skipButton
  fontSize(double)
  DESC -> skip button font size 
 ```
@@ -392,10 +391,10 @@ Yes or no question type customizations:
  DESC ->  yesOrNo svg icon width
 
  customSVGUnselected( String )
- DESC -> custom unselected svg to display instead of default surveysparrow svg's
+ DESC -> custom unselected svg to display instead of default surveysparrow svg
 
  customSVGSelected( String )
- DESC -> custom selected svg to display instead of default surveysparrow svg's
+ DESC -> custom selected svg to display instead of default surveysparrow svg
 
  outerContainerWidth ( double )
  DESC -> outer container size of yes or no question card
@@ -496,28 +495,28 @@ DESC -> welcome page buttonIconSize
 ThankYou Page customizations:
 ```dart
 headerFontSize(double)
-DESC -> welcome page header font size
+DESC -> thank you page header font size
 
 imageDescriptionFontSize(double)
-DESC -> welcome page image description font size
+DESC -> thank you page image description font size
 
 descriptionFontSize(double)
-DESC -> welcome page description font size
+DESC -> thank you page description font size
 
 imageHeight(double)
-DESC -> welcome page image height
+DESC -> thank you page image height
 
 imageWidth(double)
-DESC -> welcome page image width
+DESC -> thank you page image width
 
 buttonFontSize(double)
-DESC -> welcome page button font size
+DESC -> thank you page button font size
 
 buttonWidth(double)
-DESC -> welcome page buttonWidth
+DESC -> thank you page buttonWidth
 
 buttonIconSize(double)
-DESC -> welcome page buttonIconSize
+DESC -> thank you page buttonIconSize
 
 visibilityTime(int)
 DESC -> how long the thank you page should be visible
