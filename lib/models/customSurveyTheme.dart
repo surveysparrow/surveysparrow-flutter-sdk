@@ -308,30 +308,30 @@ class MultipleChoice {
 
 class OpinionScale {
   OpinionScale({
-    this.outerBlockSizeWidth,
-    this.outerBlockSizeHeight,
-    this.innerBlockSizeWidth,
-    this.innerBlockSizeHeight,
+    this.outerBlockWidth,
+    this.outerBlockHeight,
+    this.innerBlockWidth,
+    this.innerBlockHeight,
     this.labelFontSize,
     this.numberFontSize,
     this.runSpacing,
     this.positionedLabelTopValue,
   });
 
-  double? outerBlockSizeWidth;
-  double? outerBlockSizeHeight;
-  double? innerBlockSizeWidth;
-  double? innerBlockSizeHeight;
+  double? outerBlockWidth;
+  double? outerBlockHeight;
+  double? innerBlockWidth;
+  double? innerBlockHeight;
   double? labelFontSize;
   double? numberFontSize;
   double? runSpacing;
   double? positionedLabelTopValue;
 
   factory OpinionScale.fromMap(Map<String, dynamic> json) => OpinionScale(
-        outerBlockSizeWidth: json["outerBlockSizeWidth"],
-        outerBlockSizeHeight: json["outerBlockSizeHeight"],
-        innerBlockSizeWidth: json["innerBlockSizeWidth"],
-        innerBlockSizeHeight: json["innerBlockSizeHeight"],
+        outerBlockWidth: json["outerBlockWidth"],
+        outerBlockHeight: json["outerBlockHeight"],
+        innerBlockWidth: json["innerBlockWidth"],
+        innerBlockHeight: json["innerBlockHeight"],
         labelFontSize: json["labelFontSize"],
         numberFontSize: json["numberFontSize"],
         runSpacing: json["runSpacing"],
@@ -339,10 +339,10 @@ class OpinionScale {
       );
 
   Map<String, dynamic> toMap() => {
-        "outerBlockSizeWidth": outerBlockSizeWidth,
-        "outerBlockSizeHeight": outerBlockSizeHeight,
-        "innerBlockSizeWidth": innerBlockSizeWidth,
-        "innerBlockSizeHeight": innerBlockSizeHeight,
+        "outerBlockWidth": outerBlockWidth,
+        "outerBlockHeight": outerBlockHeight,
+        "innerBlockWidth": innerBlockWidth,
+        "innerBlockHeight": innerBlockHeight,
         "labelFontSize": labelFontSize,
         "numberFontSize": numberFontSize,
         "runSpacing": runSpacing,
@@ -358,8 +358,8 @@ class PhoneNumber {
     this.countryPickerHeight,
     this.countryCodeInputWidth,
     this.countryCodeInputHeight,
-    this.countryCodeNumberInputHeight,
-    this.countryCodeNumberInputWidth,
+    this.phoneNumberInputHeight,
+    this.phoneNumberInputWidth,
   });
 
   String? defaultNumber;
@@ -368,8 +368,8 @@ class PhoneNumber {
   double? countryPickerHeight;
   double? countryCodeInputWidth;
   double? countryCodeInputHeight;
-  double? countryCodeNumberInputHeight;
-  double? countryCodeNumberInputWidth;
+  double? phoneNumberInputHeight;
+  double? phoneNumberInputWidth;
 
   factory PhoneNumber.fromMap(Map<String, dynamic> json) => PhoneNumber(
         defaultNumber: json["defaultNumber"],
@@ -378,8 +378,8 @@ class PhoneNumber {
         countryPickerHeight: json["countryPickerHeight"],
         countryCodeInputWidth: json["countryCodeInputWidth"],
         countryCodeInputHeight: json["countryCodeInputHeight"],
-        countryCodeNumberInputHeight: json["countryCodeNumberInputHeight"],
-        countryCodeNumberInputWidth: json["countryCodeNumberInputWidth"],
+        phoneNumberInputHeight: json["phoneNumberInputHeight"],
+        phoneNumberInputWidth: json["phoneNumberInputWidth"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -389,8 +389,8 @@ class PhoneNumber {
         "countryPickerHeight": countryPickerHeight,
         "countryCodeInputWidth": countryCodeInputWidth,
         "countryCodeInputHeight": countryCodeInputHeight,
-        "countryCodeNumberInputHeight": countryCodeNumberInputHeight,
-        "countryCodeNumberInputWidth": countryCodeNumberInputWidth,
+        "phoneNumberInputHeight": phoneNumberInputHeight,
+        "phoneNumberInputWidth": phoneNumberInputWidth,
       };
 }
 

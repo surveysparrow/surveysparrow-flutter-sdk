@@ -206,26 +206,26 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
       }
 
       if (this.widget.euiTheme!['opinionScale'] != null) {
-        if (this.widget.euiTheme!['opinionScale']['outerBlockSizeWidth'] !=
+        if (this.widget.euiTheme!['opinionScale']['outerBlockWidth'] !=
             null) {
           opnionBlockSizeWidth =
-              this.widget.euiTheme!['opinionScale']['outerBlockSizeWidth'];
+              this.widget.euiTheme!['opinionScale']['outerBlockWidth'];
         }
-        if (this.widget.euiTheme!['opinionScale']['outerBlockSizeHeight'] !=
+        if (this.widget.euiTheme!['opinionScale']['outerBlockHeight'] !=
             null) {
           opnionBlockSizeHeight =
-              this.widget.euiTheme!['opinionScale']['outerBlockSizeHeight'];
+              this.widget.euiTheme!['opinionScale']['outerBlockHeight'];
         }
 
-        if (this.widget.euiTheme!['opinionScale']['innerBlockSizeWidth'] !=
+        if (this.widget.euiTheme!['opinionScale']['innerBlockWidth'] !=
             null) {
           innerOpnionBlockSizeWidth =
-              this.widget.euiTheme!['opinionScale']['innerBlockSizeWidth'];
+              this.widget.euiTheme!['opinionScale']['innerBlockWidth'];
         }
-        if (this.widget.euiTheme!['opinionScale']['innerBlockSizeHeight'] !=
+        if (this.widget.euiTheme!['opinionScale']['innerBlockHeight'] !=
             null) {
           innerOpnionBlockSizeHeight =
-              this.widget.euiTheme!['opinionScale']['innerBlockSizeHeight'];
+              this.widget.euiTheme!['opinionScale']['innerBlockHeight'];
         }
         if (this.widget.euiTheme!['opinionScale']['labelFontSize'] != null) {
           opnionLabelFontSize =

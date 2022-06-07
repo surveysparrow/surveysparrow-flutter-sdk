@@ -288,15 +288,15 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
       }
 
       if (this.widget.euiTheme!['phoneNumber']
-              ['countryCodeNumberInputHeight'] !=
+              ['phoneNumberInputHeight'] !=
           null) {
         countryCodeNumberInputHeight = this.widget.euiTheme!['phoneNumber']
-            ['countryCodeNumberInputHeight'];
+            ['phoneNumberInputHeight'];
       }
-      if (this.widget.euiTheme!['phoneNumber']['countryCodeNumberInputWidth'] !=
+      if (this.widget.euiTheme!['phoneNumber']['phoneNumberInputWidth'] !=
           null) {
         countryCodeNumberInputWidth =
-            this.widget.euiTheme!['phoneNumber']['countryCodeNumberInputWidth'];
+            this.widget.euiTheme!['phoneNumber']['phoneNumberInputWidth'];
       }
     }
 

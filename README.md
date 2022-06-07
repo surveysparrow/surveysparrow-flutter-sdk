@@ -2,7 +2,7 @@ SurveySparrow's flutter SDK lets you collect feedback at various touchpoints fro
 # How it works?
 You can install the SDK on Xcode or Android Studio and configure when you want to invoke the survey. Based on those conditions, you will be able to call the survey when a particular condition is met. For instance, let’s say your app lets people book a cab (like Uber or Lyft). You may want to display feedback surveys at after a trip is complete. You can easily do that with our SDK. 
 # Steps to get started with the SDK
-* Create a free account on Build better experiences, the right way | SurveySparrow   and build a sample classic survey. You can also use our templates to get started easily. Please note that only these question types are supported for the flutter SDK: Opinion Scale, Text, Rating, Welcome page, Thank you page, Yes or No, Multiple Choice, Phone Number, Email.
+* Create a free account on [Build better experiences, the right way | SurveySparrow](https://surveysparrow.com/) and build a sample classic survey. You can also use our templates to get started easily. Please note that only these question types are supported for the flutter SDK: Opinion Scale, Text, Rating, Welcome page, Thank you page, Yes or No, Multiple Choice, Phone Number, Email.
 * After building the survey, navigate to the “Share“ window. Click on “Mobile SDK“ and copy the access token. You will need this access token to call the survey.
 * Copy the URL of your account (*.surveysparrow.com) and keep it handy.
 # Supported versions
@@ -153,16 +153,10 @@ class SurveyScreen extends StatelessWidget {
                  phoneNumber: PhoneNumber(
                      countryPickerWidth: 100.0,
                      countryPickerHeight: 80.0,
-                     countryCodeNumberInputWidth: 240.0,
                      fontSize: 28.0),
                  opinionScale: OpinionScale(
-                   outerBlockSizeWidth: 80,
-                   outerBlockSizeHeight: 80,
-                   innerBlockSizeWidth: 70,
-                   innerBlockSizeHeight: 70,
                    labelFontSize: 20,
                    numberFontSize: 18,
-                   positionedLabelTopValue: -24.0,
                    runSpacing: 28.0,
                  ),
                  welcome: WelcomePageTheme(
@@ -308,9 +302,21 @@ skipButton
  fontSize(double)
  DESC -> skip button font size 
 ```
+Animation Direction customizations:
+```dart
+ animationDirection(String)
+ DESC -> animation direction of question value can be horizontal or vertical
+```
+Bottom Bar customizations:
+```dart
+ padding(double)
+ DESC -> bottom bar padding
+
+ navigationButtonSize(double)
+ DESC -> bottom bar navigation button size
+```
 Next button customizations:
 ```dart
-nextButton
  fontSize(double)
  DESC ->  the font size that appears inside the button 
 
@@ -322,7 +328,6 @@ nextButton
 ```
 Logo customization:
 ```dart
- logo:
   bannerHeight(double)
   DESC -> banner height that is displayed for showing the logo
  
@@ -337,22 +342,23 @@ Logo customization:
 ```
 Rating question type customizations:
 ```dart
- logo:
-  bannerHeight(double)
-  DESC -> banner height that is displayed for showing the logo
+  hasNumber(bool)
+  DESC -> can be used to toggle the number that is shown below rating
  
-  fontSize(double)
-  DESC -> fontsize of the logo name
+  svgHeight(double)
+  DESC -> height of the rating svg
 
-  logoHeight(double)
-  DESC -> logo height of the logo in banner
+  svgWidth(double)
+  DESC -> width of the rating svg
 
-  logoWidth(double)
-  DESC -> logo width of the logo in banner
+  customRatingSVGUnselected(double)
+  DESC -> custom unselected svg to display instead of default surveysparrow svg
+
+  customRatingSVGSelected(double)
+  DESC -> custom selected svg to display instead of default surveysparrow svg
 ```
 Opinion scale question type customizations:
 ```dart
-opinionScale
  outerBlockWidth(double)
  DESC -> opnionScale outer block width
 
@@ -365,12 +371,20 @@ opinionScale
  innerBlockHeight(double)
  DESC -> opnionScale inner block height
 
- opnionScaleFontSize(double)
+ labelFontSize(double)
  DESC -> the font size of most Likely, least Likely labels
+
+ numberFontSize(double)
+ DESC -> the font size of number inside the block
+
+ runSpacing(double)
+ DESC -> run spacing for the blocks
+
+ positionedLabelTopValue(double)
+ DESC -> labels top value offset
 ```
 Yes or no question type customizations: 
 ```dart
-yesOrNo
  svgHeight(double)
  DESC ->  yesOrNo svg icon height
 
@@ -397,7 +411,6 @@ yesOrNo
 ```
 Text and Email question type customizations: 
 ```dart
-text/email
  fontSize(double)
  DESC -> font size of input
 
@@ -405,9 +418,7 @@ text/email
  DESC -> width of text field
 ```
 Multiple choice question type customizations: 
-```dart
-multipleChoice
- 
+```dart 
  choiceContainerWidth( String)
  DESC -> choice Container Width to be set
 
@@ -431,7 +442,6 @@ multipleChoice
 ```
 Phone number question type customizations:
 ```dart
-phoneNumber
  defaultcountryCode( String)
  DESC -> default country code to be set
 
@@ -456,12 +466,69 @@ phoneNumber
  phoneNumberInputHeight(double)
  DESC -> height of country Code Number Input Height
 ```
+Welcome Page customizations:
+```dart
+headerFontSize(double)
+DESC -> welcome page header font size
+
+imageDescriptionFontSize(double)
+DESC -> welcome page image description font size
+
+descriptionFontSize(double)
+DESC -> welcome page description font size
+
+imageHeight(double)
+DESC -> welcome page image height
+
+imageWidth(double)
+DESC -> welcome page image width
+
+buttonFontSize(double)
+DESC -> welcome page button font size
+
+buttonWidth(double)
+DESC -> welcome page buttonWidth
+
+buttonIconSize(double)
+DESC -> welcome page buttonIconSize
+
+```
+ThankYou Page customizations:
+```dart
+headerFontSize(double)
+DESC -> welcome page header font size
+
+imageDescriptionFontSize(double)
+DESC -> welcome page image description font size
+
+descriptionFontSize(double)
+DESC -> welcome page description font size
+
+imageHeight(double)
+DESC -> welcome page image height
+
+imageWidth(double)
+DESC -> welcome page image width
+
+buttonFontSize(double)
+DESC -> welcome page button font size
+
+buttonWidth(double)
+DESC -> welcome page buttonWidth
+
+buttonIconSize(double)
+DESC -> welcome page buttonIconSize
+
+visibilityTime(int)
+DESC -> how long the thank you page should be visible
+
+```
 # Event listeners:
 | Listener name | Description |
 | ----------- | ----------- |
 | onError | callback function will get fired when there’s an error. Example: Wrong survey type, wrong SDK token, wrong domain name, error while fetching survey data |
 | onNext | callback function will get fired when user answers current question and moves to the next question |
-| onNext | callback function will get fired after user completes the survey |
+| onSubmit | callback function will get fired after user completes the survey |
 
 # Using SurveySparrow Flutter SDK Helper functions for collecting feedback from a custom Survey UI:
 Responses can be collected from a custom survey ui using the createAnswerPayloadCustomSurvey and submitCustomSurvey functions
