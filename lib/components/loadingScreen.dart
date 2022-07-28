@@ -16,8 +16,10 @@ class LoadingScreen extends StatelessWidget {
           color: Color.fromRGBO(63, 63, 63, 1),
           size: 50.0,
         ),
-        SizedBox(height: 40,),
-        SvgPicture.string(loaderSVG),
+        SizedBox(
+          height: 40,
+        ),
+        // SvgPicture.string(loaderSVG),
       ],
     );
   }

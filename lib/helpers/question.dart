@@ -282,3 +282,163 @@ setTheme(_themeData, _surveyThemeClass) {
   _themeData['hasFooter'] = _surveyThemeClass.hasFooter;
   _themeData['footerText'] = _surveyThemeClass.footerText;
 }
+
+  getPrefilledAnswers(firstQuestionAnswer,createAnswerPayload,_collectedAnswers,_surveyToMap) {
+    var _workBenchDatas = {};
+
+    for (var i = 0; i < firstQuestionAnswer!.answers.length; i++) {
+      if (firstQuestionAnswer!.answers[i].rating != null) {
+        var key = firstQuestionAnswer!.answers[i].rating?.key;
+        var data = firstQuestionAnswer!.answers[i].rating?.data;
+        var skipped = firstQuestionAnswer!.answers[i].rating!.skipped;
+        var timeTaken = firstQuestionAnswer!.answers[i].rating?.timeTaken;
+        _workBenchDatas[key] = data?.toDouble();
+
+        createAnswerPayload(
+          _collectedAnswers,
+          key,
+          skipped != null && skipped == true ? null : data,
+          _surveyToMap,
+          false,
+          "",
+          0,
+          false,
+          "",
+          timeTaken,
+        );
+      }
+
+      if (firstQuestionAnswer!.answers[i].opnionScale != null) {
+        var key = firstQuestionAnswer!.answers[i].opnionScale?.key;
+        var data = firstQuestionAnswer!.answers[i].opnionScale?.data;
+        var skipped = firstQuestionAnswer!.answers[i].opnionScale!.skipped;
+        var timeTaken = firstQuestionAnswer!.answers[i].opnionScale?.timeTaken;
+        _workBenchDatas[key] = data;
+
+        createAnswerPayload(
+          _collectedAnswers,
+          key,
+          skipped != null && skipped == true ? null : data,
+          _surveyToMap,
+          false,
+          "",
+          0,
+          false,
+          "",
+          timeTaken,
+        );
+      }
+
+      if (firstQuestionAnswer!.answers[i].yesOrNo != null) {
+        var key = firstQuestionAnswer!.answers[i].yesOrNo?.key;
+        var data = firstQuestionAnswer!.answers[i].yesOrNo?.data;
+        var skipped = firstQuestionAnswer!.answers[i].yesOrNo!.skipped;
+        var timeTaken = firstQuestionAnswer!.answers[i].yesOrNo?.timeTaken;
+        _workBenchDatas[key] = data;
+
+        createAnswerPayload(
+          _collectedAnswers,
+          key,
+          skipped != null && skipped == true ? null : data,
+          _surveyToMap,
+          false,
+          "",
+          0,
+          false,
+          "",
+          timeTaken,
+        );
+      }
+
+      if (firstQuestionAnswer!.answers[i].phoneNumber != null) {
+        var key = firstQuestionAnswer!.answers[i].phoneNumber?.key;
+        var data =
+            firstQuestionAnswer!.answers[i].phoneNumber?.data.split(" ")[1];
+        var phoneData = firstQuestionAnswer!.answers[i].phoneNumber?.data;
+        var skipped = firstQuestionAnswer!.answers[i].phoneNumber!.skipped;
+        var timeTaken = firstQuestionAnswer!.answers[i].phoneNumber?.timeTaken;
+
+        _workBenchDatas[key] = data;
+        _workBenchDatas['${key}_phone'] = phoneData;
+
+        createAnswerPayload(
+          _collectedAnswers,
+          key,
+          skipped != null && skipped == true ? null : data,
+          _surveyToMap,
+          false,
+          "",
+          0,
+          true,
+          phoneData,
+          timeTaken,
+        );
+      }
+
+      if (firstQuestionAnswer!.answers[i].text != null) {
+        var key = firstQuestionAnswer!.answers[i].text?.key;
+        var data = firstQuestionAnswer!.answers[i].text?.data;
+        var skipped = firstQuestionAnswer!.answers[i].text!.skipped;
+        var timeTaken = firstQuestionAnswer!.answers[i].text?.timeTaken;
+        _workBenchDatas[key] = data;
+
+        createAnswerPayload(
+          _collectedAnswers,
+          key,
+          skipped != null && skipped == true ? null : data,
+          _surveyToMap,
+          false,
+          "",
+          0,
+          false,
+          "",
+          timeTaken,
+        );
+      }
+
+      if (firstQuestionAnswer!.answers[i].email != null) {
+        var key = firstQuestionAnswer!.answers[i].email?.key;
+        var data = firstQuestionAnswer!.answers[i].email?.data;
+        var skipped = firstQuestionAnswer!.answers[i].email!.skipped;
+        var timeTaken = firstQuestionAnswer!.answers[i].email?.timeTaken;
+        _workBenchDatas[key] = data;
+
+        createAnswerPayload(
+          _collectedAnswers,
+          key,
+          skipped != null && skipped == true ? null : data,
+          _surveyToMap,
+          false,
+          "",
+          0,
+          false,
+          "",
+          timeTaken,
+        );
+      }
+
+      if (firstQuestionAnswer!.answers[i].multipleChoice != null) {
+        var key = firstQuestionAnswer!.answers[i].multipleChoice?.key;
+        var data = firstQuestionAnswer!.answers[i].multipleChoice?.data;
+        var skipped = firstQuestionAnswer!.answers[i].multipleChoice!.skipped;
+        var timeTaken =
+            firstQuestionAnswer!.answers[i].multipleChoice?.timeTaken;
+        _workBenchDatas[key] = data;
+
+        createAnswerPayload(
+          _collectedAnswers,
+          key,
+          skipped != null && skipped == true ? null : data,
+          _surveyToMap,
+          false,
+          "",
+          0,
+          false,
+          "",
+          timeTaken,
+        );
+      }
+    }
+
+    return _workBenchDatas;
+  }

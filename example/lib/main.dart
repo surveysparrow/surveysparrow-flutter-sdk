@@ -81,7 +81,7 @@ class SurveyScreen extends StatelessWidget {
                         },
                       );
                     },
-                    child: Text("open survey")),
+                    child: Text("open survey modal")),
               ),
             )),
       ),

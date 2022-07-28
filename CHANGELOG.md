@@ -13,3 +13,7 @@
 ## 1.0.0-beta.4
 
 * updated readme.
+
+## 1.0.0-beta.5
+
+* updated readme.
