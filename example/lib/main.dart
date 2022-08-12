@@ -75,6 +75,7 @@ class SurveyScreen extends StatelessWidget {
                                     const Duration(milliseconds: 500), () {
                                   Navigator.of(context).pop();
                                 });
+                                
                               },
                             ),
                           );

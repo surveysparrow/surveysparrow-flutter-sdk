@@ -6,6 +6,7 @@ import 'package:surveysparrow_flutter_sdk/components/common/header.dart';
 import 'package:surveysparrow_flutter_sdk/components/loadingScreen.dart';
 import 'package:surveysparrow_flutter_sdk/components/thankyou.dart';
 import 'package:surveysparrow_flutter_sdk/components/welcome.dart';
+import 'package:surveysparrow_flutter_sdk/constants/survey.dart';
 import 'package:surveysparrow_flutter_sdk/helpers/question.dart';
 import 'package:surveysparrow_flutter_sdk/logics/displayLogic.dart';
 import 'package:surveysparrow_flutter_sdk/logics/thankYou.dart';
@@ -183,15 +184,7 @@ class _QuestionsPageState extends State<QuestionsPage>
   // nxt-20
   bool blockNextButton = false;
 
-  final allowedQuestionTypes = [
-    'OpinionScale',
-    'Rating',
-    'TextInput',
-    'MultiChoice',
-    'PhoneNumber',
-    'YesNo',
-    'EmailInput',
-  ];
+  final allowedQuestionTypes = allowedQuestions;
 
   storePrefilledAnswers() {
     var _workBenchDatas = getPrefilledAnswers(firstQuestionAnswer,
@@ -276,6 +269,7 @@ class _QuestionsPageState extends State<QuestionsPage>
   }
 
   _scrollListener() {
+    // scrollHandler(_scrollControler, _scrollCountBottom, _scrollCountTop, _handleNextQuestion, _handlePreviousQuestion);
     if (_scrollControler.offset >= _scrollControler.position.maxScrollExtent &&
         !_scrollControler.position.outOfRange) {
       _scrollCountBottom += 1;
@@ -304,6 +298,7 @@ class _QuestionsPageState extends State<QuestionsPage>
       _scrollCountTop = 0;
       _scrollCountBottom = 0;
     }
+  
   }
 
   late Stopwatch _stopwatch;
@@ -836,19 +831,14 @@ class _QuestionsPageState extends State<QuestionsPage>
 }
 
 Future<Map<dynamic, dynamic>> fetchSurvey(token, domain) async {
-  var url1 = 'http://${domain}/api/internal/sdk/get-survey/${token}';
-  var url2 = 'https://${domain}/api/internal/sdk/get-survey/${token}';
+  var url = 'https://${domain}/api/internal/sdk/get-survey/${token}';
 
-  final response = await http.get(Uri.parse(url2));
+  final response = await http.get(Uri.parse(url));
   if (response.statusCode == 200) {
-    // If the server did return a 200 OK response,
-    // then parse the JSON.
     final parsedJson = jsonDecode(response.body);
     return parsedJson;
   } else {
     print("response failed");
-    // If the server did not return a 200 OK response,
-    // then throw an exception.
     throw Exception('Failed to load survey');
   }
 }
