@@ -1,5 +1,9 @@
+import 'package:example/customSurvey.dart';
+import 'package:example/customSurveyTheme.dart';
+import 'package:example/preloadSurvey.dart';
 import 'package:flutter/material.dart';
 import 'package:surveysparrow_flutter_sdk/surveysparrow.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,15 +19,17 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const SurveyScreen(),
+      home: SurveyScreen(),
     );
   }
 }
 
 class SurveyScreen extends StatelessWidget {
-  const SurveyScreen({
+  SurveyScreen({
     Key? key,
   }) : super(key: key);
+  final domainController = TextEditingController();
+  final tokenController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -34,55 +40,122 @@ class SurveyScreen extends StatelessWidget {
       body: Builder(
         builder: ((context) => Center(
               child: Container(
-                child: ElevatedButton(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return Container(
-                            width: double.infinity,
-                            height: 500,
-                            child: SurveyModal(
-                              token: 'tt-0207b6', // give your token
-                              domain:
-                                  'sample.surveysparrow.com', // give your domain name
-                              variables: const {
-                                "custom_name": "surveysparrow",
-                                "custom_number": "2"
-                              },
-                              firstQuestionAnswer: FirstQuestionAnswer(
-                                pageNumber: 1,
-                                answers: [
-                                  Answer(
-                                    opnionScale: CustomOpinionScale(
-                                      key: 4646744,
-                                      data: 2,
-                                      timeTaken: 1,
-                                      skipped: false,
-                                    ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Domain"),
+                    TextField(
+                      controller: domainController,
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    Text("Token"),
+                    TextField(
+                      controller: tokenController,
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        try {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (BuildContext context) {
+                              return Padding(
+                                padding: MediaQuery.of(context).viewInsets,
+                                child: Container(
+                                  width: double.infinity,
+                                  height: 500,
+                                  child: SurveyModal(
+                                    token: tokenController
+                                        .text, 
+                                    domain: domainController
+                                        .text,
+                                    // token: "ntt-j26MfnfgMWxiSkmmzReUgp",
+                                    // domain: "sachin.pagesparrow.com",
+                                    // email:"newemail@ee.com",
+                                    onNext: (val) {
+                                      print(
+                                          "Currently collected answer ${val} ");
+                                    },
+                                    onError: (err) {
+                                      print("GLOBAL ERROR IS HAPPENED ${err} ");
+                                      Fluttertoast.showToast(
+                                          msg: err,
+                                          toastLength: Toast.LENGTH_LONG,
+                                          gravity: ToastGravity.TOP,
+                                          timeInSecForIosWeb: 1,
+                                          backgroundColor: Colors.red,
+                                          textColor: Colors.white,
+                                          fontSize: 16.0);
+                                      Future.delayed(
+                                          const Duration(milliseconds: 500),
+                                          () {
+                                        Navigator.of(context).pop();
+                                      });
+                                    },
+                                    onSubmit: (val) {
+                                      print("All collected answer ${val} ");
+                                      Future.delayed(
+                                          const Duration(milliseconds: 500),
+                                          () {
+                                        Navigator.of(context).pop();
+                                      });
+                                    },
+           
+
+                 
                                   ),
-                                ],
-                              ),
-                              onNext: (val) {
-                                print("Currently collected answer ${val} ");
-                              },
-                              onError: () {
-                                Navigator.pop(context);
-                              },
-                              onSubmit: (val) {
-                                print("All collected answer ${val} ");
-                                Future.delayed(
-                                    const Duration(milliseconds: 500), () {
-                                  Navigator.of(context).pop();
-                                });
-                                
-                              },
-                            ),
+                                ),
+                              );
+                            },
                           );
-                        },
-                      );
-                    },
-                    child: Text("open survey modal")),
+                        } catch (e) {
+                          print("Global catch is handled");
+                        }
+                      },
+                      child: Text("open survey modal"),
+                    ),
+                    ElevatedButton(
+                      onPressed: (() {
+                        showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (BuildContext context) {
+                              return Padding(
+                                padding: MediaQuery.of(context).viewInsets,
+                                child: Container(
+                                  height: 510,
+                                  child: (Page3()),
+                                ),
+                              );
+                            });
+                      }),
+                      child: Text("Open Custom Survey"),
+                    ),
+                    ElevatedButton(
+                      onPressed: (() {
+                        showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (BuildContext context) {
+                              return Padding(
+                                padding: MediaQuery.of(context).viewInsets,
+                                child: Container(
+                                  height: 510,
+                                  child: (PreLoadedSurveyScreen()),
+                                ),
+                              );
+                            });
+                      }),
+                      child: Text("Open Preloaded Page"),
+                    ),
+                  ],
+                ),
               ),
             )),
       ),

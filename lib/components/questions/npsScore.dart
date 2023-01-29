@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/questionColumn.dart';
+import 'package:surveysparrow_flutter_sdk/components/questions/npsFeedback.dart';
+import 'package:surveysparrow_flutter_sdk/helpers/cx.dart';
+import 'package:surveysparrow_flutter_sdk/helpers/theme.dart';
 
 import '../common/skipAndNext.dart';
 import 'package:sizer/sizer.dart';
-import 'package:flutter/material.dart';
-class ColumnOpnionScale extends StatefulWidget {
+
+class NpsScore extends StatefulWidget {
   final Function func;
   final Map<dynamic, dynamic> answer;
   final Map<dynamic, dynamic> question;
@@ -15,7 +18,7 @@ class ColumnOpnionScale extends StatefulWidget {
   final Function submitData;
   final Map<dynamic, dynamic>? euiTheme;
 
-  const ColumnOpnionScale({
+  const NpsScore({
     Key? key,
     required this.func,
     required this.answer,
@@ -29,7 +32,7 @@ class ColumnOpnionScale extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<ColumnOpnionScale> createState() => _ColumnOpnionScaleState(
+  State<NpsScore> createState() => _NpsScoreState(
       func: this.func,
       answer: this.answer,
       question: question,
@@ -38,7 +41,7 @@ class ColumnOpnionScale extends StatefulWidget {
       currentQuestionNumber: currentQuestionNumber);
 }
 
-class _ColumnOpnionScaleState extends State<ColumnOpnionScale> {
+class _NpsScoreState extends State<NpsScore> {
   Function func;
   final Map<dynamic, dynamic> answer;
   final Map<dynamic, dynamic> question;
@@ -47,7 +50,9 @@ class _ColumnOpnionScaleState extends State<ColumnOpnionScale> {
   final int currentQuestionNumber;
   var _selectedOption = -1;
 
-  _ColumnOpnionScaleState({
+  var subQuestionData;
+
+  _NpsScoreState({
     required this.func,
     required this.answer,
     required this.question,
@@ -62,8 +67,76 @@ class _ColumnOpnionScaleState extends State<ColumnOpnionScale> {
     });
   }
 
+  handleFeedBackQuestionAnswer(value, questionId) {
+    setState(() {
+      subQuestionData = {'questionId': questionId, 'value': value};
+    });
+  }
+
+  handleNextButtonVisibility() {
+    var listSubQuestions = (this.question['subQuestions'] as List)
+        .map((e) => e as Map<dynamic, dynamic>)
+        .toList();
+    var subQuestion;
+    var hasFeedBackQuestion = false;
+    if (listSubQuestions.length > 0) {
+      hasFeedBackQuestion = true;
+      subQuestion = listSubQuestions[0];
+    }
+    if (hasFeedBackQuestion) {
+      if (subQuestion['required']) {
+        return subQuestionData == null || _selectedOption == -1;
+      } else {
+        return _selectedOption == -1;
+      }
+    } else {
+      return _selectedOption == -1;
+    }
+  }
+
+  handleShowNextButton() {
+    var feedBackQuestion = getFeedBackQuestion(question);
+    var hasBranching = checkIfCXSurveyHasBranchingProperty(feedBackQuestion);
+    if (hasBranching) {
+      if (_selectedOption == -1) {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      if(this.widget.isLastQuestion){
+        return true;
+      }
+      return checkIfTheQuestionHasAFeedBack(question);
+    }
+  }
+
+  @override
+  initState() {
+    if (this.answer[this.question['id']] != null) {
+      var hasFeedBackQuestion = checkIfTheQuestionHasAFeedBack(question);
+      if (hasFeedBackQuestion) {
+        var feedBackQuestion = getFeedBackQuestion(question);
+        handleFeedBackQuestionAnswer(
+            this.answer[feedBackQuestion['id']], feedBackQuestion['id']);
+      }
+      setState(() {
+        _selectedOption = this.answer[this.question['id']];
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    var listSubQuestions = (this.question['subQuestions'] as List)
+        .map((e) => e as Map<dynamic, dynamic>)
+        .toList();
+    var subQuestion;
+    var hasFeedBackQuestion = false;
+    if (listSubQuestions.length > 0) {
+      hasFeedBackQuestion = true;
+    }
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,45 +148,42 @@ class _ColumnOpnionScaleState extends State<ColumnOpnionScale> {
           theme: this.theme,
           euiTheme: this.widget.euiTheme,
         ),
- 
+        // SizedBox(height: 40),
         SizedBox(height: 2.h),
-    
-        OpnionScaleQuestion(
+        // SizedBox(height: 40),
+        NpsScoreQuestion(
           func: this.func,
           answer: this.answer,
           question: this.question,
           theme: this.theme,
           setSelectedOption: setSelectedOption,
           euiTheme: this.widget.euiTheme,
+          customParams: this.customParams,
+          handleFeedBackQuestionAnswer: this.handleFeedBackQuestionAnswer,
         ),
         SizedBox(height: 7.h),
-
+        // SizedBox(height: 40),
         SkipAndNextButtons(
           key: UniqueKey(),
-          disabled: this.widget.isLastQuestion
-              ? this.question['required']
-                  ? _selectedOption == -1
-                  : false
-              : _selectedOption == -1,
-          showNext: this.widget.isLastQuestion,
-          showSkip: (this.question['required'] || this.widget.isLastQuestion)
-              ? false
-              : true,
+          disabled: handleNextButtonVisibility(),
+          showNext: handleShowNextButton(),
+          showSkip: false,
           showSubmit: this.widget.isLastQuestion,
           onClickSkip: () {
             this.func(null, question['id']);
           },
           onClickNext: () {
-            // this.widget.submitData();
-            if (_selectedOption != -1) {
-              this.widget.submitData();
+            if (subQuestionData != null) {
+              this.func(
+                  subQuestionData['value'], subQuestionData['questionId']);
+              FocusScope.of(context).requestFocus(new FocusNode());
             }
             if (this.widget.isLastQuestion &&
-                _selectedOption == -1.0 &&
-                !this.question['required']) {
+                _selectedOption != -1.0) {
               this.widget.submitData();
             }
           },
+          
           theme: this.theme,
           euiTheme: this.widget.euiTheme,
         ),
@@ -122,33 +192,37 @@ class _ColumnOpnionScaleState extends State<ColumnOpnionScale> {
   }
 }
 
-class OpnionScaleQuestion extends StatefulWidget {
+class NpsScoreQuestion extends StatefulWidget {
   final Function func;
+  final Function handleFeedBackQuestionAnswer;
   final Map<dynamic, dynamic> answer;
   final Map<dynamic, dynamic> question;
   final Map<dynamic, dynamic> theme;
   final Function setSelectedOption;
   final Map<dynamic, dynamic>? euiTheme;
+  final Map<String, String> customParams;
 
-  const OpnionScaleQuestion({
+  const NpsScoreQuestion({
     Key? key,
     required this.func,
     required this.answer,
     required this.question,
     required this.theme,
     required this.setSelectedOption,
+    required this.customParams,
+    required this.handleFeedBackQuestionAnswer,
     this.euiTheme,
   }) : super(key: key);
 
   @override
-  State<OpnionScaleQuestion> createState() => _OpnionScaleQuestionState(
+  State<NpsScoreQuestion> createState() => _NpsScoreQuestionState(
       func: this.func,
       answer: this.answer,
       question: this.question,
       theme: this.theme);
 }
 
-class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
+class _NpsScoreQuestionState extends State<NpsScoreQuestion> {
   Function func;
   final Map<dynamic, dynamic> answer;
   final Map<dynamic, dynamic> question;
@@ -167,19 +241,22 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
   var positionedLabelTopValue = -8.0;
 
   int _selectedOption = -1;
-  _OpnionScaleQuestionState({
+  _NpsScoreQuestionState({
     required this.func,
     required this.answer,
     required this.question,
     required this.theme,
   });
 
+  final GlobalKey<TooltipState> tooltipkey = GlobalKey<TooltipState>();
+  final GlobalKey<TooltipState> tooltipkeyStart = GlobalKey<TooltipState>();
   updateOpnionScale(val) {
     this.widget.setSelectedOption(val);
     setState(() {
       _selectedOption = val;
     });
-    this.func(val, question['id']);
+    var hasfeedBackQuestion = checkIfTheQuestionHasAFeedBack(question);
+    this.func(val, question['id'], changePage: !hasfeedBackQuestion, isLastQuestionSubmission: !hasfeedBackQuestion);
   }
 
   generateStartStep(step, start) {
@@ -205,12 +282,10 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
   var opnionLabelFontSize = 12.0;
   var numberFontSize = 13.0;
 
-  var hasNAoption = false;
-
+  var hasFeedBackQuestion = false;
   @override
   initState() {
     super.initState();
-
     if (this.widget.euiTheme != null) {
       if (this.widget.euiTheme!['font'] != null) {
         customFont = this.widget.euiTheme!['font'];
@@ -253,18 +328,15 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
       }
     }
 
-    startLabel = this.question['properties']['data']['min'] ==
+    startLabel = this.question['properties']['data']['labels']['left'] ==
             'builder.opinion_scale.min'
         ? 'Least Likely'
-        : this.question['properties']['data']['min'];
-    midLabel = this.question['properties']['data']['mid'] ==
-            'builder.opinion_scale.mid'
-        ? 'Neutral'
-        : this.question['properties']['data']['mid'];
-    endLabel = this.question['properties']['data']['max'] ==
+        : this.question['properties']['data']['labels']['left'];
+    midLabel = 'Neutral';
+    endLabel = this.question['properties']['data']['labels']['right'] ==
             'builder.opinion_scale.max'
         ? 'Most Likely'
-        : this.question['properties']['data']['max'];
+        : this.question['properties']['data']['labels']['right'];
 
     luminanceValue =
         this.theme['decodedOpnionBackgroundColorUnSelected'].computeLuminance();
@@ -275,29 +347,81 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
       reversedOrder = this.question['properties']['data']['reversedOrder'];
     }
 
-    if (this.question['properties'] != null &&
-        this.question['properties']['data'] != null &&
-        this.question['properties']['data']['notApplicable'] != null) {
-      hasNAoption = this.question['properties']['data']['notApplicable'];
-    }
-
-    this.generateStartStep(this.question['properties']['data']['step'],
-        this.question['properties']['data']['start']);
+    this.generateStartStep(
+        10, this.question['properties']['data']['startWithOne'] ? 1 : 0);
 
     if (this.answer[this.question['id']] != null) {
       setState(() {
         _selectedOption = this.answer[this.question['id']];
+        hasFeedBackQuestion = checkIfTheQuestionHasAFeedBack(question);
       });
     } else {
       setState(() {
         _selectedOption = -1;
+        hasFeedBackQuestion = checkIfTheQuestionHasAFeedBack(question);
       });
     }
   }
 
   transformLabel(text) {
-    var value = text.length > 12 ? '${text.substring(0, 9)}..' : text;
+    var value = text.length > 12 ? '${text.substring(0, 12)}...' : text;
     return value;
+  }
+
+  handleFeedBackText(text, questionId) {
+    this.widget.handleFeedBackQuestionAnswer(text, questionId);
+  }
+
+  getOpnionScaleBlockColorUnSelected(val) {
+    var hasSegmentedOpton = checkIfCXSurveyHasSegmentedOption(question);
+
+    if (hasSegmentedOpton) {
+      var promoters =
+          this.question['properties']['data']['segmentColors']['promoters'];
+      var passives =
+          this.question['properties']['data']['segmentColors']['passives'];
+      var detractors =
+          this.question['properties']['data']['segmentColors']['detractors'];
+
+      if (val <= 6) {
+        return convertRgbToColor(('#' + detractors), 1.0);
+      }
+      if (val <= 8) {
+        return convertRgbToColor(('#' + passives), 1.0);
+      }
+      return convertRgbToColor(('#' + promoters), 1.0);
+    }
+    return this.theme['decodedOpnionBackgroundColorUnSelected'];
+  }
+
+  getOpnionScaleBlockColorSelected(val) {
+    var hasSegmentedOpton = checkIfCXSurveyHasSegmentedOption(question);
+    if (hasSegmentedOpton) {
+      return darkenColor(getOpnionScaleBlockColorUnSelected(val), 0.17);
+    }
+    return this.theme['decodedOpnionBackgroundColorSelected'];
+  }
+
+  getOptionScaleBorderColor(val) {
+    var hasSegmentedOpton = checkIfCXSurveyHasSegmentedOption(question);
+    if (hasSegmentedOpton) {
+      return darkenColor(getOpnionScaleBlockColorUnSelected(val), 0.17);
+    }
+    return this.theme['decodedOpnionBorderColor'];
+  }
+
+  getAnswerColor(val, isSelectedOption) {
+    var hasSegmentedOpton = checkIfCXSurveyHasSegmentedOption(question);
+    if (hasSegmentedOpton) {
+      var segementedOptionluminanceValue =
+          getOpnionScaleBlockColorUnSelected(val).computeLuminance();
+      return segementedOptionluminanceValue > 0.5 ? Colors.black : Colors.white;
+    }
+    return isSelectedOption == val
+        ? luminanceValue > 0.5
+            ? Colors.black
+            : Colors.white
+        : this.theme['answerColor'];
   }
 
   generateOpmionBlock(val, isSelectedOption) {
@@ -317,18 +441,28 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
               top: positionedLabelTopValue,
               left: -1,
               child: Container(
+                  child: Tooltip(
+                message: startLabel,
+                key: tooltipkeyStart,
+                triggerMode: TooltipTriggerMode.manual,
+                child: InkWell(
+                  onTap: () {
+                    tooltipkeyStart.currentState?.ensureTooltipVisible();
+                  },
                   child: Text(
-                reversedOrder
-                    ? transformLabel(endLabel)
-                    : transformLabel(startLabel),
-                style: TextStyle(
-                  decoration: TextDecoration.none,
-                  fontSize: opnionLabelFontSize,
-                  fontWeight: FontWeight.w400,
-                  // overflow: TextOverflow.ellipsis,
-                  // color: Color.fromRGBO(67, 67, 67, 1),
-                  color: this.theme['decodedOpnionLabelColor'],
-                  fontFamily: customFont,
+                    reversedOrder
+                        ? transformLabel(endLabel)
+                        : transformLabel(startLabel),
+                    style: TextStyle(
+                      decoration: TextDecoration.none,
+                      fontSize: opnionLabelFontSize,
+                      fontWeight: FontWeight.w400,
+                      // overflow: TextOverflow.ellipsis,
+                      // color: Color.fromRGBO(67, 67, 67, 1),
+                      color: this.theme['decodedOpnionLabelColor'],
+                      fontFamily: customFont,
+                    ),
+                  ),
                 ),
               )),
             ),
@@ -354,18 +488,28 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
           ] else if (val == _end) ...[
             Positioned(
               top: positionedLabelTopValue,
-              right: 0,
+              left: -1,
               child: Container(
-                child: Text(
-                  reversedOrder
-                      ? transformLabel(startLabel)
-                      : transformLabel(endLabel),
-                  style: TextStyle(
-                    decoration: TextDecoration.none,
-                    fontSize: opnionLabelFontSize,
-                    fontWeight: FontWeight.w400,
-                    color: this.theme['decodedOpnionLabelColor'],
-                    fontFamily: customFont,
+                child: Tooltip(
+                  message: endLabel,
+                  key: tooltipkey,
+                  triggerMode: TooltipTriggerMode.manual,
+                  child: InkWell(
+                    onTap: () {
+                      tooltipkey.currentState?.ensureTooltipVisible();
+                    },
+                    child: Text(
+                      reversedOrder
+                          ? transformLabel(startLabel)
+                          : transformLabel(endLabel),
+                      style: TextStyle(
+                        decoration: TextDecoration.none,
+                        fontSize: opnionLabelFontSize,
+                        fontWeight: FontWeight.w400,
+                        color: this.theme['decodedOpnionLabelColor'],
+                        fontFamily: customFont,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -380,11 +524,12 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
               //    maxHeight: 40,maxWidth: 40),
               decoration: BoxDecoration(
                 color: isSelectedOption == val
-                    ? this.theme['decodedOpnionBackgroundColorSelected']
-                    : this.theme['decodedOpnionBackgroundColorUnSelected'],
+                    ? getOpnionScaleBlockColorSelected(val)
+                    : getOpnionScaleBlockColorUnSelected(val),
                 border: Border.all(
                   // color: Color.fromRGBO(63, 63, 63, 0.5),
-                  color: this.theme['decodedOpnionBorderColor'],
+                  // color: this.theme['decodedOpnionBorderColor'],
+                  color: getOptionScaleBorderColor(val),
                   width: 1,
                 ),
                 borderRadius: BorderRadius.circular(8),
@@ -397,11 +542,7 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
                     decoration: TextDecoration.none,
                     fontSize: numberFontSize,
                     fontWeight: FontWeight.bold,
-                    color: isSelectedOption == val
-                        ? luminanceValue > 0.5
-                            ? Colors.black
-                            : Colors.white
-                        : this.theme['answerColor'],
+                    color: getAnswerColor(val, isSelectedOption),
                     fontFamily: customFont,
                   ),
                 ),
@@ -413,70 +554,18 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
     );
   }
 
-  generateNaOpinionBlock(val, isSelectedOption) {
-    return Container(
-      width: opnionBlockSizeWidth,
-      height: opnionBlockSizeHeight,
-      margin: _step == 3
-          ? val == 0
-              ? EdgeInsets.only(left: 0.0)
-              : EdgeInsets.only(right: 30.0)
-          : null,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Center(
-            child: Container(
-              // color: Color.fromARGB(255, 255, 247, 0),
-              width: innerOpnionBlockSizeWidth,
-              height: innerOpnionBlockSizeHeight,
-              // constraints: BoxConstraints(
-              //    maxHeight: 40,maxWidth: 40),
-              decoration: BoxDecoration(
-                color: isSelectedOption == -2
-                    ? this.theme['decodedOpnionBackgroundColorSelected']
-                    : this.theme['decodedOpnionBackgroundColorUnSelected'],
-                border: Border.all(
-                  // color: Color.fromRGBO(63, 63, 63, 0.5),
-                  color: this.theme['decodedOpnionBorderColor'],
-                  width: 1,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Center(
-                child: Text(
-                  val.toString(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    decoration: TextDecoration.none,
-                    fontSize: numberFontSize,
-                    fontWeight: FontWeight.bold,
-                    color: isSelectedOption == -2
-                        ? luminanceValue > 0.5
-                            ? Colors.black
-                            : Colors.white
-                        : this.theme['answerColor'],
-                    fontFamily: customFont,
-                  ),
-                ),
-              ),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  getHeight(blocks) {
-    if (blocks >= 11) {
-      return 190.0;
+  showFeedBackQuestion() {
+    var feedBackQuestion = getFeedBackQuestion(question);
+    var hasBranching = checkIfCXSurveyHasBranchingProperty(feedBackQuestion);
+    if (hasBranching) {
+      if (_selectedOption == -1) {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      return true;
     }
-
-    if (blocks >= 6) {
-      return 124.0;
-    }
-
-    return 60.0;
   }
 
   @override
@@ -511,85 +600,40 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
           ),
         );
       }
-      // list.add(
-      //     GestureDetector(
-      //       onTap: () {
-      //         updateOpnionScale(-2);
-      //       },
-      // child: Container(
-      //   child: generateOpmionBlock("N/A", _selectedOption),
-      // ),
-      //     ),
-      //   );
     }
 
-    // possible change is change the alignment for container to wrapalignment to start if needed in tablet
-    // return Container(
-    //   child: Wrap(
-    //     crossAxisAlignment: WrapCrossAlignment.center,
-    //     alignment: WrapAlignment.center,
-    //     runSpacing: runSpacing,
-    //     direction: Axis.horizontal,
-    //     children: [...list],
-    //   ),
-    // );
+    var listSubQuestions = (this.question['subQuestions'] as List)
+        .map((e) => e as Map<dynamic, dynamic>)
+        .toList();
+    var subQuestion;
+    if (listSubQuestions.length > 0) {
+      subQuestion = Map<dynamic, dynamic>.from(listSubQuestions[0]);
+    }
 
-    // Have removed width:doubly.infinity
-    var opnionBlocks = _end;
-
-    if (hasNAoption) {
-      return Row(
-        children: [
-          Container(
-            constraints: BoxConstraints(minWidth: 240, maxWidth: 240),
-            child: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              alignment: WrapAlignment.center,
-              runSpacing: runSpacing,
-              direction: Axis.horizontal,
-              children: [...list],
-            ),
+    return Column(
+      children: [
+        Container(
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            alignment: WrapAlignment.center,
+            runSpacing: runSpacing,
+            direction: Axis.horizontal,
+            children: [...list],
           ),
-          SizedBox(
-            width: 8,
-          ),
-          Container(
-            color: Colors.black45,
-            height: getHeight(_end + 1) + 10,
-            width: 1,
-          ),
-          SizedBox(
-            width: 6,
-          ),
-          Container(
-            constraints: BoxConstraints(minHeight: getHeight(_end + 1)),
-            child: Flex(
-              mainAxisAlignment: MainAxisAlignment.start,
-              direction: Axis.vertical,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    updateOpnionScale(-2);
-                  },
-                  child: Container(
-                    child: generateNaOpinionBlock("N/A", _selectedOption),
-                  ),
-                ),
-              ],
-            ),
+        ),
+        SizedBox(height: 40),
+        if (hasFeedBackQuestion && showFeedBackQuestion()) ...[
+          FeedBackText(
+            func: func,
+            answer: answer,
+            question: subQuestion,
+            theme: theme,
+            customParams: widget.customParams,
+            handleFeedBackText: handleFeedBackText,
+            parentQuestion: this.question,
           )
         ],
-      );
-    }
-
-    return Container(
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        alignment: WrapAlignment.center,
-        runSpacing: runSpacing,
-        direction: Axis.horizontal,
-        children: [...list],
-      ),
+      ],
     );
   }
 }

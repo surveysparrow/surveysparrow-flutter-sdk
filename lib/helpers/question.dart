@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:surveysparrow_flutter_sdk/components/questions/cesScore.dart';
+import 'package:surveysparrow_flutter_sdk/components/questions/csatFeedback.dart';
 import 'package:surveysparrow_flutter_sdk/components/questions/yesorno.dart';
 
 import '../components/questions/multichoice.dart';
@@ -6,6 +8,7 @@ import '../components/questions/opnion.dart';
 import '../components/questions/phone.dart';
 import '../components/questions/rating.dart';
 import '../components/questions/text.dart';
+import '../components/questions/npsScore.dart';
 
 parsedHeading(question, replacementVal) {
   if (question['rtxt'] == null ||
@@ -187,6 +190,108 @@ convertQuestionListToWidget(
         ),
       );
     }
+    if (question['type'] == 'NPSScore') {
+      var isLastQuestionSubQuestion = _lastQuestion['subQuestion'] ?? false;
+      var lastQuestionId = _lastQuestion['id'];
+      if(isLastQuestionSubQuestion){
+        lastQuestionId = _lastQuestion['parent_question_id'];
+      }
+      _newquestionList.add(
+        AnimatedOpacity(
+          opacity: _currentQuestionToRender['id'] == null
+              ? 1.0
+              : _currentQuestionToRender['id'] == question['id']
+                  ? 1.0
+                  : 0.0,
+          duration: const Duration(milliseconds: 200),
+          child: Center(
+            child: SingleChildScrollView(
+              physics: BouncingScrollPhysics(),
+              controller: _scrollController,
+              child: NpsScore(
+                func: storeAnswers,
+                answer: _workBench,
+                question: question,
+                theme: _themeData,
+                customParams: customParams,
+                currentQuestionNumber: i + 1,
+                submitData: submitData,
+                isLastQuestion: question['id'] == lastQuestionId,
+                euiTheme: euiTheme,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    if (question['type'] == 'CESScore') {
+      var isLastQuestionSubQuestion = _lastQuestion['subQuestion'] ?? false;
+      var lastQuestionId = _lastQuestion['id'];
+      if(isLastQuestionSubQuestion){
+        lastQuestionId = _lastQuestion['parent_question_id'];
+      }
+      _newquestionList.add(
+        AnimatedOpacity(
+          opacity: _currentQuestionToRender['id'] == null
+              ? 1.0
+              : _currentQuestionToRender['id'] == question['id']
+                  ? 1.0
+                  : 0.0,
+          duration: const Duration(milliseconds: 200),
+          child: Center(
+            child: SingleChildScrollView(
+              physics: BouncingScrollPhysics(),
+              controller: _scrollController,
+              child: CesScore(
+                func: storeAnswers,
+                answer: _workBench,
+                question: question,
+                theme: _themeData,
+                customParams: customParams,
+                currentQuestionNumber: i + 1,
+                submitData: submitData,
+                isLastQuestion: question['id'] == lastQuestionId,
+                euiTheme: euiTheme,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    if(question['type'] == 'CSATScore'){
+var isLastQuestionSubQuestion = _lastQuestion['subQuestion'] ?? false;
+      var lastQuestionId = _lastQuestion['id'];
+      if(isLastQuestionSubQuestion){
+        lastQuestionId = _lastQuestion['parent_question_id'];
+      }
+      _newquestionList.add(
+        AnimatedOpacity(
+          opacity: _currentQuestionToRender['id'] == null
+              ? 1.0
+              : _currentQuestionToRender['id'] == question['id']
+                  ? 1.0
+                  : 0.0,
+          duration: const Duration(milliseconds: 200),
+          child: Center(
+            child: SingleChildScrollView(
+              physics: BouncingScrollPhysics(),
+              controller: _scrollController,
+              child: Csat(
+                func: storeAnswers,
+                answer: _workBench,
+                question: question,
+                theme: _themeData,
+                customParams: customParams,
+                currentQuestionNumber: i + 1,
+                submitData: submitData,
+                isLastQuestion: question['id'] == lastQuestionId,
+                euiTheme: euiTheme,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     if (question['type'] == 'PhoneNumber') {
       _newquestionList.add(
         AnimatedOpacity(
@@ -283,7 +388,9 @@ setTheme(_themeData, _surveyThemeClass) {
   _themeData['footerText'] = _surveyThemeClass.footerText;
 }
 
-  getPrefilledAnswers(firstQuestionAnswer,createAnswerPayload,_collectedAnswers,_surveyToMap) {
+getPrefilledAnswers(firstQuestionAnswer, createAnswerPayload, _collectedAnswers,
+    _surveyToMap, onError) {
+  try {
     var _workBenchDatas = {};
 
     for (var i = 0; i < firstQuestionAnswer!.answers.length; i++) {
@@ -441,4 +548,10 @@ setTheme(_themeData, _surveyThemeClass) {
     }
 
     return _workBenchDatas;
+  } catch (e) {
+    if (onError != null) {
+      onError!('prefilled Answers is not configured properly');
+    }
+    throw Exception('prefilled Answers is not configured properly');
   }
+}

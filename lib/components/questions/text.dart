@@ -189,7 +189,7 @@ class _TextRatingState extends State<TextRating> {
                   }
                   if (value == '') {
                     this.widget.toggleNextButtonBlock(false);
-                    this.func(null, question['id'],changePage: false);
+                    this.func(null, question['id'], changePage: false);
                     return;
                   }
                   this.func(inputController.text, question['id'],
@@ -224,7 +224,11 @@ class _TextRatingState extends State<TextRating> {
             const SizedBox(height: 30),
             SkipAndNextButtons(
               key: UniqueKey(),
-              disabled: disabled,
+              disabled: this.widget.isLastQuestion
+                  ? this.question['required']
+                      ? disabled
+                      : false
+                  : disabled,
               showNext: true,
               showSubmit: this.widget.isLastQuestion,
               showSkip:
@@ -232,6 +236,11 @@ class _TextRatingState extends State<TextRating> {
                       ? false
                       : true,
               onClickNext: () {
+                if (this.widget.isLastQuestion &&
+                    disabled &&
+                    !this.question['required']) {
+                  this.widget.submitData();
+                }
                 FocusScope.of(context).requestFocus(new FocusNode());
                 if (!disabled) {
                   if (this.widget.isLastQuestion) {

@@ -39,7 +39,7 @@ class CustomSurveyTheme {
   YesOrNo? yesOrNo;
   MultipleChoice? multipleChoice;
   Email? email;
-  Email? text;
+  SSTextInput? text;
   SkipButton? skipButton;
   NextButton? nextButton;
   String? animationDirection;
@@ -69,7 +69,7 @@ class CustomSurveyTheme {
             ? null
             : MultipleChoice.fromMap(json["multipleChoice"]),
         email: json["email"] == null ? null : Email.fromMap(json["email"]),
-        text: json["text"] == null ? null : Email.fromMap(json["text"]),
+        text: json["text"] == null ? null : SSTextInput.fromMap(json["text"]),
         skipButton: json["skipButton"] == null
             ? null
             : SkipButton.fromMap(json["skipButton"]),
@@ -78,8 +78,9 @@ class CustomSurveyTheme {
             : NextButton.fromMap(json["nextButton"]),
         animationDirection: json["animationDirection"],
         logo: json["logo"] == null ? null : Logo.fromMap(json["logo"]),
-        welcome:
-            json["welcome"] == null ? null : WelcomePageTheme.fromMap(json["welcome"]),
+        welcome: json["welcome"] == null
+            ? null
+            : WelcomePageTheme.fromMap(json["welcome"]),
         thankYouPage: json["thankYouPage"] == null
             ? null
             : ThankYouPageTheme.fromMap(json["thankYouPage"]),
@@ -127,7 +128,8 @@ class WelcomePageTheme {
   double? buttonWidth;
   double? buttonIconSize;
 
-  factory WelcomePageTheme.fromMap(Map<String, dynamic> json) => WelcomePageTheme(
+  factory WelcomePageTheme.fromMap(Map<String, dynamic> json) =>
+      WelcomePageTheme(
         headerFontSize: json["headerFontSize"],
         imageDescriptionFontSize: json["imageDescriptionFontSize"],
         descriptionFontSize: json["descriptionFontSize"],
@@ -151,17 +153,16 @@ class WelcomePageTheme {
 }
 
 class ThankYouPageTheme {
-  ThankYouPageTheme({
-    this.headerFontSize,
-    this.imageDescriptionFontSize,
-    this.descriptionFontSize,
-    this.imageHeight,
-    this.imageWidth,
-    this.buttonFontSize,
-    this.buttonWidth,
-    this.buttonIconSize,
-    this.visibilityTime
-  });
+  ThankYouPageTheme(
+      {this.headerFontSize,
+      this.imageDescriptionFontSize,
+      this.descriptionFontSize,
+      this.imageHeight,
+      this.imageWidth,
+      this.buttonFontSize,
+      this.buttonWidth,
+      this.buttonIconSize,
+      this.visibilityTime});
 
   double? headerFontSize;
   double? descriptionFontSize;
@@ -173,7 +174,8 @@ class ThankYouPageTheme {
   double? buttonIconSize;
   int? visibilityTime;
 
-  factory ThankYouPageTheme.fromMap(Map<String, dynamic> json) => ThankYouPageTheme(
+  factory ThankYouPageTheme.fromMap(Map<String, dynamic> json) =>
+      ThankYouPageTheme(
         headerFontSize: json["headerFontSize"],
         imageDescriptionFontSize: json["imageDescriptionFontSize"],
         descriptionFontSize: json["descriptionFontSize"],
@@ -228,6 +230,26 @@ class Email {
   double? textFieldWidth;
 
   factory Email.fromMap(Map<String, dynamic> json) => Email(
+        fontSize: json["fontSize"],
+        textFieldWidth: json["textFieldWidth"],
+      );
+
+  Map<String, dynamic> toMap() => {
+        "fontSize": fontSize,
+        "textFieldWidth": textFieldWidth,
+      };
+}
+
+class SSTextInput {
+  SSTextInput({
+    this.fontSize,
+    this.textFieldWidth,
+  });
+
+  double? fontSize;
+  double? textFieldWidth;
+
+  factory SSTextInput.fromMap(Map<String, dynamic> json) => SSTextInput(
         fontSize: json["fontSize"],
         textFieldWidth: json["textFieldWidth"],
       );

@@ -73,9 +73,24 @@ class _ColumnPhoneState extends State<ColumnPhone> {
   @override
   initState() {
     super.initState();
+    if (this.answer[this.question['id']] != null) {
+      var phoneCode = this
+          .answer['${this.question['id']}_phone']
+          .split(' ')[0]
+          .substring(1);
+      var number = this.answer[this.question['id']];
+      this.handleCountryCodeSubmit(phoneCode);
+      this.hanldePhoneNumberInital(number);
+    }
   }
 
   handlePhoneNumberSubmit(phoneNumber) {
+    setState(() {
+      _phoneNumber = phoneNumber;
+    });
+  }
+
+  hanldePhoneNumberInital(phoneNumber){
     _phoneNumber = phoneNumber;
   }
 
@@ -139,6 +154,7 @@ class _ColumnPhoneState extends State<ColumnPhone> {
           question: this.question,
           handlePhoneNumberSubmit: this.handlePhoneNumberSubmit,
           handleCountryCodeSubmit: this.handleCountryCodeSubmit,
+          hanldePhoneNumberInital: this.hanldePhoneNumberInital,
           theme: this.theme,
           erroredInput: this.erroredInput,
           euiTheme: this.widget.euiTheme,
@@ -147,11 +163,25 @@ class _ColumnPhoneState extends State<ColumnPhone> {
         SkipAndNextButtons(
           key: UniqueKey(),
           showNext: true,
+          disabled:this.widget.isLastQuestion
+              ? this.question['required']
+                  ? (_phoneNumber == null || _phoneNumber == '') 
+                  : false
+              : (_phoneNumber == null || _phoneNumber == '') ,
           showSkip: (this.question['required'] || this.widget.isLastQuestion)
               ? false
               : true,
           showSubmit: isLastQuestion == true ? true : false,
           onClickNext: () {
+            if(_phoneNumber == null || _phoneNumber == ''){
+              if(this.widget.isLastQuestion && !this.question['required']){
+                this.widget.submitData();
+              }
+              setState(() {
+                erroredInput = true;
+              });
+              return;
+            }
             FocusScope.of(context).requestFocus(new FocusNode());
             final phoneParser =
                 PhoneNumber.fromCountryCode(_countryCode, _phoneNumber)
@@ -193,6 +223,7 @@ class PhoneQuestion extends StatefulWidget {
   final Map<dynamic, dynamic> answer;
   final Map<dynamic, dynamic> question;
   final Function handlePhoneNumberSubmit;
+  final Function hanldePhoneNumberInital;
   final Function handleCountryCodeSubmit;
   final Map<dynamic, dynamic> theme;
   final Map<dynamic, dynamic>? euiTheme;
@@ -205,6 +236,7 @@ class PhoneQuestion extends StatefulWidget {
     required this.question,
     required this.handlePhoneNumberSubmit,
     required this.handleCountryCodeSubmit,
+    required this.hanldePhoneNumberInital,
     required this.theme,
     required this.erroredInput,
     this.euiTheme,
@@ -217,6 +249,7 @@ class PhoneQuestion extends StatefulWidget {
         question: this.question,
         handlePhoneNumberSubmit: this.handlePhoneNumberSubmit,
         handleCountryCodeSubmit: this.handleCountryCodeSubmit,
+        hanldePhoneNumberInital: this.hanldePhoneNumberInital,
         theme: this.theme,
         erroredInput: this.erroredInput,
       );
@@ -227,6 +260,7 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
   final Map<dynamic, dynamic> answer;
   final Map<dynamic, dynamic> question;
   Function handlePhoneNumberSubmit;
+  Function hanldePhoneNumberInital;
   Function handleCountryCodeSubmit;
   final Map<dynamic, dynamic> theme;
   bool erroredInput;
@@ -311,7 +345,7 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
       _selectedDialogCountry =
           CountryPickerUtils.getCountryByPhoneCode(phoneCode);
       this.handleCountryCodeSubmit(phoneCode);
-      this.handlePhoneNumberSubmit(number);
+      this.hanldePhoneNumberInital(number);
     } else {
       if (this.widget.euiTheme != null) {
         if (this.widget.euiTheme!['phoneNumber'] != null) {
@@ -348,6 +382,7 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
     required this.answer,
     required this.question,
     required this.handlePhoneNumberSubmit,
+    required this.hanldePhoneNumberInital,
     required this.handleCountryCodeSubmit,
     required this.theme,
     required this.erroredInput,
@@ -474,6 +509,7 @@ class _PhoneQuestionState extends State<PhoneQuestion> {
           Row(
             children: [
               if (widget.erroredInput == true) ...[
+                SizedBox(height: 25,),
                 Icon(
                   Icons.info_outline_rounded,
                   size: 11,

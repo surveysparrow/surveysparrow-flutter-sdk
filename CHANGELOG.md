@@ -21,3 +21,20 @@
 ## 1.0.0-beta.6
 
 * updated dependency packages.
+
+## 1.0.0-beta.7
+
+* updating dependency packages.
+
+## 1.1.0
+
+* Initial release.
+
+## 1.1.1
+
+* Bug Fixes.
+
+## 1.1.2
+
+* Adding CX Surveys Support.
+* Bug Fixes.

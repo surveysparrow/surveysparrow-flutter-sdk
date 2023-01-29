@@ -27,22 +27,23 @@ getAnswerValueToStore(
 }
 
 Future initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    try {
-      platformVersion = FkUserAgent.userAgent!;
-      print(platformVersion);
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    return platformVersion;
+  String platformVersion;
+  // Platform messages may fail, so we use a try/catch PlatformException.
+  try {
+    platformVersion = FkUserAgent.userAgent!;
+  } on PlatformException {
+    platformVersion = 'Failed to get platform version.';
   }
 
-submitAnswer(_collectedAnswers, finalTime, customParams, token, domain) async {
+  // If the widget was removed from the tree while the asynchronous platform
+  // message was in flight, we want to discard the reply rather than calling
+  // setState to update our non-existent appearance.
+  return platformVersion;
+}
+
+submitAnswer(
+    _collectedAnswers, finalTime, customParams, token, domain, email) async {
+  // check url before prod
   var url =
       Uri.parse('https://${domain}/api/internal/submission/answers/${token}');
   Map<dynamic, dynamic> payload = {};
@@ -64,6 +65,10 @@ submitAnswer(_collectedAnswers, finalTime, customParams, token, domain) async {
     'language': 'en',
   };
 
+  if (email != "") {
+    submissionObjPayload['email'] = email;
+  }
+
   payload['answers'] = _collectedAnswers;
   payload['finalTime'] = finalTime;
   payload['customParam'] = customParams;
@@ -71,8 +76,8 @@ submitAnswer(_collectedAnswers, finalTime, customParams, token, domain) async {
   var body = json.encode(submissionObjPayload);
 
   var response = await http.post(url,
-      headers: {"Content-Type": "application/json","User-Agent":ua}, body: body);
-
+      headers: {"Content-Type": "application/json", "User-Agent": ua},
+      body: body);
   return response;
 }
 
@@ -88,7 +93,6 @@ createAnswerPayload(
   phoneValue,
   time,
 ) {
-
   var currentAnswer;
   var currentAnswerToSync;
 
@@ -100,18 +104,34 @@ createAnswerPayload(
     if (value == null) {
       currentAnswer[_surveyToMap[key]['type']]
           .removeWhere((key, value) => key == "data");
+      if (currentAnswer[_surveyToMap[key]['type']]['notApplicable'] != null) {
+        currentAnswer[_surveyToMap[key]['type']]
+            .removeWhere((key, value) => key == "notApplicable");
+      }
       // currentAnswer[_surveyToMap[key]['type']]['data'] = null;
       currentAnswer[_surveyToMap[key]['type']]['skipped'] = true;
     } else {
-      currentAnswer[_surveyToMap[key]['type']]['data'] = getAnswerValueToStore(
-        value,
-        otherInput,
-        otherInputText,
-        otherInputId,
-        isPhoneInput,
-        phoneValue,
-      );
-      currentAnswer[_surveyToMap[key]['type']]['skipped'] = false;
+      if (value == -2) {
+        currentAnswer[_surveyToMap[key]['type']]
+            .removeWhere((key, value) => key == "data");
+        currentAnswer[_surveyToMap[key]['type']]['skipped'] = true;
+        currentAnswer[_surveyToMap[key]['type']]['notApplicable'] = true;
+      } else {
+        currentAnswer[_surveyToMap[key]['type']]['data'] =
+            getAnswerValueToStore(
+          value,
+          otherInput,
+          otherInputText,
+          otherInputId,
+          isPhoneInput,
+          phoneValue,
+        );
+        if (currentAnswer[_surveyToMap[key]['type']]['notApplicable'] != null) {
+          currentAnswer[_surveyToMap[key]['type']]
+              .removeWhere((key, value) => key == "notApplicable");
+        }
+        currentAnswer[_surveyToMap[key]['type']]['skipped'] = false;
+      }
     }
   } else {
     currentAnswer = {};
@@ -122,18 +142,27 @@ createAnswerPayload(
       currentAnswer[_surveyToMap[key]['type']]['skipped'] = true;
       currentAnswer[_surveyToMap[key]['type']]['timeTaken'] = time;
     } else {
-      currentAnswer['question_id'] = key;
-      currentAnswer[_surveyToMap[key]['type']] = {};
-      currentAnswer[_surveyToMap[key]['type']]['data'] = getAnswerValueToStore(
-        value,
-        otherInput,
-        otherInputText,
-        otherInputId,
-        isPhoneInput,
-        phoneValue,
-      );
-      currentAnswer[_surveyToMap[key]['type']]['skipped'] = false;
-      currentAnswer[_surveyToMap[key]['type']]['timeTaken'] = time;
+      if (value == -2) {
+        currentAnswer['question_id'] = key;
+        currentAnswer[_surveyToMap[key]['type']] = {};
+        currentAnswer[_surveyToMap[key]['type']]['skipped'] = true;
+        currentAnswer[_surveyToMap[key]['type']]['notApplicable'] = true;
+        currentAnswer[_surveyToMap[key]['type']]['timeTaken'] = time;
+      } else {
+        currentAnswer['question_id'] = key;
+        currentAnswer[_surveyToMap[key]['type']] = {};
+        currentAnswer[_surveyToMap[key]['type']]['data'] =
+            getAnswerValueToStore(
+          value,
+          otherInput,
+          otherInputText,
+          otherInputId,
+          isPhoneInput,
+          phoneValue,
+        );
+        currentAnswer[_surveyToMap[key]['type']]['skipped'] = false;
+        currentAnswer[_surveyToMap[key]['type']]['timeTaken'] = time;
+      }
     }
     _collectedAnswers.add(currentAnswer);
   }
@@ -148,7 +177,7 @@ createAnswerPayloadOtherSurvey(obj, surArr) {
       obj is CustomOpinionScale ||
       obj is CustomPhoneNumber)) {
     throw Exception(
-        'obj has to be a instance of CustomRating or CustomEmailInput');
+        'obj has to be a instance of CustomRating or CustomEmailInput or CustomPhoneNumber or CustomOpnionScale');
   }
 
   var currentAns = {};
@@ -181,9 +210,11 @@ createAnswerPayloadOtherSurvey(obj, surArr) {
   }
 }
 
-submitAnswerOtherSurvey(token, value) async {
-  var url = Uri.parse(
-      'http://sample.surveysparrow.test/api/internal/submission/answers/${token}');
+submitAnswerOtherSurvey(domain, token, value) async {
+  var url =
+      Uri.parse('https://${domain}/api/internal/submission/answers/${token}');
+  // var url = Uri.parse(
+  //     'http://sample.surveysparrow.test/api/internal/submission/answers/${token}');
   Map<dynamic, dynamic> payload = {};
 
   var submissionObjPayload = {

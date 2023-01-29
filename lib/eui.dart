@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:surveysparrow_flutter_sdk/components/common/bottomNavigation.dart';
+import 'package:surveysparrow_flutter_sdk/components/common/cxEmailForm.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/footer.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/header.dart';
 import 'package:surveysparrow_flutter_sdk/components/loadingScreen.dart';
 import 'package:surveysparrow_flutter_sdk/components/thankyou.dart';
 import 'package:surveysparrow_flutter_sdk/components/welcome.dart';
 import 'package:surveysparrow_flutter_sdk/constants/survey.dart';
+import 'package:surveysparrow_flutter_sdk/helpers/cx.dart';
 import 'package:surveysparrow_flutter_sdk/helpers/question.dart';
 import 'package:surveysparrow_flutter_sdk/logics/displayLogic.dart';
 import 'package:surveysparrow_flutter_sdk/logics/thankYou.dart';
@@ -16,13 +18,17 @@ import 'package:surveysparrow_flutter_sdk/models/firstQuestionAnswer.dart';
 import 'package:surveysparrow_flutter_sdk/models/theme.dart';
 import 'dart:convert';
 import 'package:sizer/sizer.dart';
+import 'package:surveysparrow_flutter_sdk/providers/survey_provider.dart';
 import 'helpers/answers.dart';
 import 'dart:async';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
+import 'package:surveysparrow_flutter_sdk/providers/answer_provider.dart';
 
 class SurveyModal extends StatelessWidget {
   final String token;
   final String domain;
+  final String? email;
   final Map<String, String>? variables;
   final FirstQuestionAnswer? firstQuestionAnswer;
   final CustomSurveyTheme? customSurveyTheme;
@@ -42,6 +48,7 @@ class SurveyModal extends StatelessWidget {
     this.onSubmit,
     this.survey,
     this.onError,
+    this.email,
   }) : super(key: key);
 
   late Future<Map<dynamic, dynamic>> testeru =
@@ -53,20 +60,49 @@ class SurveyModal extends StatelessWidget {
       return Container(
         child: Sizer(
           builder: (context, orientation, deviceType) {
-            return QuestionsPage(
-              token: this.token,
-              domain: this.domain,
-              Questions: this.survey!,
-              customParams: variables ?? {},
-              firstQuestionAnswer: firstQuestionAnswer,
-              onNext: onNext,
-              onSubmit: onSubmit,
-              euiTheme: customSurveyTheme?.toMap() ?? {},
-              onError: this.onError,
+            // return QuestionsPage(
+            //   token: this.token,
+            //   domain: this.domain,
+            //   Questions: this.survey!,
+            //   customParams: variables ?? {},
+            //   firstQuestionAnswer: firstQuestionAnswer,
+            //   onNext: onNext,
+            //   onSubmit: onSubmit,
+            //   euiTheme: customSurveyTheme?.toMap() ?? {},
+            //   onError: this.onError,
+            // );
+
+            return MultiProvider(
+              providers: [
+                ChangeNotifierProvider(create: (_) => WorkBench()),
+                ChangeNotifierProvider(create: (_) => SurveyProvider())
+              ],
+              child: QuestionsPage(
+                token: this.token,
+                domain: this.domain,
+                Questions: this.survey!,
+                customParams: variables ?? {},
+                firstQuestionAnswer: firstQuestionAnswer,
+                onNext: onNext,
+                onSubmit: onSubmit,
+                euiTheme: customSurveyTheme?.toMap() ?? {},
+                onError: this.onError,
+                email: this.email,
+              ),
             );
           },
         ),
       );
+    }
+
+    checkValidSurveyType(type) {
+      if (type == 'ClassicForm' ||
+          type == 'NPS' ||
+          type == 'CES' ||
+          type == 'CSAT') {
+        return true;
+      }
+      return false;
     }
 
     return Container(
@@ -76,40 +112,63 @@ class SurveyModal extends StatelessWidget {
           if (snapshot.hasData) {
             if (snapshot.data['sections'].length == 0) {
               if (onError != null) {
-                onError!();
+                onError!("No questions added");
               }
               throw Exception('No question is added');
             } else if (snapshot.data['survey_type'] != null &&
-                snapshot.data['survey_type'] != 'ClassicForm') {
+                !checkValidSurveyType(snapshot.data['survey_type'])) {
               if (onError != null) {
-                onError!();
+                onError!(
+                    'Un Supported Survey Type ${snapshot.data['survey_type']}');
               }
-              throw Exception('unSupported Survey Type');
+              throw Exception('Un Supported Survey Type');
             } else {
-              return Sizer(
-                builder: (context, orientation, deviceType) {
-                  return QuestionsPage(
-                    token: this.token,
-                    domain: this.domain,
-                    Questions: snapshot.data,
-                    customParams: variables ?? {},
-                    firstQuestionAnswer: firstQuestionAnswer,
-                    onNext: onNext,
-                    onSubmit: onSubmit,
-                    euiTheme: customSurveyTheme?.toMap() ?? {},
-                    onError: this.onError,
-                  );
-                },
-              );
+              try {
+                var surveyWidgetToRender = Sizer(
+                  builder: (context, orientation, deviceType) {
+                    return MultiProvider(
+                      providers: [
+                        ChangeNotifierProvider(create: (_) => WorkBench()),
+                        ChangeNotifierProvider(create: (_) => SurveyProvider())
+                      ],
+                      child: QuestionsPage(
+                        token: this.token,
+                        domain: this.domain,
+                        Questions: snapshot.data,
+                        customParams: variables ?? {},
+                        firstQuestionAnswer: firstQuestionAnswer,
+                        onNext: onNext,
+                        onSubmit: onSubmit,
+                        euiTheme: customSurveyTheme?.toMap() ?? {},
+                        onError: this.onError,
+                        email: this.email,
+                      ),
+                    );
+                    // return QuestionsPage(
+                    //   token: this.token,
+                    //   domain: this.domain,
+                    //   Questions: snapshot.data,
+                    //   customParams: variables ?? {},
+                    //   firstQuestionAnswer: firstQuestionAnswer,
+                    //   onNext: onNext,
+                    //   onSubmit: onSubmit,
+                    //   euiTheme: customSurveyTheme?.toMap() ?? {},
+                    //   onError: this.onError,
+                    // );
+                  },
+                );
+                return surveyWidgetToRender;
+              } catch (e) {
+                print("some error has happened inside survey modal ${e}");
+              }
             }
           }
 
           if (snapshot.hasError) {
             if (onError != null) {
-              onError!();
+              onError!("${snapshot.error}");
             }
-            throw Exception(
-                'Some Error Occurred while fetching survey Object ${snapshot.error}');
+            throw Exception(snapshot.error);
           }
           return const LoadingScreen();
         },
@@ -121,6 +180,7 @@ class SurveyModal extends StatelessWidget {
 class QuestionsPage extends StatefulWidget {
   final String token;
   final String domain;
+  final String? email;
   final Map<dynamic, dynamic> Questions;
   final Map<String, String> customParams;
   final FirstQuestionAnswer? firstQuestionAnswer;
@@ -141,12 +201,17 @@ class QuestionsPage extends StatefulWidget {
       this.onSubmit,
       this.onSubmitCloseModalFunction,
       this.euiTheme,
+      this.email,
       this.onError})
       : super(key: key);
 
   @override
   State<QuestionsPage> createState() => _QuestionsPageState(
-      this.token, this.Questions, this.customParams, this.firstQuestionAnswer);
+      this.token,
+      this.Questions,
+      this.customParams,
+      this.firstQuestionAnswer,
+      this.onError);
 }
 
 class _QuestionsPageState extends State<QuestionsPage>
@@ -154,11 +219,12 @@ class _QuestionsPageState extends State<QuestionsPage>
   final String token;
   final Map<dynamic, dynamic> Survey;
   final Map<String, String> customParams;
+  final Function? onError;
   final Map<dynamic, dynamic> _questionPos = {};
   final Map<dynamic, dynamic> _surveyToMap = {};
   final FirstQuestionAnswer? firstQuestionAnswer;
-  _QuestionsPageState(
-      this.token, this.Survey, this.customParams, this.firstQuestionAnswer);
+  _QuestionsPageState(this.token, this.Survey, this.customParams,
+      this.firstQuestionAnswer, this.onError);
   List<Map<dynamic, dynamic>> _allQuestionList = [];
   List _allowedQuestionIds = [];
   Map<dynamic, dynamic> _workBench = {};
@@ -188,7 +254,7 @@ class _QuestionsPageState extends State<QuestionsPage>
 
   storePrefilledAnswers() {
     var _workBenchDatas = getPrefilledAnswers(firstQuestionAnswer,
-        createAnswerPayload, _collectedAnswers, _surveyToMap);
+        createAnswerPayload, _collectedAnswers, _surveyToMap, onError);
 
     var _cloneWorkBench = {..._workBench};
     setState(() {
@@ -213,6 +279,7 @@ class _QuestionsPageState extends State<QuestionsPage>
     bool isLastQuestionHandle = false,
     bool changePage = true,
     bool handlePreFilledResponses = false,
+    bool isLastQuestionSubmission = true,
   }) {
     createAnswerPayload(
       _collectedAnswers,
@@ -240,15 +307,19 @@ class _QuestionsPageState extends State<QuestionsPage>
       phoneValue,
     );
 
+    context.read<WorkBench>().setWorkBenchData(newWorkBench);
+
     setState(() {
       _workBench = {...newWorkBench};
     });
 
     widget.onNext!(_collectedAnswers);
-
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _handleNextQuestion(changePage: changePage);
-    });
+    if (isLastQuestionSubmission == true) {
+      print("MOVE LAST ${isLastQuestionSubmission}");
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _handleNextQuestion(changePage: changePage);
+      });
+    }
   }
 
   submitData() async {
@@ -260,12 +331,18 @@ class _QuestionsPageState extends State<QuestionsPage>
       widget.onSubmit!(_collectedAnswers);
     }
 
+    var email = context.read<SurveyProvider>().getEmail;
+
+    if (this.widget.email != null) {
+      email = this.widget.email!;
+    }
     var data = await submitAnswer(
         _collectedAnswers,
         (_stopwatch.elapsedMilliseconds / 1000).round(),
         customParams,
         this.token,
-        this.widget.domain);
+        this.widget.domain,
+        email);
   }
 
   _scrollListener() {
@@ -298,7 +375,6 @@ class _QuestionsPageState extends State<QuestionsPage>
       _scrollCountTop = 0;
       _scrollCountBottom = 0;
     }
-  
   }
 
   late Stopwatch _stopwatch;
@@ -318,7 +394,7 @@ class _QuestionsPageState extends State<QuestionsPage>
 
   incrementCount(token, domain) async {
     var url =
-        Uri.parse('http://${domain}/api/internal/sdk/increment-count/${token}');
+        Uri.parse('https://${domain}/api/internal/sdk/increment-count/${token}');
     final response = await http.get(url);
   }
 
@@ -326,6 +402,8 @@ class _QuestionsPageState extends State<QuestionsPage>
   initState() {
     super.initState();
     incrementCount(token, this.widget.domain);
+
+    context.read<SurveyProvider>().setSurvey(this.Survey);
 
     if (widget.euiTheme!['animationDirection'] != null) {
       if (widget.euiTheme!['animationDirection'] == "horizontal") {
@@ -364,11 +442,25 @@ class _QuestionsPageState extends State<QuestionsPage>
         if (allowedQuestionTypes.contains(question['type'])) {
           _questionPos[question['id']] = _index;
           _surveyToMap[question['id']] = question;
+          var listSubQuestions = [];
+          if (question['subQuestions'] != null) {
+            listSubQuestions = (question['subQuestions'] as List)
+                .map((e) => e as Map<dynamic, dynamic>)
+                .toList();
+          }
+          if (listSubQuestions.length > 0) {
+            var subQuestion = listSubQuestions[0];
+            _surveyToMap[subQuestion['id']] = subQuestion;
+          }
           _allQuestionList.add(question);
           _allowedQuestionIds.add(question['id']);
           _index = _index + 1;
         }
       }
+    }
+    if (_index == 0) {
+      this.onError!('No supported question is added');
+      throw Exception('No supported question is added');
     }
 
     if (this.Survey['welcome_rtxt'] == null) {
@@ -509,10 +601,28 @@ class _QuestionsPageState extends State<QuestionsPage>
 
     if (this._currentQuestionToRender['required'] != null &&
         this._currentQuestionToRender['required'] == true) {
-      if (_workBench[_currentQuestionToRender['id']] == null) {
-        canUpdateQuestions = false;
+      var hasFeedBackQuestion =
+          checkIfTheQuestionHasAFeedBack(_currentQuestionToRender);
+      if (hasFeedBackQuestion) {
+        var feedBackQuestion = getFeedBackQuestion(_currentQuestionToRender);
+        var feedBackQuestionId = feedBackQuestion['id'];
+        var conditionToCheck = _workBench[feedBackQuestionId] == null ||
+            _workBench[_currentQuestionToRender['id']] == null;
+        var isFeedBackQuestionRequired = feedBackQuestion['required'];
+        if (!isFeedBackQuestionRequired) {
+          conditionToCheck = _workBench[_currentQuestionToRender['id']] == null;
+        }
+        if (conditionToCheck) {
+          canUpdateQuestions = false;
+        } else {
+          canUpdateQuestions = true;
+        }
       } else {
-        canUpdateQuestions = true;
+        if (_workBench[_currentQuestionToRender['id']] == null) {
+          canUpdateQuestions = false;
+        } else {
+          canUpdateQuestions = true;
+        }
       }
     } else {
       canUpdateQuestions = true;
@@ -618,6 +728,22 @@ class _QuestionsPageState extends State<QuestionsPage>
     final bool useMobileLayout = shortestSide < 600;
     final bool isSmallerPhone = shortestSide < 350;
 
+    var showEmailPage = this.Survey['survey_type'] == 'NPS' ||
+        this.Survey['survey_type'] == 'CSAT' ||
+        this.Survey['survey_type'] == 'CES';
+    var email = context.watch<SurveyProvider>().getEmail;
+    if (this.widget.email != null) {
+      email = this.widget.email!;
+    }
+
+    if (showEmailPage && email == '') {
+      return Container(
+        child: Container(
+          child: CXEmailForm(),
+        ),
+      );
+    }
+
     if (hasWelcomePage && _pageType == "welcome") {
       return Container(
         decoration: BoxDecoration(
@@ -709,6 +835,7 @@ class _QuestionsPageState extends State<QuestionsPage>
               thankYouPageJson: thankYouPageJson,
               closeModalFunction: thankYouCloseFunction,
               euiTheme: this.widget.euiTheme,
+              onError: this.widget.onError,
             ),
           ),
         ),
@@ -831,6 +958,11 @@ class _QuestionsPageState extends State<QuestionsPage>
 }
 
 Future<Map<dynamic, dynamic>> fetchSurvey(token, domain) async {
+  // if(token.startsWith('ntt') || token.startsWith('NTT')){
+  //   throw Exception('Un Supported Survey Type');
+  // }
+
+  // check url before prod
   var url = 'https://${domain}/api/internal/sdk/get-survey/${token}';
 
   final response = await http.get(Uri.parse(url));
@@ -839,6 +971,7 @@ Future<Map<dynamic, dynamic>> fetchSurvey(token, domain) async {
     return parsedJson;
   } else {
     print("response failed");
-    throw Exception('Failed to load survey');
+    throw Exception('Some Error Happened When Loading the Survey');
   }
 }
+// ntt-ppZdzAVc6rjmVjnqzFN67X

@@ -1,4 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:surveysparrow_flutter_sdk/components/common/questionColumn.dart';
+import 'package:surveysparrow_flutter_sdk/components/questions/npsFeedback.dart';
+import 'package:surveysparrow_flutter_sdk/helpers/cx.dart';
+import 'package:surveysparrow_flutter_sdk/helpers/theme.dart';
+
+import '../common/skipAndNext.dart';
+import 'package:sizer/sizer.dart';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_rating_stars/flutter_rating_stars.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/questionColumn.dart';
 import 'package:surveysparrow_flutter_sdk/helpers/question.dart';
@@ -7,21 +16,7 @@ import 'package:surveysparrow_flutter_sdk/helpers/svg.dart';
 
 import '../common/skipAndNext.dart';
 
-class ColumnRating extends StatefulWidget {
-  const ColumnRating({
-    Key? key,
-    required this.func,
-    required this.answer,
-    required this.question,
-    required this.theme,
-    required this.customParams,
-    required this.currentQuestionNumber,
-    required this.isLastQuestion,
-    required this.lastQuestionId,
-    required this.submitData,
-    required this.euiTheme,
-  }) : super(key: key);
-
+class Csat extends StatefulWidget {
   final Function func;
   final Map<dynamic, dynamic> answer;
   final Map<dynamic, dynamic> question;
@@ -30,30 +25,43 @@ class ColumnRating extends StatefulWidget {
   final int currentQuestionNumber;
   final bool isLastQuestion;
   final Function submitData;
-  final lastQuestionId;
   final Map<dynamic, dynamic>? euiTheme;
 
+  const Csat({
+    Key? key,
+    required this.func,
+    required this.answer,
+    required this.question,
+    required this.theme,
+    required this.customParams,
+    required this.currentQuestionNumber,
+    required this.isLastQuestion,
+    required this.submitData,
+    this.euiTheme,
+  }) : super(key: key);
+
   @override
-  State<ColumnRating> createState() => _ColumnRatingState(
-        func: this.func,
-        answer: this.answer,
-        question: question,
-        theme: this.theme,
-        customParams: this.customParams,
-        currentQuestionNumber: currentQuestionNumber,
-      );
+  State<Csat> createState() => _CsatState(
+      func: this.func,
+      answer: this.answer,
+      question: question,
+      theme: this.theme,
+      customParams: this.customParams,
+      currentQuestionNumber: currentQuestionNumber);
 }
 
-class _ColumnRatingState extends State<ColumnRating> {
+class _CsatState extends State<Csat> {
   Function func;
   final Map<dynamic, dynamic> answer;
   final Map<dynamic, dynamic> question;
   final Map<dynamic, dynamic> theme;
   final Map<String, String> customParams;
   final int currentQuestionNumber;
-  double _selectedOption = -1.0;
+  var _selectedOption = -1;
 
-  _ColumnRatingState({
+  var subQuestionData;
+
+  _CsatState({
     required this.func,
     required this.answer,
     required this.question,
@@ -62,23 +70,86 @@ class _ColumnRatingState extends State<ColumnRating> {
     required this.currentQuestionNumber,
   });
 
-  @override
-  initState() {
-    super.initState();
-    if (this.answer[this.question['id']] != null) {
-      _selectedOption = this.answer[this.question['id']];
+  setSelectedOption(val) {
+    setState(() {
+      _selectedOption = val.toInt();
+    });
+  }
+
+  handleFeedBackQuestionAnswer(value, questionId) {
+    setState(() {
+      subQuestionData = {'questionId': questionId, 'value': value};
+    });
+  }
+
+  handleNextButtonVisibility() {
+    var listSubQuestions = (this.question['subQuestions'] as List)
+        .map((e) => e as Map<dynamic, dynamic>)
+        .toList();
+    var subQuestion;
+    var hasFeedBackQuestion = false;
+    if (listSubQuestions.length > 0) {
+      hasFeedBackQuestion = true;
+      subQuestion = listSubQuestions[0];
+    }
+    if (hasFeedBackQuestion) {
+      if (subQuestion['required']) {
+        return subQuestionData == null || _selectedOption == -1;
+      } else {
+        return _selectedOption == -1;
+      }
+    } else {
+      return _selectedOption == -1;
     }
   }
 
-  setSelectedOption(val) {
-    _selectedOption = val;
+  handleShowNextButton() {
+    var feedBackQuestion = getFeedBackQuestion(question);
+    var hasBranching = checkIfCXSurveyHasBranchingProperty(feedBackQuestion);
+    if (hasBranching) {
+      if (_selectedOption == -1) {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      if (this.widget.isLastQuestion) {
+        return true;
+      }
+      return checkIfTheQuestionHasAFeedBack(question);
+    }
+  }
+
+  @override
+  initState() {
+    if (this.answer[this.question['id']] != null) {
+
+      var hasFeedBackQuestion = checkIfTheQuestionHasAFeedBack(question);
+      if (hasFeedBackQuestion) {
+        var feedBackQuestion = getFeedBackQuestion(question);
+        handleFeedBackQuestionAnswer(
+            this.answer[feedBackQuestion['id']], feedBackQuestion['id']);
+      }
+      setState(() {
+        _selectedOption = this.answer[this.question['id']];
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    var listSubQuestions = (this.question['subQuestions'] as List)
+        .map((e) => e as Map<dynamic, dynamic>)
+        .toList();
+    var subQuestion;
+    var hasFeedBackQuestion = false;
+    if (listSubQuestions.length > 0) {
+      hasFeedBackQuestion = true;
+    }
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         QuestionColumn(
           question: question,
@@ -87,40 +158,45 @@ class _ColumnRatingState extends State<ColumnRating> {
           theme: this.theme,
           euiTheme: this.widget.euiTheme,
         ),
-        RatingQuestion(
+        // SizedBox(height: 40),
+        SizedBox(height: 2.h),
+        // SizedBox(height: 40),
+        CsatQuestion(
           func: this.func,
           answer: this.answer,
           question: this.question,
           theme: this.theme,
           setSelectedOption: setSelectedOption,
           euiTheme: this.widget.euiTheme,
+          customParams: this.customParams,
+          handleFeedBackQuestionAnswer: this.handleFeedBackQuestionAnswer,
         ),
-        SizedBox(height: 40),
-        //!this.question['required']
+        SizedBox(height: 7.h),
+        // SizedBox(height: 40),
         SkipAndNextButtons(
           key: UniqueKey(),
-          disabled: this.widget.isLastQuestion
-              ? this.question['required']
-                  ? _selectedOption == -1.0
-                  : false
-              : _selectedOption == -1.0,
-          showNext: this.widget.isLastQuestion,
-          showSkip: (this.question['required'] || this.widget.isLastQuestion)
-              ? false
-              : true,
+          disabled: handleNextButtonVisibility(),
+          showNext: handleShowNextButton(),
+          showSkip: false,
           showSubmit: this.widget.isLastQuestion,
           onClickSkip: () {
             this.func(null, question['id']);
           },
           onClickNext: () {
-            if (_selectedOption != -1.0) {
+            if (subQuestionData != null) {
+              this.func(
+                  subQuestionData['value'], subQuestionData['questionId']);
+              FocusScope.of(context).requestFocus(new FocusNode());
+            }
+            if (this.widget.isLastQuestion && _selectedOption != -1) {
               this.widget.submitData();
             }
-            if(this.widget.isLastQuestion && _selectedOption == -1.0 && !this.question['required']){
-              this.widget.submitData();
-            }
+
+            // if (_selectedOption != -1) {
+            //   this.func(_selectedOption, question['id']);
+            // }
           },
-          theme: theme,
+          theme: this.theme,
           euiTheme: this.widget.euiTheme,
         ),
       ],
@@ -128,14 +204,17 @@ class _ColumnRatingState extends State<ColumnRating> {
   }
 }
 
-class RatingQuestion extends StatefulWidget {
+class CsatQuestion extends StatefulWidget {
   final Function func;
   final Map<dynamic, dynamic> answer;
   final Map<dynamic, dynamic> question;
   final Map<dynamic, dynamic> theme;
   final Function setSelectedOption;
   final Map<dynamic, dynamic>? euiTheme;
-  const RatingQuestion({
+  final Map<String, String> customParams;
+  final Function handleFeedBackQuestionAnswer;
+
+  const CsatQuestion({
     Key? key,
     required this.func,
     required this.answer,
@@ -143,22 +222,24 @@ class RatingQuestion extends StatefulWidget {
     required this.theme,
     required this.setSelectedOption,
     required this.euiTheme,
+    required this.customParams,
+    required this.handleFeedBackQuestionAnswer,
   }) : super(key: key);
 
   @override
-  State<RatingQuestion> createState() => _RatingQuestionState(
+  State<CsatQuestion> createState() => _CsatQuestionState(
       func: this.func,
       answer: this.answer,
       question: this.question,
       theme: this.theme);
 }
 
-class _RatingQuestionState extends State<RatingQuestion> {
+class _CsatQuestionState extends State<CsatQuestion> {
   Function func;
   final Map<dynamic, dynamic> answer;
   final Map<dynamic, dynamic> question;
   final Map<dynamic, dynamic> theme;
-  double _rating = -1.0;
+  int _rating = -1;
   double widget1Opacity = 0.0;
   var customSvg = null;
 
@@ -287,44 +368,7 @@ class _RatingQuestionState extends State<RatingQuestion> {
   }
 
   _buildRatingStart(int index) {
-    if (this.question['properties']['data']['iconArrayName'] ==
-        "RATING_SMILEY") {
-      if (_rating - 1 == index.toDouble()) {
-        return Row(
-          children: [
-            Column(
-              children: [
-                Container(
-                  height: svgHeight,
-                  width: svgWidth,
-                  child: SvgPicture.string(
-                    getSmiliySvg(
-                      this.question['properties']['data']['ratingScale'],
-                      true,
-                      index,
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                AnimatedOpacity(
-                  opacity: widget1Opacity,
-                  duration: const Duration(milliseconds: 200),
-                  child: Text(
-                    hasNumber ? (index + 1).toString() : '',
-                    style:
-                        TextStyle(color: this.theme['decodedOpnionLabelColor']),
-                  ),
-                )
-              ],
-            ),
-            SizedBox(
-              width: 10,
-            )
-          ],
-        );
-      }
+    if (_rating - 1 == index) {
       return Row(
         children: [
           Column(
@@ -334,81 +378,9 @@ class _RatingQuestionState extends State<RatingQuestion> {
                 width: svgWidth,
                 child: SvgPicture.string(
                   getSmiliySvg(
-                      this.question['properties']['data']['ratingScale'],
-                      false,
-                      index),
-                ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              AnimatedOpacity(
-                opacity: widget1Opacity,
-                duration: const Duration(milliseconds: 200),
-                child: Text(
-                  hasNumber ? (index + 1).toString() : '',
-                  style:
-                      TextStyle(color: this.theme['decodedOpnionLabelColor']),
-                ),
-              )
-            ],
-          ),
-          SizedBox(
-            width: 10,
-          )
-        ],
-      );
-    } else {
-      if (_rating > index.toDouble()) {
-        return Row(
-          children: [
-            Column(
-              children: [
-                Container(
-                  height: svgHeight,
-                  width: svgWidth,
-                  child: SvgPicture.string(
-                    getRatingSvg(
-                      this.question['properties']['data']['iconArrayName'],
-                      1,
-                      this.theme['ratingRgba'],
-                      this.theme['ratingRgba'],
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                AnimatedOpacity(
-                  opacity: widget1Opacity,
-                  duration: const Duration(milliseconds: 200),
-                  child: Text(
-                    hasNumber ? (index + 1).toString() : '',
-                    style:
-                        TextStyle(color: this.theme['decodedOpnionLabelColor']),
-                  ),
-                )
-              ],
-            ),
-            SizedBox(
-              width: 10,
-            )
-          ],
-        );
-      }
-      return Row(
-        children: [
-          Column(
-            children: [
-              Container(
-                height: svgHeight,
-                width: svgWidth,
-                child: SvgPicture.string(
-                  getRatingSvg(
-                    this.question['properties']['data']['iconArrayName'],
-                    0.5,
-                    'none',
-                    this.theme['ratingRgba'],
+                    this.question['properties']['data']['ratingScale'],
+                    true,
+                    index,
                   ),
                 ),
               ),
@@ -432,12 +404,43 @@ class _RatingQuestionState extends State<RatingQuestion> {
         ],
       );
     }
+    return Row(
+      children: [
+        Column(
+          children: [
+            Container(
+              height: svgHeight,
+              width: svgWidth,
+              child: SvgPicture.string(
+                getSmiliySvg(this.question['properties']['data']['ratingScale'],
+                    false, index),
+              ),
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            AnimatedOpacity(
+              opacity: widget1Opacity,
+              duration: const Duration(milliseconds: 200),
+              child: Text(
+                hasNumber ? (index + 1).toString() : '',
+                style: TextStyle(color: this.theme['decodedOpnionLabelColor']),
+              ),
+            )
+          ],
+        ),
+        SizedBox(
+          width: 10,
+        )
+      ],
+    );
   }
 
   bool hasNumber = true;
   var customSvgSelected = null;
   var svgHeight = 42.0;
   var svgWidth = 42.0;
+  var hasFeedBackQuestion = false;
 
   @override
   initState() {
@@ -468,6 +471,11 @@ class _RatingQuestionState extends State<RatingQuestion> {
     if (this.answer[this.question['id']] != null) {
       setState(() {
         _rating = this.answer[this.question['id']];
+        hasFeedBackQuestion = checkIfTheQuestionHasAFeedBack(question);
+      });
+    } else{
+      setState(() {
+        hasFeedBackQuestion = checkIfTheQuestionHasAFeedBack(question);
       });
     }
     Future.delayed(Duration(milliseconds: 400), () {
@@ -477,11 +485,31 @@ class _RatingQuestionState extends State<RatingQuestion> {
     });
   }
 
-  _RatingQuestionState(
+  _CsatQuestionState(
       {required this.func,
       required this.answer,
       required this.question,
       required this.theme});
+
+  showFeedBackQuestion() {
+    var feedBackQuestion = getFeedBackQuestion(question);
+    var hasBranching = checkIfCXSurveyHasBranchingProperty(feedBackQuestion);
+    if (hasBranching) {
+      if (_rating == -1) {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      return true;
+    }
+  }
+
+  handleFeedBackText(text, questionId) {
+    this.widget.handleFeedBackQuestionAnswer(text, questionId);
+  }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -490,40 +518,43 @@ class _RatingQuestionState extends State<RatingQuestion> {
       return GestureDetector(
         onTap: () {
           setState(() {
-            _rating = index + 1.toDouble();
+            _rating = index + 1;
           });
-          this.func(index + 1.toDouble(), question['id']);
-          this.widget.setSelectedOption(index + 1.toDouble());
+          this.func(index + 1, question['id']);
+          this.widget.setSelectedOption(index + 1);
         },
         child: _buildRatingStart(index),
       );
     });
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [...stars],
+    var listSubQuestions = (this.question['subQuestions'] as List)
+        .map((e) => e as Map<dynamic, dynamic>)
+        .toList();
+    var subQuestion;
+    if (listSubQuestions.length > 0) {
+      subQuestion = Map<dynamic, dynamic>.from(listSubQuestions[0]);
+    }
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [...stars],
+        ),
+        SizedBox(height: 40),
+        if (hasFeedBackQuestion && showFeedBackQuestion()) ...[
+          FeedBackText(
+            func: func,
+            answer: answer,
+            question: subQuestion,
+            theme: theme,
+            customParams: widget.customParams,
+            handleFeedBackText: handleFeedBackText,
+            parentQuestion: this.question,
+          )
+        ],
+      ], 
     );
   }
 }
-
-class RatingSvg extends StatefulWidget {
-  const RatingSvg({Key? key}) : super(key: key);
-
-  @override
-  State<RatingSvg> createState() => _RatingSvgState();
-}
-
-class _RatingSvgState extends State<RatingSvg> {
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}
-
-
-// Icon(
-//   Icons.star_rounded,
-//   size: 60,
-//   color: this.theme['answerColor'],
-// ),

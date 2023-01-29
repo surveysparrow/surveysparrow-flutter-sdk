@@ -156,9 +156,6 @@ class _MultiChoiceState extends State<MultiChoice> {
   }
 
   checkIfSelectedOptionsValid() {
-    print(
-        "called here tap ${_selectedOptions.contains(otherInputId)} ${hasOtherInputText}");
-
     if (otherInputId != -1 && !_selectedOptions.contains(otherInputId)) {
       this.widget.toggleNextButtonBlock(false);
       setState(() {
@@ -224,8 +221,16 @@ class _MultiChoiceState extends State<MultiChoice> {
             const SizedBox(height: 30),
             SkipAndNextButtons(
               key: UniqueKey(),
-              disabled: otherInputDisabled == true
-                  ? true
+              disabled: this.widget.isLastQuestion
+                  ? this.question['required']
+                      ? otherInputDisabled == true
+                          ? true
+                          : _selectedOptions.length > 0
+                              ? false
+                              : true
+                      : otherInputDisabled == true
+                          ? true
+                          : false
                   : _selectedOptions.length > 0
                       ? false
                       : true,
@@ -236,6 +241,10 @@ class _MultiChoiceState extends State<MultiChoice> {
                       : true,
               showSubmit: this.widget.isLastQuestion,
               onClickNext: () {
+                if (this.widget.isLastQuestion && !this.question['required']) {
+                  this.widget.submitData();
+                  return;
+                }
                 if (this.question['properties']['data']['type'] == 'EXACT') {
                   if (_selectedOptions.length ==
                       int.parse(this.question['properties']['data']
@@ -369,7 +378,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
   var customFont = null;
   var newList = [];
 
-  double choiceContainerWidth = 290.0;
+  double choiceContainerWidth = 320.0;
   double choiceContainerHeight = 50.0;
   double fontSize = 16.0;
   double circularFontContainerSize = 32.0;
@@ -387,7 +396,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
 
     isNextButtonBlocked = false;
 
-    if(this.question['randomized'] != null){
+    if (this.question['randomized'] != null) {
       shuffle = this.question['randomized'];
     }
 
@@ -458,22 +467,23 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
     var normalChoices = [];
     var specialChoices = [];
 
-  //     var hasNoneOfOption = -1;
-  // var hasAllOfOption = -1;
-  // var hasOtherOption = -1;
-    for(var i = 0;i< question['choices'].length;i++){
-      if(question['choices'][i]['id'] == hasAllOfOption || question['choices'][i]['id'] == hasNoneOfOption || question['choices'][i]['id'] == hasOtherOption){
+    //     var hasNoneOfOption = -1;
+    // var hasAllOfOption = -1;
+    // var hasOtherOption = -1;
+    for (var i = 0; i < question['choices'].length; i++) {
+      if (question['choices'][i]['id'] == hasAllOfOption ||
+          question['choices'][i]['id'] == hasNoneOfOption ||
+          question['choices'][i]['id'] == hasOtherOption) {
         specialChoices.add(question['choices'][i]);
-      }
-      else{
+      } else {
         normalChoices.add(question['choices'][i]);
       }
     }
-    if(shuffle){
+    if (shuffle) {
       normalChoices.shuffle();
-    }    
+    }
 
-    multipleChoiceChoices = [...normalChoices,...specialChoices];
+    multipleChoiceChoices = [...normalChoices, ...specialChoices];
     if (this.answer[this.question['id']] != null) {
       setState(() {
         _selectedOption = this.answer[this.question['id']];
@@ -686,12 +696,10 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
 
             if (multipleChoiceChoices[i]['id'] == hasOtherOption) {}
             this.widget.setOtherTextInput!(inputController.text);
-            print(
-                "choice val is ${multipleChoiceChoices[i]['id']} ${hasOtherOption} ");
           },
           child: Container(
             constraints: BoxConstraints(
-                maxHeight: choiceContainerHeight,
+                minHeight: choiceContainerHeight,
                 maxWidth: choiceContainerWidth),
             decoration: BoxDecoration(
               color: _selectedOption.contains(multipleChoiceChoices[i]['id'])
@@ -710,42 +718,49 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(multipleChoiceChoices[i]['txt'],
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: customFont,
-                          decoration: TextDecoration.none,
-                          fontSize: fontSize,
-                          fontWeight: FontWeight.w400,
-                          color: _selectedOption
-                                  .contains(multipleChoiceChoices[i]['id'])
-                              ? luminanceValue > 0.5
-                                  ? Colors.black
-                                  : Colors.white
-                              : this.theme['answerColor'],
-                        )),
-                    Container(
-                      width: circularFontContainerSize,
-                      height: circularFontContainerSize,
-                      child: Center(
-                        child: Text(
-                          String.fromCharCode(charc + i),
-                          style: TextStyle(
-                            fontFamily: customFont,
-                            decoration: TextDecoration.none,
-                            fontSize: fontSize,
-                            fontWeight: FontWeight.bold,
-                            color: luminanceValue > 0.5
-                                ? Colors.black
-                                : Colors.white,
-                          ),
-                        ),
-                      ),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: this.theme['answerColor'],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(multipleChoiceChoices[i]['txt'],
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                fontFamily: customFont,
+                                decoration: TextDecoration.none,
+                                fontSize: fontSize,
+                                fontWeight: FontWeight.w400,
+                                color: _selectedOption
+                                        .contains(multipleChoiceChoices[i]['id'])
+                                    ? luminanceValue > 0.5
+                                        ? Colors.black
+                                        : Colors.white
+                                    : this.theme['answerColor'],
+                              )),
+                        ],
                       ),
                     ),
+                    // Container(
+                    //   width: circularFontContainerSize,
+                    //   height: circularFontContainerSize,
+                    //   child: Center(
+                    //     child: Text(
+                    //       String.fromCharCode(charc + i),
+                    //       style: TextStyle(
+                    //         fontFamily: customFont,
+                    //         decoration: TextDecoration.none,
+                    //         fontSize: fontSize,
+                    //         fontWeight: FontWeight.bold,
+                    //         color: luminanceValue > 0.5
+                    //             ? Colors.black
+                    //             : Colors.white,
+                    //       ),
+                    //     ),
+                    //   ),
+                    //   decoration: BoxDecoration(
+                    //     shape: BoxShape.circle,
+                    //     color: this.theme['answerColor'],
+                    //   ),
+                    // ),
                   ],
                 ),
               ),

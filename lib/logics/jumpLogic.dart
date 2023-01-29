@@ -18,16 +18,25 @@ newJumpLogic(_currentId, _questionPos, _allQuestionList, _allowedQuestionIds,
 
     var jump = handleDisplayAndSkipLogic(
         questionToCheck, 'jl', _allowedQuestionIds, _workBench);
-    
+
     if (jump) {
-      if(questionToCheck['jumpLogic']['logics'][0]['jump_to_id'].toString().contains("ty:")){
-        hasThankYouLogic = questionToCheck['jumpLogic']['logics'][0]['jump_to_id'];
+      if (questionToCheck['jumpLogic']['logics'][0]['jump_to_id']
+          .toString()
+          .contains("ty:")) {
+        hasThankYouLogic =
+            questionToCheck['jumpLogic']['logics'][0]['jump_to_id'];
       }
-      if(questionToCheck['jumpLogic']['logics'][0]['jump_to_id'].toString() == "-2"){
-        hasThankYouLogic = questionToCheck['jumpLogic']['logics'][0]['redirectUrl'];
+      if (questionToCheck['jumpLogic']['logics'][0]['jump_to_id'].toString() ==
+          "-2") {
+        hasThankYouLogic =
+            questionToCheck['jumpLogic']['logics'][0]['redirectUrl'];
       }
-      nextIndex = _questionPos[questionIdToJump];
+      if (_allowedQuestionIds.contains(questionIdToJump) ||
+          (questionIdToJump is String && questionIdToJump.contains("ty:")) ||
+          (questionIdToJump is String && questionIdToJump.contains("-2"))) {
+        nextIndex = _questionPos[questionIdToJump];
+      }
     }
   }
-  return [nextIndex,hasThankYouLogic];
+  return [nextIndex, hasThankYouLogic];
 }

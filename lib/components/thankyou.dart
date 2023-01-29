@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 class ThankYouPage extends StatefulWidget {
   final Function setPageType;
   final Function? closeModalFunction;
+  final Function? onError;
   final Map<dynamic, dynamic> theme;
   final Map<dynamic, dynamic> thankYouPageData;
   final dynamic welcomeDesc;
@@ -26,6 +27,7 @@ class ThankYouPage extends StatefulWidget {
     required this.welcomeEntity,
     required this.thankYouPageJson,
     this.closeModalFunction,
+    this.onError,
     this.euiTheme,
   }) : super(key: key);
 
@@ -68,8 +70,8 @@ class _ThankYouPageState extends State<ThankYouPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-
-    if (this.widget.euiTheme != null) {
+    try{
+          if (this.widget.euiTheme != null) {
       if (this.widget.euiTheme!['thankYouPage'] != null) {
         if (this.widget.euiTheme!['thankYouPage']['headerFontSize'] != null) {
           headerFontSize =
@@ -178,6 +180,10 @@ class _ThankYouPageState extends State<ThankYouPage> {
         widget.closeModalFunction!();
       });
     }
+    }catch(e){
+      this.widget.onError!(e);
+      throw Exception("Thank Page Data not configured properly ${e}");
+    }
   }
 
   Future<void> _launchInBrowser(url) async {
@@ -263,7 +269,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                 this.widget.setPageType("questions");
                 final Uri url = Uri.parse(thankYouButtonUrl);
                 _launchInBrowser(thankYouButtonUrl);
-                this.widget.closeModalFunction!();
+                // this.widget.closeModalFunction!();
               },
               style: this.widget.theme['buttonStyle'] == "filled"
                   ? ElevatedButton.styleFrom(

@@ -125,7 +125,11 @@ class _YesOrNoState extends State<YesOrNo> {
         // SizedBox(height: 40),
         SkipAndNextButtons(
           key: UniqueKey(),
-          disabled: _selectedOption == -1,
+          disabled: this.widget.isLastQuestion
+              ? this.question['required']
+                  ? _selectedOption == -1
+                  : false
+              : _selectedOption == -1,
           showNext: this.widget.isLastQuestion,
           showSkip: (this.question['required'] || this.widget.isLastQuestion)
               ? false
@@ -137,6 +141,9 @@ class _YesOrNoState extends State<YesOrNo> {
           onClickNext: () {
             // this.widget.submitData();
             if (_selectedOption != -1) {
+              this.widget.submitData();
+            }
+            if(this.widget.isLastQuestion && _selectedOption == -1.0 && !this.question['required']){
               this.widget.submitData();
             }
           },

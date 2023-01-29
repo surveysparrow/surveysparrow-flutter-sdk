@@ -88,8 +88,6 @@ class _WelcomePageState extends State<WelcomePage> {
       imageSrc = this.widget.welcomeEntity['0']['data']['src'];
     }
     luminanceValue = this.widget.theme['ctaButtonColor'].computeLuminance();
-
-    print("welcome page ${this.widget.welcomePageData['blocks']}");
   }
 
   @override
@@ -124,24 +122,27 @@ class _WelcomePageState extends State<WelcomePage> {
           SizedBox(
             height: 10,
           ),
-          Text(
-            this.widget.welcomePageData['blocks'] != null &&
-                    this.widget.welcomePageData['blocks'].length >= 2 &&
-                    this.widget.welcomePageData['blocks'][2]['text'] != null
-                ? this.widget.welcomePageData['blocks'][2]['text']
-                : '',
-            style: TextStyle(
-                decoration: TextDecoration.none,
-                fontSize: imageDescriptionFontSize,
-                fontWeight: FontWeight.bold,
-                color: this.widget.theme['questionColor'],
-                fontFamily: customFont),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            child: Text(
+              this.widget.welcomePageData['blocks'] != null &&
+                      this.widget.welcomePageData['blocks'].length >= 2 &&
+                      this.widget.welcomePageData['blocks'][2]['text'] != null
+                  ? this.widget.welcomePageData['blocks'][2]['text']
+                  : '',
+              style: TextStyle(
+                  decoration: TextDecoration.none,
+                  fontSize: imageDescriptionFontSize,
+                  fontWeight: FontWeight.bold,
+                  color: this.widget.theme['questionColor'],
+                  fontFamily: customFont),
+            ),
           ),
           SizedBox(
             height: 10,
           ),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            padding: EdgeInsets.symmetric(horizontal: 40.0),
             child: Text(this.widget.welcomeDesc,
                 style: TextStyle(
                     decoration: TextDecoration.none,

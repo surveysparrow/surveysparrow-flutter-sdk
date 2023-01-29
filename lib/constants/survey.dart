@@ -6,4 +6,7 @@ var allowedQuestions = [
     'PhoneNumber',
     'YesNo',
     'EmailInput',
+    'NPSScore',
+    'CESScore',
+    'CSATScore'
   ];
