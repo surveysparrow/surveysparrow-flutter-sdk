@@ -257,9 +257,11 @@ class _QuestionsPageState extends State<QuestionsPage>
         createAnswerPayload, _collectedAnswers, _surveyToMap, onError);
 
     var _cloneWorkBench = {..._workBench};
-    setState(() {
-      _workBench = _workBenchDatas;
-    });
+    if (mounted) {
+      setState(() {
+        _workBench = _workBenchDatas;
+      });
+    }
     widget.onNext!(_collectedAnswers);
     Future.delayed(const Duration(milliseconds: 500), () {
       _handleNextQuestion(
@@ -309,9 +311,11 @@ class _QuestionsPageState extends State<QuestionsPage>
 
     context.read<WorkBench>().setWorkBenchData(newWorkBench);
 
-    setState(() {
-      _workBench = {...newWorkBench};
-    });
+    if (mounted) {
+      setState(() {
+        _workBench = {...newWorkBench};
+      });
+    }
 
     widget.onNext!(_collectedAnswers);
     if (isLastQuestionSubmission == true) {
@@ -324,9 +328,11 @@ class _QuestionsPageState extends State<QuestionsPage>
 
   submitData() async {
     if (hasThankYouPage) {
-      setState(() {
-        _pageType = 'thankYou';
-      });
+      if (mounted) {
+        setState(() {
+          _pageType = 'thankYou';
+        });
+      }
     } else {
       widget.onSubmit!(_collectedAnswers);
     }
@@ -393,8 +399,8 @@ class _QuestionsPageState extends State<QuestionsPage>
   var thankYouPageJson = {};
 
   incrementCount(token, domain) async {
-    var url =
-        Uri.parse('https://${domain}/api/internal/sdk/increment-count/${token}');
+    var url = Uri.parse(
+        'https://${domain}/api/internal/sdk/increment-count/${token}');
     final response = await http.get(url);
   }
 
@@ -468,22 +474,24 @@ class _QuestionsPageState extends State<QuestionsPage>
         storePrefilledAnswers();
       }
 
-      setState(() {
-        questionList = convertQuestionListToWidget(
-            _allQuestionList,
-            _currentQuestionToRender,
-            storeAnswers,
-            _workBench,
-            _themeData,
-            customParams,
-            _currentQuestionNumber,
-            submitData,
-            _lastQuestion,
-            _scrollControler,
-            this.widget.euiTheme,
-            toggleNextButtonBlock);
-        _currentQuestionToRender = _allQuestionList[_pageNumber];
-      });
+      if (mounted) {
+        setState(() {
+          questionList = convertQuestionListToWidget(
+              _allQuestionList,
+              _currentQuestionToRender,
+              storeAnswers,
+              _workBench,
+              _themeData,
+              customParams,
+              _currentQuestionNumber,
+              submitData,
+              _lastQuestion,
+              _scrollControler,
+              this.widget.euiTheme,
+              toggleNextButtonBlock);
+          _currentQuestionToRender = _allQuestionList[_pageNumber];
+        });
+      }
     }
 
     if (this.Survey['thankyou_json'].length > 0) {
@@ -527,10 +535,12 @@ class _QuestionsPageState extends State<QuestionsPage>
       _questionsToConvert.add(_surveyToMap[question]);
     }
 
-    setState(() {
-      _lastQuestion = _questionsToConvert.last;
-      _currentQuestionInView = _questionsToConvert[_pageNumber];
-    });
+    if (mounted) {
+      setState(() {
+        _lastQuestion = _questionsToConvert.last;
+        _currentQuestionInView = _questionsToConvert[_pageNumber];
+      });
+    }
 
     if (changePage) {
       if (hadleNextSelect == true) {
@@ -538,17 +548,21 @@ class _QuestionsPageState extends State<QuestionsPage>
           if (_pageNumber + customOffsetNumber < _questionsToConvert.length) {
             _currentQuestionNumber =
                 _currentQuestionNumber + customOffsetNumber;
-            setState(() {
-              _currentQuestionToRender =
-                  _questionsToConvert[_pageNumber + customOffsetNumber];
-            });
+            if (mounted) {
+              setState(() {
+                _currentQuestionToRender =
+                    _questionsToConvert[_pageNumber + customOffsetNumber];
+              });
+            }
           }
         } else {
           if (_pageNumber + 1 < _questionsToConvert.length) {
             _currentQuestionNumber = _currentQuestionNumber + 1;
-            setState(() {
-              _currentQuestionToRender = _questionsToConvert[_pageNumber + 1];
-            });
+            if (mounted) {
+              setState(() {
+                _currentQuestionToRender = _questionsToConvert[_pageNumber + 1];
+              });
+            }
           }
         }
       }
@@ -557,30 +571,34 @@ class _QuestionsPageState extends State<QuestionsPage>
         if (_pageNumber > 0) {
           var updatedQuestionNumber = _currentQuestionNumber - 1;
           _currentQuestionNumber = _currentQuestionNumber - 1;
-          setState(() {
-            _currentQuestionToRender = _questionsToConvert[_pageNumber - 1];
-          });
+          if (mounted) {
+            setState(() {
+              _currentQuestionToRender = _questionsToConvert[_pageNumber - 1];
+            });
+          }
         }
       }
     }
 
-    setState(() {
-      questionList = convertQuestionListToWidget(
-          _questionsToConvert,
-          _currentQuestionToRender,
-          storeAnswers,
-          _workBench,
-          _themeData,
-          customParams,
-          _currentQuestionNumber,
-          submitData,
-          _lastQuestion,
-          _scrollControler,
-          this.widget.euiTheme,
-          toggleNextButtonBlock);
-      _progressMade =
-          (_collectedAnswers.length / _questionsToConvert.length).toDouble();
-    });
+    if (mounted) {
+      setState(() {
+        questionList = convertQuestionListToWidget(
+            _questionsToConvert,
+            _currentQuestionToRender,
+            storeAnswers,
+            _workBench,
+            _themeData,
+            customParams,
+            _currentQuestionNumber,
+            submitData,
+            _lastQuestion,
+            _scrollControler,
+            this.widget.euiTheme,
+            toggleNextButtonBlock);
+        _progressMade =
+            (_collectedAnswers.length / _questionsToConvert.length).toDouble();
+      });
+    }
   }
 
   toggleNextButtonBlock(val) {
@@ -642,9 +660,11 @@ class _QuestionsPageState extends State<QuestionsPage>
         if (hasCustomOffset) {
           if (_pageNumber + customOffsetNumber < questionList.length) {
             var updatedPageNumber = _pageNumber + customOffsetNumber;
-            setState(() {
-              _pageNumber = updatedPageNumber;
-            });
+            if (mounted) {
+              setState(() {
+                _pageNumber = updatedPageNumber;
+              });
+            }
 
             controller.animateToPage(updatedPageNumber,
                 duration: Duration(milliseconds: time), curve: Curves.easeIn);
@@ -652,10 +672,11 @@ class _QuestionsPageState extends State<QuestionsPage>
         } else {
           if (_pageNumber + 1 < questionList.length) {
             var updatedPageNumber = _pageNumber + 1;
-            setState(() {
-              _pageNumber = updatedPageNumber;
-            });
-
+            if (mounted) {
+              setState(() {
+                _pageNumber = updatedPageNumber;
+              });
+            }
             controller.animateToPage(updatedPageNumber,
                 duration: Duration(milliseconds: time), curve: Curves.easeIn);
           }
@@ -669,9 +690,11 @@ class _QuestionsPageState extends State<QuestionsPage>
     generateQuestionList(false);
     if (_pageNumber != 0) {
       var updatedPageNumber = _pageNumber - 1;
-      setState(() {
-        _pageNumber = updatedPageNumber;
-      });
+      if (mounted) {
+        setState(() {
+          _pageNumber = updatedPageNumber;
+        });
+      }
       controller.animateToPage(updatedPageNumber,
           duration: Duration(milliseconds: 400), curve: Curves.easeIn);
     }
@@ -683,32 +706,38 @@ class _QuestionsPageState extends State<QuestionsPage>
   var _showWelcome = true;
 
   setPageType(val) {
-    setState(() {
-      _showWelcome = false;
-    });
-    Future.delayed(const Duration(milliseconds: 200), () {
+    if (mounted) {
       setState(() {
-        _pageType = val;
+        _showWelcome = false;
       });
+    }
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (mounted) {
+        setState(() {
+          _pageType = val;
+        });
+      }
       if (firstQuestionAnswer != null) {
         storePrefilledAnswers();
       }
-      setState(() {
-        questionList = convertQuestionListToWidget(
-            _allQuestionList,
-            _currentQuestionToRender,
-            storeAnswers,
-            _workBench,
-            _themeData,
-            customParams,
-            _currentQuestionNumber,
-            submitData,
-            _lastQuestion,
-            _scrollControler,
-            this.widget.euiTheme,
-            toggleNextButtonBlock);
-        _currentQuestionToRender = _allQuestionList[_pageNumber];
-      });
+      if (mounted) {
+        setState(() {
+          questionList = convertQuestionListToWidget(
+              _allQuestionList,
+              _currentQuestionToRender,
+              storeAnswers,
+              _workBench,
+              _themeData,
+              customParams,
+              _currentQuestionNumber,
+              submitData,
+              _lastQuestion,
+              _scrollControler,
+              this.widget.euiTheme,
+              toggleNextButtonBlock);
+          _currentQuestionToRender = _allQuestionList[_pageNumber];
+        });
+      }
     });
   }
 
