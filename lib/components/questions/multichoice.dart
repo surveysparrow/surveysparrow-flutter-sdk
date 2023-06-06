@@ -668,6 +668,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
   @override
   Widget build(BuildContext context) {
     var shortestSide = MediaQuery.of(context).size.shortestSide;
+    choiceContainerWidth = MediaQuery.of(context).size.width - 60;
     final bool useMobileLayout = shortestSide < 600;
     List<Widget> list = List<Widget>.empty(growable: true);
     var charc = 65;
