@@ -291,7 +291,8 @@ import 'package:surveysparrow_flutter_sdk/helpers/survey.dart';
 
 late Future<Map<dynamic, dynamic>> surveyValidation =
     handleSurveyValidation(this.token, this.domain);
-  // response will be 
+  // response will be { "active": true, "reason": "" } 
+  // if the active is true, the survey is valid, if the active is false we can get the reason for survey validation fail in reason 
 ```
 
 
