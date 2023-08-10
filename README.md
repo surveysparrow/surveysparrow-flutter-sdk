@@ -284,6 +284,8 @@ class PreLoadedSurveyScreen extends StatelessWidget {
 ```
 # Handle Survey Validation
 
+Use the below snippet in any component which requires a survey validation before popping up
+
 ```dart
 import 'package:surveysparrow_flutter_sdk/helpers/survey.dart';
 
@@ -291,7 +293,7 @@ late Future<Map<dynamic, dynamic>> surveyValidation =
     handleSurveyValidation(this.token, this.domain);
   // response will be 
 ```
-import this file to any component which requires a survey validation before popping up
+
 
 
 # Customizations For SurveyModal
