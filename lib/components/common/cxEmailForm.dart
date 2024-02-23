@@ -123,7 +123,7 @@ class _CXEmailFormState extends State<CXEmailForm> {
             width: 160,
             height: 65,
             child: SvgPicture.string(
-              getFooterSvg('rgba(63, 63, 63,0.5)'),
+              getFooterSvg('#4A9CA6'),
             ),
           ),
         ],
