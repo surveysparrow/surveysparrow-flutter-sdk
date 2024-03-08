@@ -62,6 +62,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
   _BottomNavigationState({this.onClickNext, this.onClickPrevious});
   @override
   Widget build(BuildContext context) {
+    print(widget.theme!['questionString']);
     var bottomPadding = window.viewPadding.bottom;
     return Container(
       child: Container(
@@ -87,7 +88,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
                   width: brandingLogoWidth,
                   height: brandingLogoHeight,
                   child: SvgPicture.string(
-                    getFooterSvg(widget.theme!['questionString']),
+                    getFooterSvg(widget.theme!['questionString'] == "rgba(63, 63, 63,0.5)" ? "#76859A" : widget.theme!['questionString']),
                   ),
                 ),
               ],

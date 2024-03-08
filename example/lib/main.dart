@@ -44,10 +44,10 @@ class SurveyScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("Domain"),
-                    TextField(
-                      controller: domainController,
-                    ),
+                    // Text("Domain"),
+                    // TextField(
+                    //   controller: domainController,
+                    // ),
                     SizedBox(
                       height: 20,
                     ),
@@ -71,12 +71,12 @@ class SurveyScreen extends StatelessWidget {
                                   width: double.infinity,
                                   height: 500,
                                   child: SurveyModal(
-                                    token: tokenController
-                                        .text, 
-                                    domain: domainController
-                                        .text,
-                                    // token: "ntt-j26MfnfgMWxiSkmmzReUgp",
-                                    // domain: "sachin.pagesparrow.com",
+                                    // token: tokenController
+                                    //     .text, 
+                                    // domain: domainController
+                                    //     .text,
+                                    token: "tt-c7BUAfYvwDPfd5hMEHiTK7",
+                                    domain: "mobile-sdk.surveysparrow.com",
                                     // email:"newemail@ee.com",
                                     onNext: (val) {
                                       print(
@@ -146,6 +146,7 @@ class SurveyScreen extends StatelessWidget {
                               return Padding(
                                 padding: MediaQuery.of(context).viewInsets,
                                 child: Container(
+                                  color: Colors.red,
                                   height: 510,
                                   child: (PreLoadedSurveyScreen()),
                                 ),

@@ -431,6 +431,7 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
 
   @override
   Widget build(BuildContext context) {
+    outerContainerWidth = MediaQuery.of(context).size.width/100 * 31;
     var shortestSide = MediaQuery.of(context).size.shortestSide;
     final bool useMobileLayout = shortestSide < 600;
 
