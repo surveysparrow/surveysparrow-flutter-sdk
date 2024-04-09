@@ -347,7 +347,8 @@ class _QuestionsPageState extends State<QuestionsPage>
         customParams,
         this.token,
         this.widget.domain,
-        email);
+        email,
+        Survey["isSubmissionQueued"]);
   }
 
   _scrollListener() {
