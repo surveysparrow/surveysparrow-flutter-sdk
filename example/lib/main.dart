@@ -1,3 +1,4 @@
+import 'package:example/SpotCheckScreen.dart';
 import 'package:example/customSurvey.dart';
 import 'package:example/customSurveyTheme.dart';
 import 'package:example/preloadSurvey.dart';
@@ -155,6 +156,16 @@ class SurveyScreen extends StatelessWidget {
                       }),
                       child: Text("Open Preloaded Page"),
                     ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => SpotCheckScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text("SpotCheck"))
+
                   ],
                 ),
               ),
