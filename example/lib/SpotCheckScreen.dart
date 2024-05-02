@@ -3,7 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:surveysparrow_flutter_sdk/surveysparrow.dart';
 
 class SpotCheckScreen extends StatelessWidget {
-  final SpotCheck spotCheck = SpotCheck();
+
+  final SpotCheck spotCheck = SpotCheck(
+    email: "gokulkrishna.raju@surveysparrow.com",
+    location: const {
+      "latitude": 12.946363918641865,
+      "longitude": 80.23247606374693
+    },
+    firstName: "gokulkrishna",
+    lastName: "raju",
+    phoneNumber: "6383846825",
+    targetToken: 'tar-qeaHP85gPG21ZBotb758a7',
+    domainName: 'rgk.ap.ngrok.io',
+  );
 
   SpotCheckScreen({Key? key}) : super(key: key);
 
@@ -13,6 +25,7 @@ class SpotCheckScreen extends StatelessWidget {
 
     return Scaffold(
       body: Stack(
+
         children: [
           IconButton(
             padding: const EdgeInsets.only(top: 60, left: 30),
@@ -22,7 +35,7 @@ class SpotCheckScreen extends StatelessWidget {
             },
           ),
           Center(
-            child: TextButton(
+            child: ElevatedButton(
               onPressed: () {
                 if (kDebugMode) {
                   print("trackEvent('Click')");
@@ -32,7 +45,9 @@ class SpotCheckScreen extends StatelessWidget {
               child: const Text("SpotCheckScreen"),
             ),
           ),
-          SpotCheckWidget(spotCheckController: spotCheck),
+
+          spotCheck,
+        
         ],
       ),
     );
