@@ -10,6 +10,8 @@ void main() {
   runApp(const MyApp());
 }
 
+final SpotCheck spotCheck = SpotCheck(email: '', domainName: '', targetToken: '',);
+
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
