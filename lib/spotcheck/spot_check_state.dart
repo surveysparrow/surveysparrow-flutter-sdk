@@ -465,10 +465,10 @@ class SpotCheckState extends StatelessWidget {
                             controller: controller,
                           ),
                           Positioned(
-                            top: 0,
-                            right: 0,
+                            top: 6,
+                            right: 6,
                             child: IconButton(
-                              icon: const Icon(Icons.close),
+                              icon: Icon(Icons.close, color: Color(int.parse("0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}")),),
                               onPressed: () {
                                 closeSpotCheck();
                                 spotcheckID.value = 0;
