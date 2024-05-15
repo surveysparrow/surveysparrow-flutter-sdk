@@ -539,7 +539,7 @@ class SpotCheckState extends StatelessWidget {
 
       spotcheckID.value = responseJson["spotCheckId"] ?? responseJson["id"];
       spotcheckContactID.value = responseJson["spotCheckContactId"] ??
-          responseJson["spotCheckContact"]?["contact_id"];
+          responseJson["spotCheckContact"]?["id"];
       spotcheckURL.value =
           "https://$domainName/n/spotcheck/${spotcheckID.value}?spotcheckContactId=${spotcheckContactID.value}";
     }
