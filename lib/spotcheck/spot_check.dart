@@ -13,6 +13,7 @@ class SpotCheck extends StatelessWidget {
       this.firstName = "",
       this.lastName = "",
       this.phoneNumber = "",
+      this.variables = const {},
       this.location = const {}})
       : super(key: key) {
     spotCheckState = SpotCheckState(
@@ -23,7 +24,8 @@ class SpotCheck extends StatelessWidget {
       lastName: lastName,
       phoneNumber: phoneNumber,
       latitude: location["latitude"]!,
-      longitude: location["longitude"]!,
+      longitude: location["longitude"]!, 
+      variables: variables,
     );
   }
 
@@ -33,6 +35,7 @@ class SpotCheck extends StatelessWidget {
   final String firstName;
   final String lastName;
   final String phoneNumber;
+  final Map<String, dynamic> variables;
   final Map<String, double> location;
 
   late final SpotCheckState spotCheckState;

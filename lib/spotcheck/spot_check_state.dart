@@ -13,11 +13,12 @@ class SpotCheckState extends StatelessWidget {
     required this.email,
     required this.targetToken,
     required this.domainName,
-    this.firstName = "",
-    this.lastName = "",
-    this.phoneNumber = "",
-    this.latitude = 0.0,
-    this.longitude = 0.0,
+    required this.firstName,
+    required this.lastName,
+    required this.phoneNumber,
+    required this.variables,
+    required this.latitude,
+    required this.longitude, 
   }) : super(key: key);
 
   final String email;
@@ -26,6 +27,7 @@ class SpotCheckState extends StatelessWidget {
   final String firstName;
   final String lastName;
   final String phoneNumber;
+  final Map<String, dynamic> variables;
   final double latitude;
   final double longitude;
   late double screenHeight;
@@ -66,7 +68,7 @@ class SpotCheckState extends StatelessWidget {
   Future<Map<String, dynamic>> sendTrackScreenRequest(String screen) async {
     Map<String, dynamic> payload = {
       "screenName": screen,
-      "variables": {},
+      "variables": variables,
       "userDetails": {
         "email": email,
         "firstName": firstName,
@@ -280,7 +282,7 @@ class SpotCheckState extends StatelessWidget {
             if (selectedSpotCheckID != intMax) {
               Map<String, dynamic> payload = {
                 "url": screen,
-                "variables": {},
+                "variables": variables,
                 "userDetails": {
                   "email": email,
                   "firstName": firstName,
