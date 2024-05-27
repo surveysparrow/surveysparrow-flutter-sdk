@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 
 class SurveyThemeData {
@@ -71,10 +69,19 @@ class SurveyThemeData {
         String color = colorToConvert.replaceAll('#', '0xff');
         return Color(int.parse(color));
       }
-      var convertedString = colorToConvert
-          .substring(4, colorToConvert.length - 1)
-          .replaceAll(RegExp(' +'), ' ')
-          .split(',');
+      var convertedString = [];
+      if (colorToConvert.substring(0, 4) == "rgba") {
+        convertedString = colorToConvert
+            .substring(5, colorToConvert.length - 1)
+            .replaceAll(RegExp(' +'), ' ')
+            .split(',');
+      } else {
+        convertedString = colorToConvert
+            .substring(4, colorToConvert.length - 1)
+            .replaceAll(RegExp(' +'), ' ')
+            .split(',');
+      }
+
       if (convertedString.length < 3) {
         return Color.fromRGBO(255, 255, 255, opacity);
       }
@@ -144,6 +151,7 @@ class SurveyThemeData {
           return [Color(0xffD31027), Color(0xffEA384D)];
       }
     }
+
     var backGroundImage = json['properties'] != null &&
             json['properties']['backgroundImage'] != null &&
             json['properties']['backgroundImage']['url'] != null
@@ -328,7 +336,8 @@ class SurveyThemeData {
 
     var decodedHeaderImgSrc = json['properties'] != null &&
             json['properties']['header'] != null &&
-            json['properties']['header']['logoUrl'] != null && json['properties']['header']['logoUrl'] != ''
+            json['properties']['header']['logoUrl'] != null &&
+            json['properties']['header']['logoUrl'] != ''
         ? json['properties']['header']['logoUrl']
         : "none";
 
@@ -342,9 +351,9 @@ class SurveyThemeData {
             json['properties']['footer'] != null &&
             json['properties']['footer']['title'] != null &&
             json['properties']['footer']['title'] != '' &&
-            json['properties']['footer']['title']['blocks'] !=null && 
-            json['properties']['footer']['title']['blocks'][0] !=null &&
-            json['properties']['footer']['title']['blocks'][0]['text'] !=null
+            json['properties']['footer']['title']['blocks'] != null &&
+            json['properties']['footer']['title']['blocks'][0] != null &&
+            json['properties']['footer']['title']['blocks'][0]['text'] != null
         ? json['properties']['footer']['title']['blocks'][0]['text']
         : "";
 

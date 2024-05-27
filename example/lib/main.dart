@@ -75,8 +75,8 @@ class SurveyScreen extends StatelessWidget {
                                         .text, 
                                     domain: domainController
                                         .text,
-                                    // token: "ntt-j26MfnfgMWxiSkmmzReUgp",
-                                    // domain: "sachin.pagesparrow.com",
+                                    // token: "tt-c7BUAfYvwDPfd5hMEHiTK7",
+                                    // domain: "mobile-sdk.surveysparrow.com",
                                     // email:"newemail@ee.com",
                                     onNext: (val) {
                                       print(
@@ -146,6 +146,7 @@ class SurveyScreen extends StatelessWidget {
                               return Padding(
                                 padding: MediaQuery.of(context).viewInsets,
                                 child: Container(
+                                  color: Colors.red,
                                   height: 510,
                                   child: (PreLoadedSurveyScreen()),
                                 ),

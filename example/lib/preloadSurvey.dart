@@ -43,7 +43,8 @@ class PreLoadedSurveyScreen extends StatelessWidget {
          if (snapshot.hasData) {
            return Container(
              width: double.infinity,
-             height: double.infinity,
+             height: 500,
+             color: Colors.red,
              child: SurveyModal(
                token: 'tt-o4dy7Qh8MSJjhASW8ccWXU',
                domain: 'sachin.pagesparrow.com',

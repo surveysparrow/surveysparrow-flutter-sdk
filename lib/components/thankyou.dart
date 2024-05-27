@@ -328,7 +328,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
               width: 120,
               height: 65,
               child: SvgPicture.string(
-                getFooterSvg(this.widget.theme['questionString']),
+                    getFooterSvg(this.widget.theme['questionString'] == "rgba(63, 63, 63,0.5)" ? '#4A9CA6' : this.widget.theme['questionString']),
               ),
             ),
           ],

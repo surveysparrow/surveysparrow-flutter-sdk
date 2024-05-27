@@ -42,10 +42,9 @@ Future initPlatformState() async {
 }
 
 submitAnswer(
-    _collectedAnswers, finalTime, customParams, token, domain, email) async {
+    _collectedAnswers, finalTime, customParams, token, domain, email, isSubmissionQueued) async {
   // check url before prod
-  var url =
-      Uri.parse('https://${domain}/api/internal/submission/answers/${token}');
+  var url = isSubmissionQueued ? Uri.parse('https://${domain}/api/internal/v1/submission/answers/${token}'):  Uri.parse('https://${domain}/api/internal/submission/answers/${token}');
   Map<dynamic, dynamic> payload = {};
   final ua = await userAgent();
 
