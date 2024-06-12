@@ -118,37 +118,37 @@ class SurveyThemeData {
     getGradientColors(id) {
       switch (id) {
         case 1:
-          return [Color(0xffD31027), Color(0xffEA384D)];
+          return [const Color(0xffD31027), const Color(0xffEA384D)];
         case 2:
-          return [Color(0xff8E2DE2), Color(0xff4A00E0)];
+          return [const Color(0xff8E2DE2), const Color(0xff4A00E0)];
         case 3:
-          return [Color(0xff3f51b5), Color(0xff283593)];
+          return [const Color(0xff3f51b5), const Color(0xff283593)];
         case 4:
-          return [Color(0xff396afc2), Color(0xff396afc)];
+          return [const Color(0xff396afc2), const Color(0xff396afc)];
         case 5:
-          return [Color(0xff0ba360), Color(0xff3cba92)];
+          return [const Color(0xff0ba360), const Color(0xff3cba92)];
         case 6:
-          return [Color(0xff070d58), Color(0xff000000)];
+          return [const Color(0xff070d58), const Color(0xff000000)];
         case 7:
-          return [Color(0xffeb3349), Color(0xfff45c43)];
+          return [const Color(0xffeb3349), const Color(0xfff45c43)];
         case 8:
-          return [Color(0xffcc2b5e), Color(0xff753a88)];
+          return [const Color(0xffcc2b5e), const Color(0xff753a88)];
         case 9:
-          return [Color(0xff606c88), Color(0xff3f4c6b)];
+          return [const Color(0xff606c88), const Color(0xff3f4c6b)];
         case 10:
-          return [Color(0xff000000), Color(0xff434343)];
+          return [const Color(0xff000000), const Color(0xff434343)];
         case 11:
-          return [Color(0xffd7a2f9), Color(0xfff0d8ff)];
+          return [const Color(0xffd7a2f9), const Color(0xfff0d8ff)];
         case 12:
-          return [Color(0xfff4dc89), Color(0xfffcf3d3)];
+          return [const Color(0xfff4dc89), const Color(0xfffcf3d3)];
         case 13:
-          return [Color(0xffffa2a6), Color(0xffffd1c4)];
+          return [const Color(0xffffa2a6), const Color(0xffffd1c4)];
         case 14:
-          return [Color(0xff757F9A), Color(0xff757F9A)];
+          return [const Color(0xff757F9A), const Color(0xff757F9A)];
         case 16:
-          return [Color(0xffffccf3), Color(0xffffb7ba)];
+          return [const Color(0xffffccf3), const Color(0xffffb7ba)];
         default:
-          return [Color(0xffD31027), Color(0xffEA384D)];
+          return [const Color(0xffD31027), const Color(0xffEA384D)];
       }
     }
 
@@ -164,7 +164,7 @@ class SurveyThemeData {
             json['properties']['colors']['overrides']['questions'] != null
         ? convertRgbStringToColor(
             json['properties']['colors']['overrides']['questions'], 1.0)
-        : Color.fromRGBO(57, 57, 57, 1.0);
+        : const Color.fromRGBO(57, 57, 57, 1.0);
 
     var decodedQuestionDescriptionColor = json['properties'] != null &&
             json['properties']['colors'] != null &&
@@ -172,7 +172,7 @@ class SurveyThemeData {
             json['properties']['colors']['overrides']['questions'] != null
         ? convertRgbStringToColor(
             json['properties']['colors']['overrides']['questions'], 0.7)
-        : Color.fromRGBO(57, 57, 57, 0.7);
+        : const Color.fromRGBO(57, 57, 57, 0.7);
 
     var decodedQuestionNumberColor = json['properties'] != null &&
             json['properties']['colors'] != null &&
@@ -180,7 +180,7 @@ class SurveyThemeData {
             json['properties']['colors']['overrides']['questions'] != null
         ? convertRgbStringToColor(
             json['properties']['colors']['overrides']['questions'], 0.5)
-        : Color.fromRGBO(57, 57, 57, 0.5);
+        : const Color.fromRGBO(57, 57, 57, 0.5);
 
     // Answer Theme
     var decodedAnswerColor = json['properties'] != null &&
@@ -189,7 +189,7 @@ class SurveyThemeData {
             json['properties']['colors']['overrides']['answers'] != null
         ? convertRgbStringToColor(
             json['properties']['colors']['overrides']['answers'], 1.0)
-        : Color.fromRGBO(63, 63, 63, 1.0);
+        : const Color.fromRGBO(63, 63, 63, 1.0);
 
     // Opnion Scale Theme
     var decodedOpnionBackgroundColorSelected = json['properties'] != null &&
@@ -198,7 +198,7 @@ class SurveyThemeData {
             json['properties']['colors']['overrides']['answers'] != null
         ? convertRgbStringToColor(
             json['properties']['colors']['overrides']['answers'], 0.8)
-        : Color.fromRGBO(63, 63, 63, 0.8);
+        : const Color.fromRGBO(63, 63, 63, 0.8);
 
     var decodedOpnionBackgroundColorUnSelected = json['properties'] != null &&
             json['properties']['colors'] != null &&
@@ -206,7 +206,7 @@ class SurveyThemeData {
             json['properties']['colors']['overrides']['answers'] != null
         ? convertRgbStringToColor(
             json['properties']['colors']['overrides']['answers'], 0.1)
-        : Color.fromRGBO(63, 63, 63, 0.1);
+        : const Color.fromRGBO(63, 63, 63, 0.1);
 
     var decodedOpnionBorderColor = json['properties'] != null &&
             json['properties']['colors'] != null &&
@@ -214,7 +214,7 @@ class SurveyThemeData {
             json['properties']['colors']['overrides']['answers'] != null
         ? convertRgbStringToColor(
             json['properties']['colors']['overrides']['answers'], 0.5)
-        : Color.fromRGBO(63, 63, 63, 0.5);
+        : const Color.fromRGBO(63, 63, 63, 0.5);
 
     var decodedOpnionLabelColor = json['properties'] != null &&
             json['properties']['colors'] != null &&
@@ -222,7 +222,7 @@ class SurveyThemeData {
             json['properties']['colors']['overrides']['answers'] != null
         ? convertRgbStringToColor(
             json['properties']['colors']['overrides']['answers'], 0.8)
-        : Color.fromRGBO(63, 63, 63, 0.8);
+        : const Color.fromRGBO(63, 63, 63, 0.8);
 
     var decodedBackgroundColor = json['properties'] != null &&
             json['properties']['colors'] != null &&
@@ -230,14 +230,14 @@ class SurveyThemeData {
             json['properties']['colors']['overrides']['backgroundColor'] != null
         ? convertRgbStringToColor(
             json['properties']['colors']['overrides']['backgroundColor'], 1.0)
-        : Color.fromRGBO(255, 255, 255, 1.0);
+        : const Color.fromRGBO(255, 255, 255, 1.0);
 
     var decodedBackgroundImageColor = json['properties'] != null &&
             json['properties']['backgroundImage'] != null &&
             json['properties']['backgroundImage']['brightness'] != null
         ? getBackgroundImageColor(
             json['properties']['backgroundImage']['brightness'])
-        : Color.fromRGBO(255, 255, 255, 1.0);
+        : const Color.fromRGBO(255, 255, 255, 1.0);
 
     var decodedBackgroundImageColorOpacity = json['properties'] != null &&
             json['properties']['backgroundImage'] != null &&
@@ -252,7 +252,7 @@ class SurveyThemeData {
             json['properties']['colors']['overrides']['ctaButton'] != null
         ? convertRgbStringToColor(
             json['properties']['colors']['overrides']['ctaButton'], 1.0)
-        : Color.fromRGBO(4, 191, 116, 1.0);
+        : const Color.fromRGBO(4, 191, 116, 1.0);
 
     var ctaButtonDecodedColorDisabled = json['properties'] != null &&
             json['properties']['colors'] != null &&
@@ -260,7 +260,7 @@ class SurveyThemeData {
             json['properties']['colors']['overrides']['ctaButton'] != null
         ? convertRgbStringToColor(
             json['properties']['colors']['overrides']['ctaButton'], 0.5)
-        : Color.fromRGBO(4, 191, 116, 0.5);
+        : const Color.fromRGBO(4, 191, 116, 0.5);
 
     var decodedRatingRgba = json['properties'] != null &&
             json['properties']['colors'] != null &&
@@ -310,7 +310,7 @@ class SurveyThemeData {
     var decodedGradientColors = json['properties'] != null &&
             json['properties']['backgroundGradientId'] != null
         ? getGradientColors(json['properties']['backgroundGradientId'])
-        : [Color(0xffD31027), Color(0xffEA384D)];
+        : [const Color(0xffD31027), const Color(0xffEA384D)];
 
     var decodedShowQuestionNumber = json['properties'] != null &&
             json['properties']['showQuestionNumber'] != null

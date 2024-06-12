@@ -38,3 +38,7 @@
 
 * Adding CX Surveys Support.
 * Bug Fixes.
+  
+## 1.1.3
+
+* Submission Queue Support
