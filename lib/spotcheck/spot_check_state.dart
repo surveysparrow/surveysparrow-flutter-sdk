@@ -5,21 +5,21 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class SpotCheckState extends StatelessWidget {
-  SpotCheckState({
-    Key? key,
-    required this.email,
-    required this.targetToken,
-    required this.domainName,
-    required this.firstName,
-    required this.lastName,
-    required this.phoneNumber,
-    required this.variables,
-    required this.latitude,
-    required this.longitude, 
-  }) : super(key: key);
+  SpotCheckState(
+      {Key? key,
+      required this.email,
+      required this.targetToken,
+      required this.domainName,
+      required this.firstName,
+      required this.lastName,
+      required this.phoneNumber,
+      required this.variables,
+      required this.customProperties})
+      : super(key: key);
 
   final String email;
   final String targetToken;
@@ -28,16 +28,13 @@ class SpotCheckState extends StatelessWidget {
   final String lastName;
   final String phoneNumber;
   final Map<String, dynamic> variables;
-  final double latitude;
-  final double longitude;
-  late double screenHeight;
-  late double screenWidth;
+  final Map<String, dynamic> customProperties;
+  double screenHeight = 0;
+  double screenWidth = 0;
 
   final RxBool isValid = false.obs;
-  final RxBool isCloseButtonEnabled = false.obs;
   final RxBool isFullScreenMode = false.obs;
   final RxBool isBannerImageOn = false.obs;
-  final RxMap<String, dynamic> closeButtonStyle = <String, dynamic>{}.obs;
   final RxBool isSpotCheckOpen = false.obs;
   final RxString position = "top".obs;
   final RxString spotcheckURL = "".obs;
@@ -45,6 +42,8 @@ class SpotCheckState extends StatelessWidget {
   final RxInt spotcheckContactID = 0.obs;
   final RxDouble afterDelay = 0.0.obs;
   final RxInt currentQuestionHeight = 0.obs;
+  final RxString triggerToken = "".obs;
+  final RxString traceId = "".obs;
 
   final RxDouble maxHeight = 0.0.obs;
   final RxBool _isAnimated = false.obs;
@@ -66,6 +65,10 @@ class SpotCheckState extends StatelessWidget {
   }
 
   Future<Map<String, dynamic>> sendTrackScreenRequest(String screen) async {
+    if (traceId.isEmpty) {
+      traceId.value = generateTraceId();
+    }
+
     Map<String, dynamic> payload = {
       "screenName": screen,
       "variables": variables,
@@ -76,19 +79,14 @@ class SpotCheckState extends StatelessWidget {
         "phoneNumber": phoneNumber,
       },
       "visitor": {
-        "location": {
-          "coords": {
-            "latitude": latitude,
-            "longitude": longitude,
-          }
-        },
-        "ipAddress": await fetchIPAddress() ?? "",
         "deviceType": "Mobile",
         "operatingSystem": Platform.operatingSystem,
         "screenResolution": {"height": screenHeight, "width": screenWidth},
         "currentDate": DateTime.now().toIso8601String(),
         "timezone": DateTime.now().timeZoneName,
-      }
+      },
+      "traceId": traceId.value,
+      "customProperties": customProperties
     };
 
     final Uri url = Uri.parse(
@@ -111,7 +109,7 @@ class SpotCheckState extends StatelessWidget {
           bool show = responseJson?["show"];
 
           if (show) {
-            setAppearance(responseJson!);
+            setAppearance(responseJson!, screen);
             controller = WebViewController()
               ..setJavaScriptMode(JavaScriptMode.unrestricted)
               ..setBackgroundColor(const Color(0x00000000))
@@ -125,6 +123,8 @@ class SpotCheckState extends StatelessWidget {
                         jsonResponse['data']['currentQuestionSize']['height'];
                     currentQuestionHeight.value = height;
                   } else if (jsonResponse['type'] == "surveyCompleted") {
+                    end();
+                  } else if (jsonResponse['type'] == "closeModal") {
                     end();
                   }
                 } catch (e) {
@@ -159,7 +159,7 @@ class SpotCheckState extends StatelessWidget {
                 }
               }
 
-              setAppearance(responseJson!);
+              setAppearance(responseJson!, screen);
               controller = WebViewController()
                 ..setJavaScriptMode(JavaScriptMode.unrestricted)
                 ..setBackgroundColor(const Color(0x00000000))
@@ -173,6 +173,8 @@ class SpotCheckState extends StatelessWidget {
                           jsonResponse['data']['currentQuestionSize']['height'];
                       currentQuestionHeight.value = height;
                     } else if (jsonResponse['type'] == "surveyCompleted") {
+                      end();
+                    } else if (jsonResponse['type'] == "closeModal") {
                       end();
                     }
                   } catch (e) {
@@ -217,12 +219,13 @@ class SpotCheckState extends StatelessWidget {
               if (selectedSpotCheck.isNotEmpty) {
                 Map<String, dynamic> checks = selectedSpotCheck["checks"]!;
 
-                double delay = double.tryParse(checks["afterDelay"]) ?? 0;
-
-                afterDelay.value = delay;
+                if (checks.isNotEmpty) {
+                  double delay = double.tryParse(checks["afterDelay"]) ?? 0;
+                  afterDelay.value = delay;
+                }
               }
 
-              setAppearance(selectedSpotCheck);
+              setAppearance(selectedSpotCheck, screen);
 
               if (selectedSpotCheck.isNotEmpty) {
                 controller = WebViewController()
@@ -238,6 +241,8 @@ class SpotCheckState extends StatelessWidget {
                             ['height'];
                         currentQuestionHeight.value = height;
                       } else if (jsonResponse['type'] == "surveyCompleted") {
+                        end();
+                      } else if (jsonResponse['type'] == "closeModal") {
                         end();
                       }
                     } catch (e) {
@@ -290,13 +295,6 @@ class SpotCheckState extends StatelessWidget {
                   "phoneNumber": phoneNumber,
                 },
                 "visitor": {
-                  "location": {
-                    "coords": {
-                      "latitude": latitude,
-                      "longitude": longitude,
-                    }
-                  },
-                  "ipAddress": await fetchIPAddress() ?? "",
                   "deviceType": "Mobile",
                   "operatingSystem": Platform.operatingSystem,
                   "screenResolution": {
@@ -309,7 +307,9 @@ class SpotCheckState extends StatelessWidget {
                 "spotCheckId": selectedSpotCheckID,
                 "eventTrigger": {
                   "customEvent": event,
-                }
+                },
+                "traceId": traceId.value,
+                "customProperties": customProperties
               };
 
               final Uri url = Uri.parse(
@@ -331,7 +331,7 @@ class SpotCheckState extends StatelessWidget {
 
                   if (responseJson?["show"] != null) {
                     bool show = responseJson?["show"];
-                    setAppearance(responseJson!);
+                    setAppearance(responseJson!, screen);
                     controller = WebViewController()
                       ..setJavaScriptMode(JavaScriptMode.unrestricted)
                       ..setBackgroundColor(const Color(0x00000000))
@@ -346,6 +346,8 @@ class SpotCheckState extends StatelessWidget {
                             currentQuestionHeight.value = height;
                           } else if (jsonResponse['type'] ==
                               "surveyCompleted") {
+                            end();
+                          } else if (jsonResponse['type'] == "closeModal") {
                             end();
                           }
                         } catch (e) {
@@ -380,7 +382,7 @@ class SpotCheckState extends StatelessWidget {
                         }
                       }
 
-                      setAppearance(responseJson!);
+                      setAppearance(responseJson!, screen);
                       controller = WebViewController()
                         ..setJavaScriptMode(JavaScriptMode.unrestricted)
                         ..setBackgroundColor(const Color(0x00000000))
@@ -395,6 +397,8 @@ class SpotCheckState extends StatelessWidget {
                               currentQuestionHeight.value = height;
                             } else if (jsonResponse['type'] ==
                                 "surveyCompleted") {
+                              end();
+                            } else if (jsonResponse['type'] == "closeModal") {
                               end();
                             }
                           } catch (e) {
@@ -458,33 +462,17 @@ class SpotCheckState extends StatelessWidget {
                       ),
                       height: isFullScreenMode.value
                           ? screenHeight - 100
-                          : math.min(screenHeight - 100, (math.min(currentQuestionHeight.value.toDouble(),
-                              maxHeight.value * screenHeight)) + (isBannerImageOn.value && currentQuestionHeight.value != 0  ? 100 : 0)),
+                          : math.min(
+                              screenHeight - 100,
+                              (math.min(currentQuestionHeight.value.toDouble(),
+                                      maxHeight.value * screenHeight)) +
+                                  (isBannerImageOn.value &&
+                                          currentQuestionHeight.value != 0
+                                      ? 100
+                                      : 0)),
                       width: MediaQuery.of(context).size.width,
-                      child: Stack(
-                        children: [
-                          WebViewWidget(
-                            controller: controller,
-                          ),
-                          Positioned(
-                            top: 6,
-                            right: 6,
-                            child: IconButton(
-                              icon: Icon(Icons.close, color: Color(int.parse("0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}")),),
-                              onPressed: () {
-                                closeSpotCheck();
-                                spotcheckID.value = 0;
-                                position.value = "";
-                                currentQuestionHeight.value = 0;
-                                isCloseButtonEnabled.value = false;
-                                closeButtonStyle.value = {};
-                                spotcheckContactID.value = 0;
-                                spotcheckURL.value = "";
-                                end();
-                              },
-                            ),
-                          ),
-                        ],
+                      child: WebViewWidget(
+                        controller: controller,
                       ),
                     ),
                   ],
@@ -507,7 +495,7 @@ class SpotCheckState extends StatelessWidget {
     }
   }
 
-  void setAppearance(Map<String, dynamic> responseJson) {
+  void setAppearance(Map<String, dynamic> responseJson, String screen) {
     if (responseJson.isNotEmpty) {
       if (responseJson["appearance"] != null) {
         String tposition = responseJson["appearance"]?["position"];
@@ -523,57 +511,31 @@ class SpotCheckState extends StatelessWidget {
             break;
           default:
         }
-        isCloseButtonEnabled.value = responseJson["appearance"]?["closeButton"];
         Map<String, dynamic> cardProp =
             responseJson["appearance"]?["cardProperties"];
         var mxHeight = double.parse(cardProp["maxHeight"].toString());
         maxHeight.value = mxHeight / 100;
-        closeButtonStyle.value =
-            responseJson["appearance"]?["colors"]?["overrides"] ?? {};
         isFullScreenMode.value =
             responseJson["appearance"]?["mode"] as String == "fullScreen"
                 ? true
                 : false;
-                isBannerImageOn.value = responseJson["appearance"]?["bannerImage"]?["enabled"];
+        isBannerImageOn.value =
+            responseJson["appearance"]?["bannerImage"]?["enabled"];
       }
 
       spotcheckID.value = responseJson["spotCheckId"] ?? responseJson["id"];
       spotcheckContactID.value = responseJson["spotCheckContactId"] ??
           responseJson["spotCheckContact"]?["id"];
+      triggerToken.value = responseJson["triggerToken"] ?? "";
       spotcheckURL.value =
-          "https://$domainName/n/spotcheck/${spotcheckID.value}?spotcheckContactId=${spotcheckContactID.value}";
-    }
-  }
-
-  void closeSpotCheck() async {
-    try {
-      final response = await http.get(Uri.parse(
-          "https://$domainName/api/internal/spotcheck/dismiss/$spotcheckContactID"));
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(response.body);
-        if (data["success"]) {
-          log("SpotCheck Closed");
-        }
-      }
-    } catch (error) {
-      log("Error parsing JSON: $error");
+          "https://$domainName/n/spotcheck/${triggerToken.value}?spotcheckContactId=${spotcheckContactID.value}&traceId=${traceId.value}&spotcheckUrl=$screen";
     }
   }
 }
 
-Future<String?> fetchIPAddress() async {
-  try {
-    final response =
-        await http.get(Uri.parse('https://api.ipify.org?format=json'));
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      return data['ip'];
-    } else {
-      log('Failed to fetch IP address: ${response.statusCode}');
-      return null;
-    }
-  } catch (e) {
-    log('Error fetching IP address: $e');
-    return null;
-  }
+String generateTraceId() {
+  var uuid = const Uuid();
+  String uuidString = uuid.v4();
+  int timestamp = DateTime.now().millisecondsSinceEpoch;
+  return '$uuidString-$timestamp';
 }

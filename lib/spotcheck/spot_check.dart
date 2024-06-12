@@ -7,14 +7,15 @@ import 'package:surveysparrow_flutter_sdk/spotcheck/spot_check_state.dart';
 class SpotCheck extends StatelessWidget {
   SpotCheck(
       {Key? key,
-      required this.email,
       required this.targetToken,
       required this.domainName,
+      this.email = "",
       this.firstName = "",
       this.lastName = "",
       this.phoneNumber = "",
       this.variables = const {},
-      this.location = const {}})
+      this.customProperties = const {}
+      })
       : super(key: key) {
     spotCheckState = SpotCheckState(
       email: email,
@@ -23,9 +24,8 @@ class SpotCheck extends StatelessWidget {
       firstName: firstName,
       lastName: lastName,
       phoneNumber: phoneNumber,
-      latitude: location["latitude"]!,
-      longitude: location["longitude"]!, 
       variables: variables,
+      customProperties: customProperties,
     );
   }
 
@@ -36,7 +36,7 @@ class SpotCheck extends StatelessWidget {
   final String lastName;
   final String phoneNumber;
   final Map<String, dynamic> variables;
-  final Map<String, double> location;
+  final Map<String, dynamic> customProperties;
 
   late final SpotCheckState spotCheckState;
 
