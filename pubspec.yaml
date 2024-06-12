@@ -28,6 +28,7 @@ dependencies:
   url_launcher: ^6.1.14
   webview_flutter: ^4.7.0
   get: ^4.6.6
+  uuid: ^4.4.0
 
 dev_dependencies:
   flutter_test:
