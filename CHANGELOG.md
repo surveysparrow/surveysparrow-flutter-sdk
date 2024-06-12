@@ -42,3 +42,7 @@
 ## 1.1.3
 
 * Submission Queue Support
+
+## 1.2.0-beta.1
+
+* SpotChecks
