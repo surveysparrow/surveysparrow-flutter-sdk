@@ -1,12 +1,8 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:surveysparrow_flutter_sdk/helpers/svg.dart';
-import 'package:readmore/readmore.dart';
-import 'package:expandable_text/expandable_text.dart';
 import 'package:provider/provider.dart';
-import 'package:surveysparrow_flutter_sdk/providers/answer_provider.dart';
 import 'package:surveysparrow_flutter_sdk/providers/survey_provider.dart';
 
 class CXEmailForm extends StatefulWidget {

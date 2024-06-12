@@ -63,7 +63,6 @@ class _BottomNavigationState extends State<BottomNavigation> {
   @override
   Widget build(BuildContext context) {
     print(widget.theme!['questionString']);
-    var bottomPadding = window.viewPadding.bottom;
     return Container(
       child: Container(
         width: double.infinity,
