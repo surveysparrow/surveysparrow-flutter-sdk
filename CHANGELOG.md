@@ -46,3 +46,7 @@
 ## 1.2.0-beta.1
 
 * SpotChecks
+
+## 1.2.0-beta.2
+
+* Http UserAgent Fix, Example Revamp, Code Clean Up, Android Fix
