@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -62,81 +63,79 @@ class _BottomNavigationState extends State<BottomNavigation> {
   _BottomNavigationState({this.onClickNext, this.onClickPrevious});
   @override
   Widget build(BuildContext context) {
-    print(widget.theme!['questionString']);
-    return Container(
+    log(widget.theme!['questionString']);
+    return SizedBox(
+      width: double.infinity,
       child: Container(
-        width: double.infinity,
-        child: Container(
-          margin: EdgeInsets.only(
-            left: 15.0,
-            right: 15.0,
-            bottom: padding == -1.0
-                ? window.viewPadding.bottom > 1.0
-                    ? 20.0
-                    : 10.0
-                : padding,
-          ),
-          child: Row(
-            mainAxisAlignment: widget.theme!['showBranding']
-                ? MainAxisAlignment.spaceBetween
-                : MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (widget.theme!['showBranding']) ...[
-                Container(
-                  width: brandingLogoWidth,
-                  height: brandingLogoHeight,
-                  child: SvgPicture.string(
-                    getFooterSvg(widget.theme!['questionString'] == "rgba(63, 63, 63,0.5)" ? "#76859A" : widget.theme!['questionString']),
-                  ),
-                ),
-              ],
-              Container(
-                padding: const EdgeInsets.only(top: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        if (onClickPrevious != null) {
-                          onClickPrevious!();
-                        }
-                      },
-                      child: Container(
-                          width: navigationButtonSize,
-                          height: navigationButtonSize,
-                          child: SvgPicture.string(isVertical
-                              ? getLeftSvgArrow(widget.theme!['questionString'])
-                              : getUpArrowSvg(
-                                  widget.theme!['questionString']))),
-                    ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        if (onClickNext != null) {
-                          onClickNext!();
-                        }
-                      },
-                      child: Container(
-                        width: navigationButtonSize,
-                        height: navigationButtonSize,
-                        child: SvgPicture.string(
-                          isVertical
-                              ? getRightSvgArrow(
-                                  widget.theme!['questionString'])
-                              : getDownArrowSvg(
-                                  widget.theme!['questionString']),
-                        ),
-                      ),
-                    ),
-                  ],
+        margin: EdgeInsets.only(
+          left: 15.0,
+          right: 15.0,
+          bottom: padding == -1.0
+              ? window.viewPadding.bottom > 1.0
+                  ? 20.0
+                  : 10.0
+              : padding,
+        ),
+        child: Row(
+          mainAxisAlignment: widget.theme!['showBranding']
+              ? MainAxisAlignment.spaceBetween
+              : MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (widget.theme!['showBranding']) ...[
+              SizedBox(
+                width: brandingLogoWidth,
+                height: brandingLogoHeight,
+                child: SvgPicture.string(
+                  getFooterSvg(
+                      widget.theme!['questionString'] == "rgba(63, 63, 63,0.5)"
+                          ? "#76859A"
+                          : widget.theme!['questionString']),
                 ),
               ),
             ],
-          ),
+            Container(
+              padding: const EdgeInsets.only(top: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      if (onClickPrevious != null) {
+                        onClickPrevious!();
+                      }
+                    },
+                    child: SizedBox(
+                        width: navigationButtonSize,
+                        height: navigationButtonSize,
+                        child: SvgPicture.string(isVertical
+                            ? getLeftSvgArrow(widget.theme!['questionString'])
+                            : getUpArrowSvg(widget.theme!['questionString']))),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      if (onClickNext != null) {
+                        onClickNext!();
+                      }
+                    },
+                    child: SizedBox(
+                      width: navigationButtonSize,
+                      height: navigationButtonSize,
+                      child: SvgPicture.string(
+                        isVertical
+                            ? getRightSvgArrow(widget.theme!['questionString'])
+                            : getDownArrowSvg(widget.theme!['questionString']),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

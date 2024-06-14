@@ -87,23 +87,22 @@ class CustomSurveyTheme {
       );
 
   Map<String, dynamic> toMap() => {
-        "question": question == null ? null : question?.toMap(),
+        "question": question?.toMap(),
         "font": font,
-        "bottomBar": bottomBar == null ? null : bottomBar?.toMap(),
-        "rating": rating == null ? null : rating?.toMap(),
-        "opinionScale": opinionScale == null ? null : opinionScale?.toMap(),
-        "phoneNumber": phoneNumber == null ? null : phoneNumber?.toMap(),
-        "yesOrNo": yesOrNo == null ? null : yesOrNo?.toMap(),
-        "multipleChoice":
-            multipleChoice == null ? null : multipleChoice?.toMap(),
-        "email": email == null ? null : email?.toMap(),
-        "text": text == null ? null : text?.toMap(),
-        "skipButton": skipButton == null ? null : skipButton?.toMap(),
-        "nextButton": nextButton == null ? null : nextButton?.toMap(),
+        "bottomBar": bottomBar?.toMap(),
+        "rating": rating?.toMap(),
+        "opinionScale": opinionScale?.toMap(),
+        "phoneNumber": phoneNumber?.toMap(),
+        "yesOrNo": yesOrNo?.toMap(),
+        "multipleChoice": multipleChoice?.toMap(),
+        "email": email?.toMap(),
+        "text": text?.toMap(),
+        "skipButton": skipButton?.toMap(),
+        "nextButton": nextButton?.toMap(),
         "animationDirection": animationDirection,
-        "logo": logo == null ? null : logo?.toMap(),
-        "welcome": welcome == null ? null : welcome?.toMap(),
-        "thankYouPage": thankYouPage == null ? null : thankYouPage?.toMap(),
+        "logo": logo?.toMap(),
+        "welcome": welcome?.toMap(),
+        "thankYouPage": thankYouPage?.toMap(),
       };
 }
 

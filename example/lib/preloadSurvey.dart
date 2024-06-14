@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:surveysparrow_flutter_sdk/surveysparrow.dart';
@@ -7,7 +8,7 @@ Future<Map<dynamic, dynamic>> fetchSurvey() async {
  var domain = "sachin.pagesparrow.com"; // use your domain
  var token = "tt-o4dy7Qh8MSJjhASW8ccWXU"; // use your mobile sdk share token
  
- var url = 'https://${domain}/api/internal/sdk/get-survey/${token}';
+ var url = 'https://$domain/api/internal/sdk/get-survey/$token';
  
  final response = await http.get(Uri.parse(url));
  if (response.statusCode == 200) {
@@ -33,7 +34,7 @@ class PreLoadedSurveyScreen extends StatelessWidget {
      appBar: AppBar(
        title: const Text("SurveySparrow"),
        leading: IconButton(
-         icon: Icon(Icons.arrow_back, color: Colors.black),
+         icon: const Icon(Icons.arrow_back, color: Colors.black),
          onPressed: () => Navigator.of(context).pop(),
        ),
      ),
@@ -54,13 +55,13 @@ class PreLoadedSurveyScreen extends StatelessWidget {
                },
                survey: snapshot.data,
                onNext: (val) {
-                 print("Currently collected answer ${val} ");
+                 log("Currently collected answer $val ");
                },
                onError: () {
                  Navigator.pop(context);
                },
                onSubmit: (val) {
-                 print("All collected answer ${val} ");
+                 log("All collected answer $val ");
                  Future.delayed(const Duration(milliseconds: 500), () {
                    Navigator.pop(context);
                  });
@@ -68,9 +69,7 @@ class PreLoadedSurveyScreen extends StatelessWidget {
              ),
            );
          } else {
-           return Container(
-             child: const Text("Loading"),
-           );
+           return const Text("Loading");
          }
        },
      ),

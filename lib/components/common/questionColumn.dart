@@ -22,8 +22,8 @@ class QuestionColumn extends StatefulWidget {
   State<QuestionColumn> createState() => _QuestionColumnState(
         question: question,
         currentQuestionNumber: currentQuestionNumber,
-        theme: this.theme,
-        customParams: this.customParams,
+        theme: theme,
+        customParams: customParams,
       );
 }
 
@@ -32,7 +32,7 @@ class _QuestionColumnState extends State<QuestionColumn> {
   final int currentQuestionNumber;
   final Map<dynamic, dynamic> theme;
   final Map<String, String> customParams;
-  var customFont = null;
+  dynamic customFont;
   var questionHeadingFontSize = 24.0;
   var questionDescriptionFontSize = 14.0;
   var questionNumberFontSize = 14.0;
@@ -46,28 +46,27 @@ class _QuestionColumnState extends State<QuestionColumn> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    if (this.widget.euiTheme != null) {
-      if (this.widget.euiTheme!['font'] != null) {
-        customFont = this.widget.euiTheme!['font'];
+    if (widget.euiTheme != null) {
+      if (widget.euiTheme!['font'] != null) {
+        customFont = widget.euiTheme!['font'];
       }
 
-      if (this.widget.euiTheme!['question'] != null) {
-        if (this.widget.euiTheme!['question']['questionNumberFontSize'] !=
+      if (widget.euiTheme!['question'] != null) {
+        if (widget.euiTheme!['question']['questionNumberFontSize'] !=
             null) {
           questionNumberFontSize =
-              this.widget.euiTheme!['question']['questionNumberFontSize'];
+              widget.euiTheme!['question']['questionNumberFontSize'];
         }
-        if (this.widget.euiTheme!['question']['questionHeadingFontSize'] !=
+        if (widget.euiTheme!['question']['questionHeadingFontSize'] !=
             null) {
           questionHeadingFontSize =
-              this.widget.euiTheme!['question']['questionHeadingFontSize'];
+              widget.euiTheme!['question']['questionHeadingFontSize'];
         }
-        if (this.widget.euiTheme!['question']['questionDescriptionFontSize'] !=
+        if (widget.euiTheme!['question']['questionDescriptionFontSize'] !=
             null) {
           questionDescriptionFontSize =
-              this.widget.euiTheme!['question']['questionDescriptionFontSize'];
+              widget.euiTheme!['question']['questionDescriptionFontSize'];
         }
       }
     }
@@ -75,13 +74,13 @@ class _QuestionColumnState extends State<QuestionColumn> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (this.theme['showQuestionNumber']) ...[
+          if (theme['showQuestionNumber']) ...[
             Text(
               'Question ${currentQuestionNumber.toString()}',
               textAlign: TextAlign.left,
@@ -93,12 +92,12 @@ class _QuestionColumnState extends State<QuestionColumn> {
                 fontFamily: customFont,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
           ],
           Text(
-            theme['showRequired'] && this.question['required']
-                ? "*" + parsedHeading(this.question, this.customParams)
-                : parsedHeading(this.question, this.customParams),
+            theme['showRequired'] && question['required']
+                ? "* ${parsedHeading(question, customParams)}"
+                : parsedHeading(question, customParams),
             textAlign: TextAlign.left,
             style: TextStyle(
                 fontFamily: customFont,
@@ -107,13 +106,13 @@ class _QuestionColumnState extends State<QuestionColumn> {
                 fontWeight: FontWeight.w400,
                 color: theme['questionColor']),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
-            this.question['rdesc'] != null &&
-                    this.question['rdesc']['blocks'] != null &&
-                    this.question['rdesc']['blocks'][0] != null &&
-                    this.question['rdesc']['blocks'][0]['text'] != null
-                ? this.question['rdesc']['blocks'][0]['text']
+            question['rdesc'] != null &&
+                    question['rdesc']['blocks'] != null &&
+                    question['rdesc']['blocks'][0] != null &&
+                    question['rdesc']['blocks'][0]['text'] != null
+                ? question['rdesc']['blocks'][0]['text']
                 : '',
             textAlign: TextAlign.left,
             style: TextStyle(
@@ -124,7 +123,7 @@ class _QuestionColumnState extends State<QuestionColumn> {
               color: theme['questionDescriptionColor'],
             ),
           ),
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
         ],
       ),
     );

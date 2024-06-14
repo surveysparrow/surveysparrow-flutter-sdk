@@ -118,6 +118,7 @@ class SpotCheckState extends StatelessWidget {
                   onMessageReceived: (JavaScriptMessage response) {
                 try {
                   var jsonResponse = json.decode(response.message);
+                  log(jsonResponse.toString());
                   if (jsonResponse['type'] == "spotCheckData") {
                     var height =
                         jsonResponse['data']['currentQuestionSize']['height'];
@@ -168,6 +169,7 @@ class SpotCheckState extends StatelessWidget {
                     onMessageReceived: (JavaScriptMessage response) {
                   try {
                     var jsonResponse = json.decode(response.message);
+                    log(jsonResponse.toString());
                     if (jsonResponse['type'] == "spotCheckData") {
                       var height =
                           jsonResponse['data']['currentQuestionSize']['height'];
@@ -236,6 +238,7 @@ class SpotCheckState extends StatelessWidget {
                       onMessageReceived: (JavaScriptMessage response) {
                     try {
                       var jsonResponse = json.decode(response.message);
+                      log(jsonResponse.toString());
                       if (jsonResponse['type'] == "spotCheckData") {
                         var height = jsonResponse['data']['currentQuestionSize']
                             ['height'];
@@ -340,6 +343,7 @@ class SpotCheckState extends StatelessWidget {
                           onMessageReceived: (JavaScriptMessage response) {
                         try {
                           var jsonResponse = json.decode(response.message);
+                          log(jsonResponse.toString());
                           if (jsonResponse['type'] == "spotCheckData") {
                             var height = jsonResponse['data']
                                 ['currentQuestionSize']['height'];
@@ -391,6 +395,7 @@ class SpotCheckState extends StatelessWidget {
                             onMessageReceived: (JavaScriptMessage response) {
                           try {
                             var jsonResponse = json.decode(response.message);
+                            log(jsonResponse.toString());
                             if (jsonResponse['type'] == "spotCheckData") {
                               var height = jsonResponse['data']
                                   ['currentQuestionSize']['height'];

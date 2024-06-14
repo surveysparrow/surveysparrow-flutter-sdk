@@ -10,7 +10,14 @@ void main() {
   runApp(const MyApp());
 }
 
-final SpotCheck spotCheck = SpotCheck(email: '', domainName: '', targetToken: '',);
+final SpotCheck spotCheck = SpotCheck(
+    email: "gk@ss.com",
+    firstName: "gokulkrishna",
+    lastName: "raju",
+    phoneNumber: "6383846825", 
+    targetToken: "tar-r7Rea4VeHExU37nbeDB9md",
+    domainName: 'rgk.ap.ngrok.io',
+);
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -76,8 +83,8 @@ class SurveyScreen extends StatelessWidget {
                                 child: SurveyModal(
                                   // token: tokenController.text,
                                   // domain: domainController.text,
-                                  domain: "rgk.ap.ngrok.io",
-                                  token: "tt-5EGXMwKhXEPBoYKqXCFvhJ",
+                                  domain: "gokulkrishnaraju1183.surveysparrow.com",
+                                  token: "ntt-k63yoeobRWmuT5eZ3uHfrX",
                                   // email:"newemail@ee.com",
                                   onNext: (val) {
                                     log(
@@ -157,7 +164,7 @@ class SurveyScreen extends StatelessWidget {
                       onPressed: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => SpotCheckScreen(),
+                            builder: (context) => const SpotCheckScreen(),
                           ),
                         );
                       },

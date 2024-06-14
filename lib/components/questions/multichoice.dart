@@ -1,10 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/questionColumn.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/skipAndNext.dart';
-import 'package:sizer/sizer.dart';
 
 class MultiChoice extends StatefulWidget {
   final Function func;
@@ -34,11 +31,11 @@ class MultiChoice extends StatefulWidget {
 
   @override
   State<MultiChoice> createState() => _MultiChoiceState(
-        func: this.func,
-        answer: this.answer,
+        func: func,
+        answer: answer,
         question: question,
-        theme: this.theme,
-        customParams: this.customParams,
+        theme: theme,
+        customParams: customParams,
         currentQuestionNumber: currentQuestionNumber,
       );
 }
@@ -79,34 +76,32 @@ class _MultiChoiceState extends State<MultiChoice> {
     for (var i = 0; i < question['choices'].length; i++) {
       if (question['choices'][i]['other']) {
         otherInputId = question['choices'][i]['id'];
-        if (this.answer[this.question['id']] != null) {
-          if (this
-              .answer[this.question['id']]
-              .contains(question['choices'][i]['id'])) {
+        if (answer[question['id']] != null) {
+          if (answer[question['id']].contains(question['choices'][i]['id'])) {
             hasNextButton = true;
           }
         }
       }
     }
 
-    if (this.answer['${this.question['id']}_other'] != null) {
-      hasOtherInputText = this.answer['${this.question['id']}_other'];
-      hasNextButton = this.question['multipleAnswers'];
+    if (answer['${question['id']}_other'] != null) {
+      hasOtherInputText = answer['${question['id']}_other'];
+      hasNextButton = question['multipleAnswers'];
       if (_selectedOptions.contains(otherInputId)) {
-        if (this.answer['${this.question['id']}_other'] == "") {
-          this.widget.toggleNextButtonBlock(true);
+        if (answer['${question['id']}_other'] == "") {
+          widget.toggleNextButtonBlock(true);
           otherInputDisabled = true;
         } else {
-          this.widget.toggleNextButtonBlock(false);
+          widget.toggleNextButtonBlock(false);
           otherInputDisabled = false;
         }
       }
     } else {
-      hasNextButton = this.question['multipleAnswers'];
+      hasNextButton = question['multipleAnswers'];
     }
 
-    if (this.answer[this.question['id']] != null) {
-      _selectedOptions = this.answer[this.question['id']];
+    if (answer[question['id']] != null) {
+      _selectedOptions = answer[question['id']];
       checkIfSelectedOptionsValid();
     }
   }
@@ -131,12 +126,12 @@ class _MultiChoiceState extends State<MultiChoice> {
     hasOtherInputText = val;
     if (_selectedOptions.contains(otherInputId)) {
       if (val == "") {
-        this.widget.toggleNextButtonBlock(true);
+        widget.toggleNextButtonBlock(true);
         setState(() {
           otherInputDisabled = true;
         });
       } else {
-        this.widget.toggleNextButtonBlock(false);
+        widget.toggleNextButtonBlock(false);
         setState(() {
           otherInputDisabled = false;
         });
@@ -157,34 +152,34 @@ class _MultiChoiceState extends State<MultiChoice> {
 
   checkIfSelectedOptionsValid() {
     if (otherInputId != -1 && !_selectedOptions.contains(otherInputId)) {
-      this.widget.toggleNextButtonBlock(false);
+      widget.toggleNextButtonBlock(false);
       setState(() {
         otherInputDisabled = false;
       });
     }
 
-    if (this.question['properties']['data']['type'] == 'EXACT') {
+    if (question['properties']['data']['type'] == 'EXACT') {
       if (_selectedOptions.length ==
-          int.parse(this.question['properties']['data']['exactChoices'])) {
+          int.parse(question['properties']['data']['exactChoices'])) {
         // set blocked false
-        this.widget.toggleNextButtonBlock(false);
+        widget.toggleNextButtonBlock(false);
       } else {
         // set blocked true
-        this.widget.toggleNextButtonBlock(true);
+        widget.toggleNextButtonBlock(true);
       }
-    } else if (this.question['properties']['data']['type'] == 'RANGE') {
+    } else if (question['properties']['data']['type'] == 'RANGE') {
       if (_selectedOptions.length >=
-              int.parse(this.question['properties']['data']['minLimit']) &&
+              int.parse(question['properties']['data']['minLimit']) &&
           _selectedOptions.length <=
-              int.parse(this.question['properties']['data']['maxLimit'])) {
-        this.widget.toggleNextButtonBlock(false);
+              int.parse(question['properties']['data']['maxLimit'])) {
+        widget.toggleNextButtonBlock(false);
         // set blocked false
       } else {
         // set blocked true
-        this.widget.toggleNextButtonBlock(true);
+        widget.toggleNextButtonBlock(true);
       }
     } else {
-      this.widget.toggleNextButtonBlock(false);
+      widget.toggleNextButtonBlock(false);
     }
   }
 
@@ -200,10 +195,10 @@ class _MultiChoiceState extends State<MultiChoice> {
           children: [
             QuestionColumn(
               question: question,
-              currentQuestionNumber: this.currentQuestionNumber,
-              customParams: this.customParams,
-              theme: this.theme,
-              euiTheme: this.widget.euiTheme,
+              currentQuestionNumber: currentQuestionNumber,
+              customParams: customParams,
+              theme: theme,
+              euiTheme: widget.euiTheme,
             ),
             MultipleChoiceRow(
               answer: answer,
@@ -215,69 +210,67 @@ class _MultiChoiceState extends State<MultiChoice> {
               setOtherTextInput: setOtherTextInput,
               inputError: inputError,
               inputErrorMsg: inputErrorMsg,
-              euiTheme: this.widget.euiTheme,
-              toggleNextButtonBlock: this.widget.toggleNextButtonBlock,
+              euiTheme: widget.euiTheme,
+              toggleNextButtonBlock: widget.toggleNextButtonBlock,
             ),
             const SizedBox(height: 30),
             SkipAndNextButtons(
               key: UniqueKey(),
-              disabled: this.widget.isLastQuestion
-                  ? this.question['required']
+              disabled: widget.isLastQuestion
+                  ? question['required']
                       ? otherInputDisabled == true
                           ? true
-                          : _selectedOptions.length > 0
+                          : _selectedOptions.isNotEmpty
                               ? false
                               : true
                       : otherInputDisabled == true
                           ? true
                           : false
-                  : _selectedOptions.length > 0
+                  : _selectedOptions.isNotEmpty
                       ? false
                       : true,
-              showNext: hasNextButton || this.widget.isLastQuestion,
-              showSkip:
-                  (this.question['required'] || this.widget.isLastQuestion)
-                      ? false
-                      : true,
-              showSubmit: this.widget.isLastQuestion,
+              showNext: hasNextButton || widget.isLastQuestion,
+              showSkip: (question['required'] || widget.isLastQuestion)
+                  ? false
+                  : true,
+              showSubmit: widget.isLastQuestion,
               onClickNext: () {
-                if (this.widget.isLastQuestion && !this.question['required']) {
-                  this.widget.submitData();
+                if (widget.isLastQuestion && !question['required']) {
+                  widget.submitData();
                   return;
                 }
-                if (this.question['properties']['data']['type'] == 'EXACT') {
+                if (question['properties']['data']['type'] == 'EXACT') {
                   if (_selectedOptions.length ==
-                      int.parse(this.question['properties']['data']
-                          ['exactChoices'])) {
-                    this.func(_selectedOptions, question['id'],
+                      int.parse(
+                          question['properties']['data']['exactChoices'])) {
+                    func(_selectedOptions, question['id'],
                         otherInput: _selectedOptions.contains(otherInputId),
                         otherInputId: otherInputId,
                         otherInputText: hasOtherInputText);
                     setChoiceError(false, "");
                   } else {
                     setChoiceError(true,
-                        "Please select ${this.question['properties']['data']['exactChoices']} choices");
+                        "Please select ${question['properties']['data']['exactChoices']} choices");
                   }
-                } else if (this.question['properties']['data']['type'] ==
-                    'RANGE') {
+                } else if (question['properties']['data']['type'] == 'RANGE') {
                   if (_selectedOptions.length >=
-                          int.parse(this.question['properties']['data']
-                              ['minLimit']) &&
+                          int.parse(
+                              question['properties']['data']['minLimit']) &&
                       _selectedOptions.length <=
-                          int.parse(this.question['properties']['data']
-                              ['maxLimit'])) {
-                    this.func(_selectedOptions, question['id'],
+                          int.parse(
+                              question['properties']['data']['maxLimit'])) {
+                    func(_selectedOptions, question['id'],
                         otherInput: _selectedOptions.contains(otherInputId),
                         otherInputId: otherInputId,
                         otherInputText: hasOtherInputText);
                     setChoiceError(false, "");
                   } else {
                     setChoiceError(true,
-                        "Please select choices between ${int.parse(this.question['properties']['data']['minLimit'])} and ${int.parse(this.question['properties']['data']['maxLimit'])} ");
+                        "Please select choices between ${int.parse(question['properties']['data']['minLimit'])} and ${int.parse(question['properties']['data']['maxLimit'])} ");
                   }
                 } else {
-                  if (_selectedOptions.length > 0) {
-                    this.func(_selectedOptions, question['id'],
+                  if (_selectedOptions.isNotEmpty) {
+                    func(_selectedOptions, question['id'],
                         otherInput: _selectedOptions.contains(otherInputId),
                         otherInputId: otherInputId,
                         otherInputText: hasOtherInputText);
@@ -286,18 +279,17 @@ class _MultiChoiceState extends State<MultiChoice> {
                     setChoiceError(true, "Please select atleast 1 choice");
                   }
                 }
-                if (inputError == false && this.widget.isLastQuestion) {
-                  this.widget.submitData();
+                if (inputError == false && widget.isLastQuestion) {
+                  widget.submitData();
                 }
               },
               onClickSkip: () {
-                this.widget.toggleNextButtonBlock(false);
-                this.func(null, question['id']);
+                widget.toggleNextButtonBlock(false);
+                func(null, question['id']);
               },
               theme: theme,
-              euiTheme: this.widget.euiTheme,
+              euiTheme: widget.euiTheme,
             ),
-            // ElevatedButton(onPressed: () {}, child: const Text("Submit"))
           ],
         ),
       ],
@@ -335,15 +327,15 @@ class MultipleChoiceRow extends StatefulWidget {
 
   @override
   State<MultipleChoiceRow> createState() => _MultipleChoiceRowState(
-        func: this.func,
-        answer: this.answer,
+        func: func,
+        answer: answer,
         question: question,
         theme: theme,
       );
 }
 
 class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
-  TextEditingController inputController = new TextEditingController();
+  TextEditingController inputController = TextEditingController();
   Function func;
   final Map<dynamic, dynamic> answer;
   final Map<dynamic, dynamic> question;
@@ -396,74 +388,69 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
 
     isNextButtonBlocked = false;
 
-    if (this.question['randomized'] != null) {
-      shuffle = this.question['randomized'];
+    if (question['randomized'] != null) {
+      shuffle = question['randomized'];
     }
 
-    if (this.widget.euiTheme != null) {
-      if (this.widget.euiTheme!['font'] != null) {
-        customFont = this.widget.euiTheme!['font'];
+    if (widget.euiTheme != null) {
+      if (widget.euiTheme!['font'] != null) {
+        customFont = widget.euiTheme!['font'];
       }
 
-      if (this.widget.euiTheme!['multipleChoice'] != null) {
-        if (this.widget.euiTheme!['multipleChoice']['choiceContainerWidth'] !=
+      if (widget.euiTheme!['multipleChoice'] != null) {
+        if (widget.euiTheme!['multipleChoice']['choiceContainerWidth'] !=
             null) {
           choiceContainerWidth =
-              this.widget.euiTheme!['multipleChoice']['choiceContainerWidth'];
+              widget.euiTheme!['multipleChoice']['choiceContainerWidth'];
         }
-        if (this.widget.euiTheme!['multipleChoice']['choiceContainerHeight'] !=
+        if (widget.euiTheme!['multipleChoice']['choiceContainerHeight'] !=
             null) {
           choiceContainerHeight =
-              this.widget.euiTheme!['multipleChoice']['choiceContainerHeight'];
+              widget.euiTheme!['multipleChoice']['choiceContainerHeight'];
         }
-        if (this.widget.euiTheme!['multipleChoice']['fontSize'] != null) {
-          fontSize = this.widget.euiTheme!['multipleChoice']['fontSize'];
+        if (widget.euiTheme!['multipleChoice']['fontSize'] != null) {
+          fontSize = widget.euiTheme!['multipleChoice']['fontSize'];
         }
-        if (this.widget.euiTheme!['multipleChoice']
-                ['circularFontContainerSize'] !=
+        if (widget.euiTheme!['multipleChoice']['circularFontContainerSize'] !=
             null) {
-          circularFontContainerSize = this.widget.euiTheme!['multipleChoice']
-              ['circularFontContainerSize'];
+          circularFontContainerSize =
+              widget.euiTheme!['multipleChoice']['circularFontContainerSize'];
         }
-        if (this.widget.euiTheme!['multipleChoice']
-                ['otherOptionTextFieldHeight'] !=
+        if (widget.euiTheme!['multipleChoice']['otherOptionTextFieldHeight'] !=
             null) {
-          otherOptionTextFieldHeight = this.widget.euiTheme!['multipleChoice']
-              ['otherOptionTextFieldHeight'];
+          otherOptionTextFieldHeight =
+              widget.euiTheme!['multipleChoice']['otherOptionTextFieldHeight'];
         }
-        if (this.widget.euiTheme!['multipleChoice']
-                ['otherOptionTextFieldWidth'] !=
+        if (widget.euiTheme!['multipleChoice']['otherOptionTextFieldWidth'] !=
             null) {
-          otherOptionTextFieldWidth = this.widget.euiTheme!['multipleChoice']
-              ['otherOptionTextFieldWidth'];
+          otherOptionTextFieldWidth =
+              widget.euiTheme!['multipleChoice']['otherOptionTextFieldWidth'];
         }
-        if (this.widget.euiTheme!['multipleChoice']
-                ['otherOptionTextFontSize'] !=
+        if (widget.euiTheme!['multipleChoice']['otherOptionTextFontSize'] !=
             null) {
-          otherOptionTextFontSize = this.widget.euiTheme!['multipleChoice']
-              ['otherOptionTextFontSize'];
+          otherOptionTextFontSize =
+              widget.euiTheme!['multipleChoice']['otherOptionTextFontSize'];
         }
       }
     }
 
     inputController.text = '';
 
-    if (this.answer['${this.question['id']}_other'] != null) {
-      inputController.text = this.answer['${this.question['id']}_other'];
+    if (answer['${question['id']}_other'] != null) {
+      inputController.text = answer['${question['id']}_other'];
     } else {
       inputController.text = '';
     }
 
     luminanceValue =
-        this.theme['decodedOpnionBackgroundColorUnSelected'].computeLuminance();
+        theme['decodedOpnionBackgroundColorUnSelected'].computeLuminance();
 
-    isMultipleAnswer = this.question['multipleAnswers'];
+    isMultipleAnswer = question['multipleAnswers'];
 
     for (var i = 0; i < question['choices'].length; i++) {
       initilizeChoices(question['choices'][i], question['choices'][i]['id']);
     }
 
-    var jumbledArray = [];
     var normalChoices = [];
     var specialChoices = [];
 
@@ -484,9 +471,9 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
     }
 
     multipleChoiceChoices = [...normalChoices, ...specialChoices];
-    if (this.answer[this.question['id']] != null) {
+    if (answer[question['id']] != null) {
       setState(() {
-        _selectedOption = this.answer[this.question['id']];
+        _selectedOption = answer[question['id']];
       });
     } else {
       setState(() {
@@ -509,7 +496,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
 
         var arrayWithoutSelectedOption = [..._selectedOption, ...val];
         arrayWithoutSelectedOption
-          ..removeWhere((element) => element == hasAllOfOption);
+            .removeWhere((element) => element == hasAllOfOption);
 
         arrayWithoutSelectedOption.sort();
         allOptions.sort();
@@ -581,20 +568,20 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
         setState(() {
           _selectedOption = singleSelected;
         });
-        this.func(singleSelected, question['id']);
-        this.widget.setSelectedOptions!(singleSelected);
+        func(singleSelected, question['id']);
+        widget.setSelectedOptions!(singleSelected);
       } else {
         var singleSelected = val;
         setState(() {
           _selectedOption = singleSelected;
         });
         if (_selectedOption.contains(hasOtherOption)) {
-          this.widget.setSelectedOptions!(singleSelected);
-          this.widget.setShowNextButton!(true);
+          widget.setSelectedOptions!(singleSelected);
+          widget.setShowNextButton!(true);
         } else {
-          this.widget.setShowNextButton!(false);
-          this.func(singleSelected, question['id']);
-          this.widget.setSelectedOptions!(singleSelected);
+          widget.setShowNextButton!(false);
+          func(singleSelected, question['id']);
+          widget.setSelectedOptions!(singleSelected);
         }
       }
     }
@@ -603,13 +590,13 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
     else {
       var multiSelected = getMultiSelectedValue(val);
       if (multiSelected.contains(hasOtherOption)) {
-        this.widget.setShowNextButton!(true);
+        widget.setShowNextButton!(true);
       }
       setState(() {
         _selectedOption = multiSelected;
       });
-      this.widget.setSelectedOptions!(multiSelected);
-      this.func(multiSelected, question['id'], changePage: false);
+      widget.setSelectedOptions!(multiSelected);
+      func(multiSelected, question['id'], changePage: false);
     }
   }
 
@@ -619,11 +606,11 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
       setState(() {
         _selectedOption = currentSelectedOptions;
       });
-      this.widget.setSelectedOptions!(currentSelectedOptions);
+      widget.setSelectedOptions!(currentSelectedOptions);
       if (isMultipleAnswer == false) {
-        this.func(currentSelectedOptions, question['id']);
+        func(currentSelectedOptions, question['id']);
       } else {
-        this.func(currentSelectedOptions, question['id'], changePage: false);
+        func(currentSelectedOptions, question['id'], changePage: false);
       }
     } else {
       var currentSelectedOptions = [..._selectedOption];
@@ -632,11 +619,11 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
       setState(() {
         _selectedOption = currentSelectedOptions;
       });
-      this.widget.setSelectedOptions!(currentSelectedOptions);
+      widget.setSelectedOptions!(currentSelectedOptions);
       if (isMultipleAnswer == false) {
-        this.func(currentSelectedOptions, question['id']);
+        func(currentSelectedOptions, question['id']);
       } else {
-        this.func(currentSelectedOptions, question['id'], changePage: false);
+        func(currentSelectedOptions, question['id'], changePage: false);
       }
     }
   }
@@ -671,17 +658,10 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
     choiceContainerWidth = MediaQuery.of(context).size.width - 60;
     final bool useMobileLayout = shortestSide < 600;
     List<Widget> list = List<Widget>.empty(growable: true);
-    var charc = 65;
     for (var i = 0; i < multipleChoiceChoices.length; i++) {
       list.add(
         GestureDetector(
           onTap: () {
-            // handle here block
-            // if(isNextButtonBlocked == false ){
-            //   isNextButtonBlocked = true;
-            //   this.widget.toggleNextButtonBlock(true);
-            // }
-
             var isNoneAboveChoice = hasNoneOfOption == -1 ? false : true;
             choiceToUpdateIs = [];
             choiceToUpdateIs.add(multipleChoiceChoices[i]['id']);
@@ -696,7 +676,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
             }
 
             if (multipleChoiceChoices[i]['id'] == hasOtherOption) {}
-            this.widget.setOtherTextInput!(inputController.text);
+            widget.setOtherTextInput!(inputController.text);
           },
           child: Container(
             constraints: BoxConstraints(
@@ -704,17 +684,17 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
                 maxWidth: choiceContainerWidth),
             decoration: BoxDecoration(
               color: _selectedOption.contains(multipleChoiceChoices[i]['id'])
-                  ? this.theme['decodedOpnionBackgroundColorSelected']
-                  : this.theme['decodedOpnionBackgroundColorUnSelected'],
+                  ? theme['decodedOpnionBackgroundColorSelected']
+                  : theme['decodedOpnionBackgroundColorUnSelected'],
               border: Border.all(
-                color: this.theme['decodedOpnionBorderColor'],
+                color: theme['decodedOpnionBorderColor'],
                 width: 1,
               ),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Center(
               child: Container(
-                padding: EdgeInsets.only(right: 10, left: 10),
+                padding: const EdgeInsets.only(right: 10, left: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -730,38 +710,16 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
                                 decoration: TextDecoration.none,
                                 fontSize: fontSize,
                                 fontWeight: FontWeight.w400,
-                                color: _selectedOption
-                                        .contains(multipleChoiceChoices[i]['id'])
+                                color: _selectedOption.contains(
+                                        multipleChoiceChoices[i]['id'])
                                     ? luminanceValue > 0.5
                                         ? Colors.black
                                         : Colors.white
-                                    : this.theme['answerColor'],
+                                    : theme['answerColor'],
                               )),
                         ],
                       ),
                     ),
-                    // Container(
-                    //   width: circularFontContainerSize,
-                    //   height: circularFontContainerSize,
-                    //   child: Center(
-                    //     child: Text(
-                    //       String.fromCharCode(charc + i),
-                    //       style: TextStyle(
-                    //         fontFamily: customFont,
-                    //         decoration: TextDecoration.none,
-                    //         fontSize: fontSize,
-                    //         fontWeight: FontWeight.bold,
-                    //         color: luminanceValue > 0.5
-                    //             ? Colors.black
-                    //             : Colors.white,
-                    //       ),
-                    //     ),
-                    //   ),
-                    //   decoration: BoxDecoration(
-                    //     shape: BoxShape.circle,
-                    //     color: this.theme['answerColor'],
-                    //   ),
-                    // ),
                   ],
                 ),
               ),
@@ -775,76 +733,71 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
     // direction: Axis.horizontal,
     //  alignment: WrapAlignment.start,
 
-    return Container(
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.start,
-        alignment: WrapAlignment.center,
-        spacing: 10,
-        runSpacing: 10,
-        direction: Axis.vertical,
-        children: [
-          ...list,
-          if (_selectedOption.contains(hasOtherOption)) ...[
-            Container(
-              // color: Colors.red,
-              constraints: BoxConstraints(
-                  maxHeight: otherOptionTextFieldHeight,
-                  maxWidth: otherOptionTextFieldWidth != null
-                      ? otherOptionTextFieldWidth
-                      : useMobileLayout
-                          ? 320
-                          : 500),
-              child: TextField(
-                key: Key(question['id'].toString()),
-                onChanged: (text) {
-                  setState(() {
-                    this.widget.setOtherTextInput!(text);
-                  });
-                },
-                style: TextStyle(
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.start,
+      alignment: WrapAlignment.center,
+      spacing: 10,
+      runSpacing: 10,
+      direction: Axis.vertical,
+      children: [
+        ...list,
+        if (_selectedOption.contains(hasOtherOption)) ...[
+          Container(
+            // color: Colors.red,
+            constraints: BoxConstraints(
+                maxHeight: otherOptionTextFieldHeight,
+                maxWidth:
+                    otherOptionTextFieldWidth ?? (useMobileLayout ? 320 : 500)),
+            child: TextField(
+              key: Key(question['id'].toString()),
+              onChanged: (text) {
+                setState(() {
+                  widget.setOtherTextInput!(text);
+                });
+              },
+              style: TextStyle(
+                  fontFamily: customFont,
+                  color: theme['answerColor'],
+                  fontSize: otherOptionTextFontSize),
+              cursorColor: theme['answerColor'],
+              controller: inputController,
+              decoration: InputDecoration(
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: theme['answerColor']),
+                ),
+                hintText: "Please Enter Your Response",
+                hintStyle: TextStyle(
                     fontFamily: customFont,
-                    color: this.theme['answerColor'],
-                    fontSize: otherOptionTextFontSize),
-                cursorColor: this.theme['answerColor'],
-                controller: inputController,
-                decoration: InputDecoration(
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: this.theme['answerColor']),
-                  ),
-                  hintText: "Please Enter Your Response",
-                  hintStyle: TextStyle(
-                      fontFamily: customFont,
-                      color: this.theme['questionNumberColor']),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(
-                      color: this.theme['questionDescriptionColor'],
-                    ),
+                    color: theme['questionNumberColor']),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: theme['questionDescriptionColor'],
                   ),
                 ),
               ),
             ),
-          ],
-          if (this.widget.inputError) ...[
-            Row(
-              children: [
-                Icon(
-                  Icons.info_outline_rounded,
-                  size: 11,
-                  color: Colors.red,
-                ),
-                SizedBox(
-                  width: 2,
-                ),
-                Text(
-                  this.widget.inputErrorMsg,
-                  style: TextStyle(
-                      fontFamily: customFont, color: Colors.red, fontSize: 10),
-                ),
-              ],
-            )
-          ]
+          ),
         ],
-      ),
+        if (widget.inputError) ...[
+          Row(
+            children: [
+              const Icon(
+                Icons.info_outline_rounded,
+                size: 11,
+                color: Colors.red,
+              ),
+              const SizedBox(
+                width: 2,
+              ),
+              Text(
+                widget.inputErrorMsg,
+                style: TextStyle(
+                    fontFamily: customFont, color: Colors.red, fontSize: 10),
+              ),
+            ],
+          )
+        ]
+      ],
     );
   }
 }

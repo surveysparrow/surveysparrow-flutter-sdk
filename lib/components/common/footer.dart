@@ -1,9 +1,4 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:surveysparrow_flutter_sdk/helpers/svg.dart';
-import 'package:readmore/readmore.dart';
 import 'package:expandable_text/expandable_text.dart';
 
 class FooterSection extends StatefulWidget {
@@ -30,18 +25,18 @@ class _FooterSectionState extends State<FooterSection> {
 
   var luminanceValue = 0.5;
 
-  var customFont = null;
+  dynamic customFont;
 
   @override
   void initState() {
     super.initState();
 
-    luminanceValue = this.widget.theme!['backgroundColor'].computeLuminance();
+    luminanceValue = widget.theme!['backgroundColor'].computeLuminance();
 
-    if (this.widget.euiTheme != null) {
-      if (this.widget.euiTheme!['font'] != null) {
-        customFont = this.widget.euiTheme!['font'];
-      }    
+    if (widget.euiTheme != null) {
+      if (widget.euiTheme!['font'] != null) {
+        customFont = widget.euiTheme!['font'];
+      }
     }
 
     if (widget.euiTheme != null) {
@@ -66,30 +61,34 @@ class _FooterSectionState extends State<FooterSection> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 30,vertical: 20),
-      constraints: BoxConstraints(minHeight: 60),
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+      constraints: const BoxConstraints(minHeight: 60),
       decoration: BoxDecoration(
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
               offset: Offset(1, 2),
               blurRadius: 6,
               color: Color.fromRGBO(38, 38, 39, 0.12))
         ],
-        color: this.widget.theme!['backgroundColor'],
+        color: widget.theme!['backgroundColor'],
       ),
       width: double.maxFinite,
       child: Center(
         child: ExpandableText(
-          this.widget.theme!['footerText'],
+          widget.theme!['footerText'],
           expandText: 'show more',
           collapseText: 'show less',
           animation: true,
           collapseOnTextTap: true,
           maxLines: 1,
-          linkColor: this.widget.theme!['questionNumberColor'],
-          linkStyle: TextStyle(decoration: TextDecoration.underline,fontFamily: customFont),
+          linkColor: widget.theme!['questionNumberColor'],
+          linkStyle: TextStyle(
+              decoration: TextDecoration.underline, fontFamily: customFont),
           linkEllipsis: false,
-          style: TextStyle(color: this.widget.theme!['questionNumberColor'],fontSize: 14,fontFamily: customFont),
+          style: TextStyle(
+              color: widget.theme!['questionNumberColor'],
+              fontSize: 14,
+              fontFamily: customFont),
         ),
       ),
     );
