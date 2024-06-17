@@ -68,20 +68,22 @@ class SpotCheckState extends StatelessWidget {
       traceId.value = generateTraceId();
     }
 
-    if (userDetails["email"] == null &&
-        userDetails["uuid"] == null &&
-        userDetails["mobile"] == null) {
+    Map<String, dynamic> payloadUserDetails = Map.from(userDetails);
+
+    if (payloadUserDetails["email"] == null &&
+        payloadUserDetails["uuid"] == null &&
+        payloadUserDetails["mobile"] == null) {
       String? uuid = prefs.getString("SurveySparrowUUID");
 
       if (uuid != null && uuid.isNotEmpty) {
-        userDetails["uuid"] = "uuid";
+        payloadUserDetails["uuid"] = "uuid";
       }
     }
 
     Map<String, dynamic> payload = {
       "screenName": screen,
       "variables": variables,
-      "userDetails": userDetails,
+      "userDetails": payloadUserDetails,
       "visitor": {
         "deviceType": "Mobile",
         "operatingSystem": Platform.operatingSystem,
@@ -291,22 +293,25 @@ class SpotCheckState extends StatelessWidget {
           if (event.keys.contains(customEvent["eventName"])) {
             selectedSpotCheckID =
                 spotCheck["id"] ?? spotCheck["spotCheckId"] ?? intMax;
+                    
+            Map<String, dynamic> payloadUserDetails = Map.from(userDetails);
+
 
             if (selectedSpotCheckID != intMax) {
-              if (userDetails["email"] == null &&
-                  userDetails["uuid"] == null &&
-                  userDetails["mobile"] == null) {
+              if (payloadUserDetails["email"] == null &&
+                  payloadUserDetails["uuid"] == null &&
+                  payloadUserDetails["mobile"] == null) {
                 String? uuid = prefs.getString("SurveySparrowUUID");
 
                 if (uuid != null && uuid.isNotEmpty) {
-                  userDetails["uuid"] = "uuid";
+                  payloadUserDetails["uuid"] = "uuid";
                 }
               }
 
               Map<String, dynamic> payload = {
                 "url": screen,
                 "variables": variables,
-                "userDetails": userDetails,
+                "userDetails": payloadUserDetails,
                 "visitor": {
                   "deviceType": "Mobile",
                   "operatingSystem": Platform.operatingSystem,
