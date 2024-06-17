@@ -36,6 +36,8 @@ class SpotCheckState extends StatelessWidget {
   final RxBool isFullScreenMode = false.obs;
   final RxBool isBannerImageOn = false.obs;
   final RxBool isSpotCheckOpen = false.obs;
+  final RxBool isCloseButtonEnabled = false.obs;
+  final RxMap<String, dynamic> closeButtonStyle = <String, dynamic>{}.obs;
   final RxString position = "top".obs;
   final RxString spotcheckURL = "".obs;
   final RxInt spotcheckID = 0.obs;
@@ -125,8 +127,6 @@ class SpotCheckState extends StatelessWidget {
                     currentQuestionHeight.value = height;
                   } else if (jsonResponse['type'] == "surveyCompleted") {
                     end();
-                  } else if (jsonResponse['type'] == "closeModal") {
-                    end();
                   }
                 } catch (e) {
                   log("Error decoding JSON: $e");
@@ -175,8 +175,6 @@ class SpotCheckState extends StatelessWidget {
                           jsonResponse['data']['currentQuestionSize']['height'];
                       currentQuestionHeight.value = height;
                     } else if (jsonResponse['type'] == "surveyCompleted") {
-                      end();
-                    } else if (jsonResponse['type'] == "closeModal") {
                       end();
                     }
                   } catch (e) {
@@ -244,8 +242,6 @@ class SpotCheckState extends StatelessWidget {
                             ['height'];
                         currentQuestionHeight.value = height;
                       } else if (jsonResponse['type'] == "surveyCompleted") {
-                        end();
-                      } else if (jsonResponse['type'] == "closeModal") {
                         end();
                       }
                     } catch (e) {
@@ -351,8 +347,6 @@ class SpotCheckState extends StatelessWidget {
                           } else if (jsonResponse['type'] ==
                               "surveyCompleted") {
                             end();
-                          } else if (jsonResponse['type'] == "closeModal") {
-                            end();
                           }
                         } catch (e) {
                           log("Error decoding JSON: $e");
@@ -402,8 +396,6 @@ class SpotCheckState extends StatelessWidget {
                               currentQuestionHeight.value = height;
                             } else if (jsonResponse['type'] ==
                                 "surveyCompleted") {
-                              end();
-                            } else if (jsonResponse['type'] == "closeModal") {
                               end();
                             }
                           } catch (e) {
@@ -476,8 +468,36 @@ class SpotCheckState extends StatelessWidget {
                                       ? 100
                                       : 0)),
                       width: MediaQuery.of(context).size.width,
-                      child: WebViewWidget(
-                        controller: controller,
+                      child: Stack(
+                        children: [
+                          WebViewWidget(
+                            controller: controller,
+                          ),
+                          Positioned(
+                            top: 6,
+                            right: 6,
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.close,
+                                color: Color(int.parse(isHex(
+                                        "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}")
+                                    ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
+                                    : "0xFF000000")),
+                              ),
+                              onPressed: () {
+                                closeSpotCheck();
+                                spotcheckID.value = 0;
+                                position.value = "";
+                                currentQuestionHeight.value = 0;
+                                isCloseButtonEnabled.value = false;
+                                closeButtonStyle.value = {};
+                                spotcheckContactID.value = 0;
+                                spotcheckURL.value = "";
+                                end();
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -516,6 +536,9 @@ class SpotCheckState extends StatelessWidget {
             break;
           default:
         }
+        isCloseButtonEnabled.value = responseJson["appearance"]?["closeButton"];
+        closeButtonStyle.value =
+            responseJson["appearance"]?["colors"]?["overrides"] ?? {};
         Map<String, dynamic> cardProp =
             responseJson["appearance"]?["cardProperties"];
         var mxHeight = double.parse(cardProp["maxHeight"].toString());
@@ -536,6 +559,33 @@ class SpotCheckState extends StatelessWidget {
           "https://$domainName/n/spotcheck/${triggerToken.value}?spotcheckContactId=${spotcheckContactID.value}&traceId=${traceId.value}&spotcheckUrl=$screen";
     }
   }
+
+  void closeSpotCheck() async {
+    try {
+      Map<String, dynamic> payload = {
+        "traceId": traceId.value,
+        "triggerToken": triggerToken.value
+      };
+
+      final response = await http.put(
+        Uri.parse(
+            "https://$domainName/api/internal/spotcheck/dismiss/$spotcheckContactID"),
+        headers: <String, String>{
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(payload),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        if (data["success"]) {
+          log("SpotCheck Closed");
+        }
+      }
+    } catch (error) {
+      log("Error parsing JSON: $error");
+    }
+  }
 }
 
 String generateTraceId() {
@@ -543,4 +593,9 @@ String generateTraceId() {
   String uuidString = uuid.v4();
   int timestamp = DateTime.now().millisecondsSinceEpoch;
   return '$uuidString-$timestamp';
+}
+
+bool isHex(String input) {
+  final hexColorRegex = RegExp(r'^#(?:[0-9a-fA-F]{3}){1,2}$');
+  return hexColorRegex.hasMatch(input);
 }
