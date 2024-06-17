@@ -5,32 +5,27 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class SpotCheckState extends StatelessWidget {
   SpotCheckState(
       {Key? key,
-      required this.email,
       required this.targetToken,
       required this.domainName,
-      required this.firstName,
-      required this.lastName,
-      required this.phoneNumber,
+      required this.userDetails,
       required this.variables,
       required this.customProperties})
       : super(key: key);
 
-  final String email;
   final String targetToken;
   final String domainName;
-  final String firstName;
-  final String lastName;
-  final String phoneNumber;
   final Map<String, dynamic> variables;
   final Map<String, dynamic> customProperties;
   double screenHeight = 0;
   double screenWidth = 0;
+  Map<String, dynamic> userDetails;
 
   final RxBool isValid = false.obs;
   final RxBool isFullScreenMode = false.obs;
@@ -67,19 +62,26 @@ class SpotCheckState extends StatelessWidget {
   }
 
   Future<Map<String, dynamic>> sendTrackScreenRequest(String screen) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
     if (traceId.isEmpty) {
       traceId.value = generateTraceId();
+    }
+
+    if (userDetails["email"] == null &&
+        userDetails["uuid"] == null &&
+        userDetails["mobile"] == null) {
+      String? uuid = prefs.getString("SurveySparrowUUID");
+
+      if (uuid != null && uuid.isNotEmpty) {
+        userDetails["uuid"] = "uuid";
+      }
     }
 
     Map<String, dynamic> payload = {
       "screenName": screen,
       "variables": variables,
-      "userDetails": {
-        "email": email,
-        "firstName": firstName,
-        "lastName": lastName,
-        "phoneNumber": phoneNumber,
-      },
+      "userDetails": userDetails,
       "visitor": {
         "deviceType": "Mobile",
         "operatingSystem": Platform.operatingSystem,
@@ -106,6 +108,11 @@ class SpotCheckState extends StatelessWidget {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic>? responseJson = jsonDecode(response.body);
+
+        if (responseJson?["uuid"] != null) {
+          prefs.setString(
+              "SurveySparrowUUID", responseJson?["uuid"].toString() ?? "");
+        }
 
         if (responseJson?["show"] != null) {
           bool show = responseJson?["show"];
@@ -270,6 +277,8 @@ class SpotCheckState extends StatelessWidget {
 
   Future<Map<String, dynamic>> sendTrackEventRequest(
       String screen, Map<String, dynamic> event) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
     int intMax = 4294967296;
     var selectedSpotCheckID = intMax;
 
@@ -284,15 +293,20 @@ class SpotCheckState extends StatelessWidget {
                 spotCheck["id"] ?? spotCheck["spotCheckId"] ?? intMax;
 
             if (selectedSpotCheckID != intMax) {
+              if (userDetails["email"] == null &&
+                  userDetails["uuid"] == null &&
+                  userDetails["mobile"] == null) {
+                String? uuid = prefs.getString("SurveySparrowUUID");
+
+                if (uuid != null && uuid.isNotEmpty) {
+                  userDetails["uuid"] = "uuid";
+                }
+              }
+
               Map<String, dynamic> payload = {
                 "url": screen,
                 "variables": variables,
-                "userDetails": {
-                  "email": email,
-                  "firstName": firstName,
-                  "lastName": lastName,
-                  "phoneNumber": phoneNumber,
-                },
+                "userDetails": userDetails,
                 "visitor": {
                   "deviceType": "Mobile",
                   "operatingSystem": Platform.operatingSystem,
