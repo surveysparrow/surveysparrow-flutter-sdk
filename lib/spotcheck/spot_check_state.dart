@@ -492,30 +492,35 @@ class SpotCheckState extends StatelessWidget {
                           WebViewWidget(
                             controller: controller,
                           ),
-                          Positioned(
-                            top: 6,
-                            right: 6,
-                            child: IconButton(
-                              icon: Icon(
-                                Icons.close,
-                                color: Color(int.parse(isHex(
-                                        "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}")
-                                    ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
-                                    : "0xFF000000")),
-                              ),
-                              onPressed: () {
-                                closeSpotCheck();
-                                spotcheckID.value = 0;
-                                position.value = "";
-                                currentQuestionHeight.value = 0;
-                                isCloseButtonEnabled.value = false;
-                                closeButtonStyle.value = {};
-                                spotcheckContactID.value = 0;
-                                spotcheckURL.value = "";
-                                end();
-                              },
-                            ),
-                          ),
+                          (isCloseButtonEnabled.value &&
+                                  currentQuestionHeight.value != 0)
+                              ? Positioned(
+                                  top: 6,
+                                  right: 6,
+                                  child: IconButton(
+                                    icon: Icon(
+                                      Icons.close,
+                                      size: 18,
+                                      color: Color(int.parse(isHex(
+                                              closeButtonStyle["ctaButton"]
+                                                  .toString())
+                                          ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
+                                          : "0xFF000000")),
+                                    ),
+                                    onPressed: () {
+                                      closeSpotCheck();
+                                      spotcheckID.value = 0;
+                                      position.value = "";
+                                      currentQuestionHeight.value = 0;
+                                      isCloseButtonEnabled.value = false;
+                                      closeButtonStyle.value = {};
+                                      spotcheckContactID.value = 0;
+                                      spotcheckURL.value = "";
+                                      end();
+                                    },
+                                  ),
+                                )
+                              : const SizedBox.shrink()
                         ],
                       ),
                     ),
@@ -615,6 +620,6 @@ String generateTraceId() {
 }
 
 bool isHex(String input) {
-  final hexColorRegex = RegExp(r'^#(?:[0-9a-fA-F]{3}){1,2}$');
-  return hexColorRegex.hasMatch(input);
+  bool isHex = input.length == 7 && input.contains("#");
+  return isHex;
 }
