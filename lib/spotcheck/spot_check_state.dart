@@ -33,7 +33,7 @@ class SpotCheckState extends StatelessWidget {
   final RxBool isSpotCheckOpen = false.obs;
   final RxBool isCloseButtonEnabled = false.obs;
   final RxMap<String, dynamic> closeButtonStyle = <String, dynamic>{}.obs;
-  final RxString position = "top".obs;
+  final RxString position = "bottom".obs;
   final RxString spotcheckURL = "".obs;
   final RxInt spotcheckID = 0.obs;
   final RxInt spotcheckContactID = 0.obs;
@@ -85,7 +85,7 @@ class SpotCheckState extends StatelessWidget {
       "variables": variables,
       "userDetails": payloadUserDetails,
       "visitor": {
-        "deviceType": "Mobile",
+        "deviceType": "MOBILE",
         "operatingSystem": Platform.operatingSystem,
         "screenResolution": {"height": screenHeight, "width": screenWidth},
         "currentDate": DateTime.now().toIso8601String(),
@@ -313,7 +313,7 @@ class SpotCheckState extends StatelessWidget {
                 "variables": variables,
                 "userDetails": payloadUserDetails,
                 "visitor": {
-                  "deviceType": "Mobile",
+                  "deviceType": "MOBILE",
                   "operatingSystem": Platform.operatingSystem,
                   "screenResolution": {
                     "height": screenHeight,
