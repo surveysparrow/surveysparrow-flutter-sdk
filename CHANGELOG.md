@@ -54,3 +54,7 @@
 ## 1.2.0-beta.3
 
 * Anonymous Submission Support
+
+## 1.2.0-beta.4
+
+* SSE-30549
