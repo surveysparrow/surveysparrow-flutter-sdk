@@ -42,3 +42,7 @@
 ## 1.1.3
 
 * Submission Queue Support
+  
+## 1.1.4
+
+* HTTP UserAgentFix
