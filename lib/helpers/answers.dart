@@ -29,8 +29,7 @@ submitAnswer(
   // check url before prod
   var url = isSubmissionQueued ? Uri.parse('https://${domain}/api/internal/v1/submission/answers/${token}'):  Uri.parse('https://${domain}/api/internal/submission/answers/${token}');
   Map<dynamic, dynamic> payload = {};
-  final ua = "${Platform.operatingSystem} ${Platform.operatingSystemVersion}";
-
+  final ua = "${Platform.operatingSystem} ${Platform.operatingSystemVersion} Mobile - Flutter SDK";
   var submissionObjPayload = {
     'answers': _collectedAnswers,
     'stripe': {
