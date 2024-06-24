@@ -451,7 +451,8 @@ class SpotCheckState extends StatelessWidget {
     screenHeight = MediaQuery.of(context).size.height;
     screenWidth = MediaQuery.of(context).size.width;
 
-    return Obx(() => isSpotCheckOpen.value && currentQuestionHeight.value != 0
+    return Obx(() => isSpotCheckOpen.value &&
+            (currentQuestionHeight.value != 0 || isFullScreenMode.value)
         ? AnimatedContainer(
             duration:
                 Duration(milliseconds: position.value == "center" ? 1000 : 500),
@@ -467,65 +468,60 @@ class SpotCheckState extends StatelessWidget {
                     width: MediaQuery.of(context).size.width,
                   ),
                 ),
-                Column(
-                  mainAxisAlignment: _getAlignment(),
-                  children: [
-                    Container(
-                      margin: EdgeInsets.only(
-                          top: MediaQuery.of(context).size.height * 0.06),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
+                Positioned(
+                  bottom: 0,
+                  child: Column(
+                    mainAxisAlignment: _getAlignment(),
+                    children: [
+                      SizedBox(
+                        height: isFullScreenMode.value
+                            ? screenHeight * 0.945
+                            : math.min(
+                                screenHeight,
+                                (math.min(
+                                        currentQuestionHeight.value.toDouble(),
+                                        maxHeight.value * screenHeight)) +
+                                    (isBannerImageOn.value &&
+                                            currentQuestionHeight.value != 0
+                                        ? 100
+                                        : 0)),
+                        width: MediaQuery.of(context).size.width,
+                        child: WebViewWidget(
+                          controller: controller,
+                        ),
                       ),
-                      height: isFullScreenMode.value
-                          ? screenHeight - 100
-                          : math.min(
-                              screenHeight - 100,
-                              (math.min(currentQuestionHeight.value.toDouble(),
-                                      maxHeight.value * screenHeight)) +
-                                  (isBannerImageOn.value &&
-                                          currentQuestionHeight.value != 0
-                                      ? 100
-                                      : 0)),
-                      width: MediaQuery.of(context).size.width,
-                      child: Stack(
-                        children: [
-                          WebViewWidget(
-                            controller: controller,
-                          ),
-                          (isCloseButtonEnabled.value &&
-                                  currentQuestionHeight.value != 0)
-                              ? Positioned(
-                                  top: 6,
-                                  right: 6,
-                                  child: IconButton(
-                                    icon: Icon(
-                                      Icons.close,
-                                      size: 18,
-                                      color: Color(int.parse(isHex(
-                                              closeButtonStyle["ctaButton"]
-                                                  .toString())
-                                          ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
-                                          : "0xFF000000")),
-                                    ),
-                                    onPressed: () {
-                                      closeSpotCheck();
-                                      spotcheckID.value = 0;
-                                      position.value = "";
-                                      currentQuestionHeight.value = 0;
-                                      isCloseButtonEnabled.value = false;
-                                      closeButtonStyle.value = {};
-                                      spotcheckContactID.value = 0;
-                                      spotcheckURL.value = "";
-                                      end();
-                                    },
-                                  ),
-                                )
-                              : const SizedBox.shrink()
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                (isCloseButtonEnabled.value &&
+                        (currentQuestionHeight.value != 0 ||
+                            isFullScreenMode.value))
+                    ? Positioned(
+                        top: 48,
+                        right: 9,
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.close,
+                            size: 21,
+                            color: Color(int.parse(isHex(
+                                    closeButtonStyle["ctaButton"].toString())
+                                ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
+                                : "0xFF000000")),
+                          ),
+                          onPressed: () {
+                            closeSpotCheck();
+                            spotcheckID.value = 0;
+                            position.value = "";
+                            currentQuestionHeight.value = 0;
+                            isCloseButtonEnabled.value = false;
+                            closeButtonStyle.value = {};
+                            spotcheckContactID.value = 0;
+                            spotcheckURL.value = "";
+                            end();
+                          },
+                        ),
+                      )
+                    : const SizedBox.shrink()
               ],
             ))
         : const SizedBox.shrink());
@@ -540,7 +536,7 @@ class SpotCheckState extends StatelessWidget {
       case "bottom":
         return MainAxisAlignment.end;
       default:
-        return MainAxisAlignment.center;
+        return MainAxisAlignment.end;
     }
   }
 
