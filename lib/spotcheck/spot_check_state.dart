@@ -577,6 +577,10 @@ class SpotCheckState extends StatelessWidget {
       triggerToken.value = responseJson["triggerToken"] ?? "";
       spotcheckURL.value =
           "https://$domainName/n/spotcheck/${triggerToken.value}?spotcheckContactId=${spotcheckContactID.value}&traceId=${traceId.value}&spotcheckUrl=$screen";
+      
+      variables.forEach((key, value) => spotcheckURL.value = "${spotcheckURL.value}&$key=$value");
+ 
+      log(spotcheckURL.value);
     }
   }
 
