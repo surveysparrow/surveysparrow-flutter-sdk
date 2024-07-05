@@ -37,7 +37,7 @@ class SpotCheckState extends StatelessWidget {
   final RxString spotcheckURL = "".obs;
   final RxInt spotcheckID = 0.obs;
   final RxInt spotcheckContactID = 0.obs;
-  final RxDouble afterDelay = 0.0.obs;
+  final RxInt afterDelay = 0.obs;
   final RxInt currentQuestionHeight = 0.obs;
   final RxString triggerToken = "".obs;
   final RxString traceId = "".obs;
@@ -51,7 +51,7 @@ class SpotCheckState extends StatelessWidget {
   late WebViewController controller;
 
   void start() {
-    Future.delayed(Duration(seconds: afterDelay.value.toInt()), () {
+    Future.delayed(Duration(seconds: afterDelay.value), () {
       _isAnimated.value = true;
       isSpotCheckOpen.value = true;
     });
@@ -162,7 +162,7 @@ class SpotCheckState extends StatelessWidget {
                 Map<String, dynamic> checkCondition =
                     responseJson?["checkCondition"];
                 if (checkCondition["afterDelay"] != null) {
-                  afterDelay.value = double.parse(checkCondition["afterDelay"]);
+                  afterDelay.value = checkCondition["afterDelay"] ;
                 }
                 if (checkCondition["customEvent"] != null) {
                   customEventsSpotChecks.value = [responseJson!];
@@ -229,8 +229,7 @@ class SpotCheckState extends StatelessWidget {
                 Map<String, dynamic> checks = selectedSpotCheck["checks"]!;
 
                 if (checks.isNotEmpty) {
-                  double delay = double.tryParse(checks["afterDelay"]) ?? 0;
-                  afterDelay.value = delay;
+                  afterDelay.value = checks["afterDelay"] as int;
                 }
               }
 
@@ -389,13 +388,12 @@ class SpotCheckState extends StatelessWidget {
                         Map<String, dynamic> checkCondition =
                             responseJson?["checkCondition"];
                         if (checkCondition["afterDelay"] != null) {
-                          afterDelay.value =
-                              double.parse(checkCondition["afterDelay"]);
+                          afterDelay.value = checkCondition["afterDelay"] ;
                         }
                         if (checkCondition["customEvent"] != null) {
                           var delay =
                               checkCondition["customEvent"]?["delayInSeconds"];
-                          afterDelay.value = double.parse(delay ?? "0");
+                          afterDelay.value = delay ?? "0";
                         }
                       }
 
@@ -472,63 +470,66 @@ class SpotCheckState extends StatelessWidget {
                 ),
                 Positioned(
                   bottom: 0,
-                  child: Column(
-                    mainAxisAlignment: _getAlignment(),
-                    children: [
-                      SizedBox(
-                        height: isFullScreenMode.value
-                            ? screenHeight * 0.945
-                            : math.min(
-                                screenHeight,
-                                (math.min(
-                                        currentQuestionHeight.value.toDouble(),
-                                        maxHeight.value * screenHeight)) +
-                                    (isBannerImageOn.value &&
-                                            currentQuestionHeight.value != 0
-                                        ? useMobileLayout
-                                            ? 100
-                                            : 0
-                                        : 0)),
-                        width: MediaQuery.of(context).size.width,
-                        child: Stack(
-                          children: [
-                            WebViewWidget(
-                              controller: controller,
-                            ),
-                            (isCloseButtonEnabled.value &&
-                                    (currentQuestionHeight.value != 0 ||
-                                        isFullScreenMode.value))
-                                ? Positioned(
-                                    top: 6,
-                                    right: 8,
-                                    child: IconButton(
-                                      icon: Icon(
-                                        Icons.close,
-                                        size: 20,
-                                        color: Color(int.parse(isHex(
-                                                closeButtonStyle["ctaButton"]
-                                                    .toString())
-                                            ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
-                                            : "0xFF000000")),
+                  child: SizedBox(
+                    height: screenHeight * 0.945,
+                    child: Column(
+                      mainAxisAlignment: _getAlignment(),
+                      children: [
+                        SizedBox(
+                          height: isFullScreenMode.value
+                              ? screenHeight * 0.945
+                              : math.min(
+                                  screenHeight,
+                                  (math.min(
+                                          currentQuestionHeight.value.toDouble(),
+                                          maxHeight.value * screenHeight)) +
+                                      (isBannerImageOn.value &&
+                                              currentQuestionHeight.value != 0
+                                          ? useMobileLayout
+                                              ? 100
+                                              : 0
+                                          : 0)),
+                          width: MediaQuery.of(context).size.width,
+                          child: Stack(
+                            children: [
+                              WebViewWidget(
+                                controller: controller,
+                              ),
+                              (isCloseButtonEnabled.value &&
+                                      (currentQuestionHeight.value != 0 ||
+                                          isFullScreenMode.value))
+                                  ? Positioned(
+                                      top: 6,
+                                      right: 8,
+                                      child: IconButton(
+                                        icon: Icon(
+                                          Icons.close,
+                                          size: 20,
+                                          color: Color(int.parse(isHex(
+                                                  closeButtonStyle["ctaButton"]
+                                                      .toString())
+                                              ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
+                                              : "0xFF000000")),
+                                        ),
+                                        onPressed: () {
+                                          closeSpotCheck();
+                                          spotcheckID.value = 0;
+                                          position.value = "";
+                                          currentQuestionHeight.value = 0;
+                                          isCloseButtonEnabled.value = false;
+                                          closeButtonStyle.value = {};
+                                          spotcheckContactID.value = 0;
+                                          spotcheckURL.value = "";
+                                          end();
+                                        },
                                       ),
-                                      onPressed: () {
-                                        closeSpotCheck();
-                                        spotcheckID.value = 0;
-                                        position.value = "";
-                                        currentQuestionHeight.value = 0;
-                                        isCloseButtonEnabled.value = false;
-                                        closeButtonStyle.value = {};
-                                        spotcheckContactID.value = 0;
-                                        spotcheckURL.value = "";
-                                        end();
-                                      },
-                                    ),
-                                  )
-                                : const SizedBox.shrink()
-                          ],
+                                    )
+                                  : const SizedBox.shrink()
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -589,6 +590,10 @@ class SpotCheckState extends StatelessWidget {
 
       variables.forEach((key, value) =>
           spotcheckURL.value = "${spotcheckURL.value}&$key=$value");
+
+      if(Platform.isAndroid) {
+         spotcheckURL.value = "${spotcheckURL.value}&isAndroidMobileTarget=true" ;
+      }
 
       log(spotcheckURL.value);
     }

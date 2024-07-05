@@ -33,7 +33,7 @@ class SpotCheck extends StatelessWidget {
     Map<String, dynamic> response =
         await spotCheckState.sendTrackScreenRequest(screen);
     if (response["valid"]) {
-      Future.delayed(const Duration(seconds: 1), () {
+      Future.delayed(const Duration(microseconds: 1), () {
         spotCheckState.start();
       });
     } else {
@@ -45,7 +45,7 @@ class SpotCheck extends StatelessWidget {
     Map<String, dynamic> response =
         await spotCheckState.sendTrackEventRequest(screen, event);
     if (response["valid"]) {
-      Future.delayed(const Duration(seconds: 1), () {
+      Future.delayed(const Duration(microseconds: 1), () {
         spotCheckState.start();
       });
     } else {

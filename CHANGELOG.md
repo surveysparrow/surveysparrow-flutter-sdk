@@ -66,3 +66,7 @@
 ## 1.2.0-beta.6
 
 * SSE-30285, SSE-31037, SSE-30611 Fix
+  
+## 1.2.0-beta.7
+
+* SpotChecks
