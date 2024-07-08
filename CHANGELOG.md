@@ -70,3 +70,7 @@
 ## 1.2.0-beta.7
 
 * SpotChecks
+
+## 1.2.0-beta.8
+
+* SSE-30634 Fix
