@@ -49,6 +49,7 @@ class SpotCheckState extends StatelessWidget {
   final RxList<dynamic> customEventsSpotChecks = [].obs;
 
   late WebViewController controller;
+  final RxBool isLoading = true.obs;
 
   void start() {
     Future.delayed(Duration(seconds: afterDelay.value), () {
@@ -125,6 +126,11 @@ class SpotCheckState extends StatelessWidget {
               ..setJavaScriptMode(JavaScriptMode.unrestricted)
               ..setBackgroundColor(const Color(0x00000000))
               ..loadRequest(Uri.parse(spotcheckURL.value))
+              ..setNavigationDelegate(NavigationDelegate(
+                onPageFinished: (url) {
+                  isLoading.value = false;
+                },
+              ))
               ..addJavaScriptChannel("flutterSpotCheckData",
                   onMessageReceived: (JavaScriptMessage response) {
                 try {
@@ -162,7 +168,7 @@ class SpotCheckState extends StatelessWidget {
                 Map<String, dynamic> checkCondition =
                     responseJson?["checkCondition"];
                 if (checkCondition["afterDelay"] != null) {
-                  afterDelay.value = checkCondition["afterDelay"] ;
+                  afterDelay.value = checkCondition["afterDelay"];
                 }
                 if (checkCondition["customEvent"] != null) {
                   customEventsSpotChecks.value = [responseJson!];
@@ -174,6 +180,11 @@ class SpotCheckState extends StatelessWidget {
                 ..setJavaScriptMode(JavaScriptMode.unrestricted)
                 ..setBackgroundColor(const Color(0x00000000))
                 ..loadRequest(Uri.parse(spotcheckURL.value))
+                ..setNavigationDelegate(NavigationDelegate(
+                  onPageFinished: (url) {
+                    isLoading.value = false;
+                  },
+                ))
                 ..addJavaScriptChannel("flutterSpotCheckData",
                     onMessageReceived: (JavaScriptMessage response) {
                   try {
@@ -240,6 +251,11 @@ class SpotCheckState extends StatelessWidget {
                   ..setJavaScriptMode(JavaScriptMode.unrestricted)
                   ..setBackgroundColor(const Color(0x00000000))
                   ..loadRequest(Uri.parse(spotcheckURL.value))
+                  ..setNavigationDelegate(NavigationDelegate(
+                    onPageFinished: (url) {
+                      isLoading.value = false;
+                    },
+                  ))
                   ..addJavaScriptChannel("flutterSpotCheckData",
                       onMessageReceived: (JavaScriptMessage response) {
                     try {
@@ -292,9 +308,8 @@ class SpotCheckState extends StatelessWidget {
           if (event.keys.contains(customEvent["eventName"])) {
             selectedSpotCheckID =
                 spotCheck["id"] ?? spotCheck["spotCheckId"] ?? intMax;
-                    
-            Map<String, dynamic> payloadUserDetails = Map.from(userDetails);
 
+            Map<String, dynamic> payloadUserDetails = Map.from(userDetails);
 
             if (selectedSpotCheckID != intMax) {
               if (payloadUserDetails["email"] == null &&
@@ -353,6 +368,11 @@ class SpotCheckState extends StatelessWidget {
                       ..setJavaScriptMode(JavaScriptMode.unrestricted)
                       ..setBackgroundColor(const Color(0x00000000))
                       ..loadRequest(Uri.parse(spotcheckURL.value))
+                      ..setNavigationDelegate(NavigationDelegate(
+                        onPageFinished: (url) {
+                          isLoading.value = false;
+                        },
+                      ))
                       ..addJavaScriptChannel("flutterSpotCheckData",
                           onMessageReceived: (JavaScriptMessage response) {
                         try {
@@ -388,7 +408,7 @@ class SpotCheckState extends StatelessWidget {
                         Map<String, dynamic> checkCondition =
                             responseJson?["checkCondition"];
                         if (checkCondition["afterDelay"] != null) {
-                          afterDelay.value = checkCondition["afterDelay"] ;
+                          afterDelay.value = checkCondition["afterDelay"];
                         }
                         if (checkCondition["customEvent"] != null) {
                           var delay =
@@ -402,6 +422,11 @@ class SpotCheckState extends StatelessWidget {
                         ..setJavaScriptMode(JavaScriptMode.unrestricted)
                         ..setBackgroundColor(const Color(0x00000000))
                         ..loadRequest(Uri.parse(spotcheckURL.value))
+                        ..setNavigationDelegate(NavigationDelegate(
+                          onPageFinished: (url) {
+                            isLoading.value = false;
+                          },
+                        ))
                         ..addJavaScriptChannel("flutterSpotCheckData",
                             onMessageReceived: (JavaScriptMessage response) {
                           try {
@@ -451,8 +476,7 @@ class SpotCheckState extends StatelessWidget {
     var smallestDimension = MediaQuery.of(context).size.shortestSide;
     final useMobileLayout = smallestDimension < 600;
 
-    return Obx(() => isSpotCheckOpen.value &&
-            (currentQuestionHeight.value != 0 || isFullScreenMode.value)
+    return Obx(() => isSpotCheckOpen.value
         ? AnimatedContainer(
             duration:
                 Duration(milliseconds: position.value == "center" ? 1000 : 500),
@@ -462,12 +486,16 @@ class SpotCheckState extends StatelessWidget {
             child: Stack(
               children: <Widget>[
                 Container(
-                  color: const Color.fromARGB(12, 0, 0, 0),
+                  color: const Color.fromARGB(85, 0, 0, 0),
                   child: SizedBox(
                     height: MediaQuery.of(context).size.height,
                     width: MediaQuery.of(context).size.width,
                   ),
                 ),
+                if (isLoading.value)
+                  const Center(
+                    child: CircularProgressIndicator(),
+                  ),
                 Positioned(
                   bottom: 0,
                   child: SizedBox(
@@ -481,7 +509,8 @@ class SpotCheckState extends StatelessWidget {
                               : math.min(
                                   screenHeight,
                                   (math.min(
-                                          currentQuestionHeight.value.toDouble(),
+                                          currentQuestionHeight.value
+                                              .toDouble(),
                                           maxHeight.value * screenHeight)) +
                                       (isBannerImageOn.value &&
                                               currentQuestionHeight.value != 0
@@ -495,9 +524,7 @@ class SpotCheckState extends StatelessWidget {
                               WebViewWidget(
                                 controller: controller,
                               ),
-                              (isCloseButtonEnabled.value &&
-                                      (currentQuestionHeight.value != 0 ||
-                                          isFullScreenMode.value))
+                              (isCloseButtonEnabled.value && !isLoading.value)
                                   ? Positioned(
                                       top: 6,
                                       right: 8,
@@ -591,8 +618,8 @@ class SpotCheckState extends StatelessWidget {
       variables.forEach((key, value) =>
           spotcheckURL.value = "${spotcheckURL.value}&$key=$value");
 
-      if(Platform.isAndroid) {
-         spotcheckURL.value = "${spotcheckURL.value}&isAndroidMobileTarget=true" ;
+      if (Platform.isAndroid) {
+        spotcheckURL.value = "${spotcheckURL.value}&isAndroidMobileTarget=true";
       }
 
       log(spotcheckURL.value);
