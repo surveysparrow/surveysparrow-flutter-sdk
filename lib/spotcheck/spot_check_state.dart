@@ -172,6 +172,7 @@ class SpotCheckState extends StatelessWidget {
                 }
                 if (checkCondition["customEvent"] != null) {
                   customEventsSpotChecks.value = [responseJson!];
+                  return {"valid": false};
                 }
               }
 
@@ -413,7 +414,7 @@ class SpotCheckState extends StatelessWidget {
                         if (checkCondition["customEvent"] != null) {
                           var delay =
                               checkCondition["customEvent"]?["delayInSeconds"];
-                          afterDelay.value = delay ?? "0";
+                          afterDelay.value = delay ?? 0;
                         }
                       }
 
