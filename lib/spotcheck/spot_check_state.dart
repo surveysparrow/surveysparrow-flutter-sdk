@@ -477,90 +477,94 @@ class SpotCheckState extends StatelessWidget {
     final useMobileLayout = smallestDimension < 600;
 
     return Obx(() => isSpotCheckOpen.value
-        ? AnimatedContainer(
-            duration:
-                Duration(milliseconds: position.value == "center" ? 1000 : 500),
-            curve: Curves.easeInOut,
-            transform: Matrix4.translationValues(
-                0.0, isSpotCheckOpen.value ? 0.0 : 2000, 0.0),
-            child: Stack(
-              children: <Widget>[
-                Container(
-                  color: const Color.fromARGB(85, 0, 0, 0),
-                  child: SizedBox(
-                    height: MediaQuery.of(context).size.height,
-                    width: MediaQuery.of(context).size.width,
-                  ),
-                ),
-                if (isLoading.value)
-                  const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                Positioned(
-                  bottom: 0,
-                  child: SizedBox(
-                    height: screenHeight * 0.945,
-                    child: Column(
-                      mainAxisAlignment: _getAlignment(),
-                      children: [
-                        SizedBox(
-                          height: isFullScreenMode.value
-                              ? screenHeight * 0.945
-                              : math.min(
-                                  screenHeight,
-                                  (math.min(
-                                          currentQuestionHeight.value
-                                              .toDouble(),
-                                          maxHeight.value * screenHeight)) +
-                                      (isBannerImageOn.value &&
-                                              currentQuestionHeight.value != 0
-                                          ? useMobileLayout
-                                              ? 100
-                                              : 0
-                                          : 0)),
-                          width: MediaQuery.of(context).size.width,
-                          child: Stack(
-                            children: [
-                              WebViewWidget(
-                                controller: controller,
-                              ),
-                              (isCloseButtonEnabled.value && !isLoading.value)
-                                  ? Positioned(
-                                      top: 6,
-                                      right: 8,
-                                      child: IconButton(
-                                        icon: Icon(
-                                          Icons.close,
-                                          size: 20,
-                                          color: Color(int.parse(isHex(
-                                                  closeButtonStyle["ctaButton"]
-                                                      .toString())
-                                              ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
-                                              : "0xFF000000")),
-                                        ),
-                                        onPressed: () {
-                                          closeSpotCheck();
-                                          spotcheckID.value = 0;
-                                          position.value = "";
-                                          currentQuestionHeight.value = 0;
-                                          isCloseButtonEnabled.value = false;
-                                          closeButtonStyle.value = {};
-                                          spotcheckContactID.value = 0;
-                                          spotcheckURL.value = "";
-                                          end();
-                                        },
-                                      ),
-                                    )
-                                  : const SizedBox.shrink()
-                            ],
-                          ),
-                        ),
-                      ],
+        ? Stack(
+            children: <Widget>[
+              isLoading.value
+                  ? Container(
+                      alignment: Alignment.center,
+                      height: MediaQuery.of(context).size.height,
+                      width: MediaQuery.of(context).size.width,
+                      decoration: const BoxDecoration(
+                        color: Color.fromARGB(85, 0, 0, 0),
+                      ),
+                      child: const SizedBox(
+                          height: 40,
+                          width: 40,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                          )),
+                    )
+                  : Container(
+                      color: const Color.fromARGB(85, 0, 0, 0),
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height,
+                        width: MediaQuery.of(context).size.width,
+                      ),
                     ),
+              Positioned(
+                bottom: 0,
+                child: SizedBox(
+                  height: screenHeight * 0.945,
+                  child: Column(
+                    mainAxisAlignment: _getAlignment(),
+                    children: [
+                      SizedBox(
+                        height: isFullScreenMode.value
+                            ? screenHeight * 0.945
+                            : math.min(
+                                screenHeight,
+                                (math.min(
+                                        currentQuestionHeight.value.toDouble(),
+                                        maxHeight.value * screenHeight)) +
+                                    (isBannerImageOn.value &&
+                                            currentQuestionHeight.value != 0
+                                        ? useMobileLayout
+                                            ? 100
+                                            : 0
+                                        : 0)),
+                        width: MediaQuery.of(context).size.width,
+                        child: Stack(
+                          children: [
+                            WebViewWidget(
+                              controller: controller,
+                            ),
+                            (isCloseButtonEnabled.value && !isLoading.value)
+                                ? Positioned(
+                                    top: 6,
+                                    right: 8,
+                                    child: IconButton(
+                                      icon: Icon(
+                                        Icons.close,
+                                        size: 20,
+                                        color: Color(int.parse(isHex(
+                                                closeButtonStyle["ctaButton"]
+                                                    .toString())
+                                            ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
+                                            : "0xFF000000")),
+                                      ),
+                                      onPressed: () {
+                                        closeSpotCheck();
+                                        spotcheckID.value = 0;
+                                        position.value = "";
+                                        currentQuestionHeight.value = 0;
+                                        isCloseButtonEnabled.value = false;
+                                        closeButtonStyle.value = {};
+                                        spotcheckContactID.value = 0;
+                                        spotcheckURL.value = "";
+                                        end();
+                                      },
+                                    ),
+                                  )
+                                : const SizedBox.shrink()
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ))
+              ),
+            ],
+          )
         : const SizedBox.shrink());
   }
 

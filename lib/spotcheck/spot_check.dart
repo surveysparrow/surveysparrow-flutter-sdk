@@ -9,8 +9,7 @@ class SpotCheck extends StatelessWidget {
       required this.domainName,
       required this.userDetails,
       this.variables = const {},
-      this.customProperties = const {}
-      })
+      this.customProperties = const {}})
       : super(key: key) {
     spotCheckState = SpotCheckState(
       targetToken: targetToken,
@@ -33,9 +32,7 @@ class SpotCheck extends StatelessWidget {
     Map<String, dynamic> response =
         await spotCheckState.sendTrackScreenRequest(screen);
     if (response["valid"]) {
-      Future.delayed(const Duration(microseconds: 1), () {
-        spotCheckState.start();
-      });
+      spotCheckState.start();
     } else {
       log("TrackScreen Failed");
     }
@@ -45,9 +42,7 @@ class SpotCheck extends StatelessWidget {
     Map<String, dynamic> response =
         await spotCheckState.sendTrackEventRequest(screen, event);
     if (response["valid"]) {
-      Future.delayed(const Duration(microseconds: 1), () {
-        spotCheckState.start();
-      });
+      spotCheckState.start();
     } else {
       log("TrackEvent Failed");
     }
