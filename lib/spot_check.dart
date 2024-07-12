@@ -1,6 +1,6 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:surveysparrow_flutter_sdk/spotcheck/spot_check_state.dart';
+import 'package:surveysparrow_flutter_sdk/spot_check_state.dart';
 
 class SpotCheck extends StatelessWidget {
   SpotCheck(
