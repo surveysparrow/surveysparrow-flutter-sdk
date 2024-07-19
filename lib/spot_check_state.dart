@@ -16,7 +16,8 @@ class SpotCheckState extends StatelessWidget {
       required this.domainName,
       required this.userDetails,
       required this.variables,
-      required this.customProperties})
+      required this.customProperties,
+      required this.sparrowLang})
       : super(key: key);
 
   final String targetToken;
@@ -26,6 +27,7 @@ class SpotCheckState extends StatelessWidget {
   double screenHeight = 0;
   double screenWidth = 0;
   Map<String, dynamic> userDetails;
+  final String sparrowLang;
 
   final RxBool isValid = false.obs;
   final RxBool isFullScreenMode = false.obs;
@@ -222,14 +224,14 @@ class SpotCheckState extends StatelessWidget {
                   responseJson?["resultantSpotCheck"];
 
               Map<String, dynamic> selectedSpotCheck = {};
-              double minDelay = double.maxFinite;
+              int minDelay = 4294967296;
 
               for (var spotCheck in customEventsSpotChecks) {
                 Map<String, dynamic> checks = spotCheck["checks"];
                 if (checks.isEmpty) {
                   selectedSpotCheck = spotCheck;
                 } else if (checks["afterDelay"] != null) {
-                  double delay = double.parse(checks["afterDelay"]);
+                  int delay = checks["afterDelay"];
                   if (minDelay > delay) {
                     minDelay = delay;
                     selectedSpotCheck = spotCheck;
@@ -305,8 +307,8 @@ class SpotCheckState extends StatelessWidget {
         Map<String, dynamic> checks =
             spotCheck["checks"] ?? spotCheck["checkCondition"];
         if (checks.isNotEmpty) {
-          Map<String, dynamic> customEvent = checks["customEvent"];
-          if (event.keys.contains(customEvent["eventName"])) {
+          Map<String, dynamic> customEvent = checks["customEvent"] ?? {};
+          if (customEvent.isNotEmpty && event.keys.contains(customEvent["eventName"])) {
             selectedSpotCheckID =
                 spotCheck["id"] ?? spotCheck["spotCheckId"] ?? intMax;
 
@@ -459,8 +461,6 @@ class SpotCheckState extends StatelessWidget {
                 return {"valid": false};
               }
             }
-          } else {
-            return {"valid": false};
           }
         }
       }
@@ -625,6 +625,10 @@ class SpotCheckState extends StatelessWidget {
 
       if (Platform.isAndroid) {
         spotcheckURL.value = "${spotcheckURL.value}&isAndroidMobileTarget=true";
+      }
+
+      if (sparrowLang.isNotEmpty) {
+        spotcheckURL.value = "${spotcheckURL.value}&sparrowLang=$sparrowLang";
       }
 
       log(spotcheckURL.value);

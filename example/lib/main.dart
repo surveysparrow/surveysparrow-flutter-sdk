@@ -7,12 +7,13 @@ void main() {
 }
 
 final SpotCheck spotCheck = SpotCheck(
-  domainName: "rgkkk.salesparrow.com",
-  targetToken: "tar-d6CkUKxUVfF7eQACtxVyBE",
+  domainName: "",
+  targetToken: "",
   // Should Not Pass userDetails as const
   userDetails: {},
   variables: {},
   customProperties: {},
+  sparrowLang: "",
 );
 
 class MyApp extends StatelessWidget {
