@@ -86,3 +86,7 @@
 ## 1.2.0-beta.11
 
 * SPOTCHECKS
+  
+## 1.2.0
+
+* SPOTCHECKS
