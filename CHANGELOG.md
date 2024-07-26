@@ -42,3 +42,11 @@
 ## 1.1.3
 
 * Submission Queue Support
+  
+## 1.1.4
+
+* HTTP UserAgentFix
+  
+## 1.1.5
+
+* SSE-17829 FIx

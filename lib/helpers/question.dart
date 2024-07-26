@@ -11,40 +11,45 @@ import '../components/questions/text.dart';
 import '../components/questions/npsScore.dart';
 
 parsedHeading(question, replacementVal) {
-  if (question['rtxt'] == null ||
-      question['rtxt']['blocks'] == null ||
-      question['rtxt']['blocks'][0] == null ||
-      question['rtxt']['blocks'][0]['text'] == null) {
-    return '';
+  String replacedString = "" ;
+  if (question['rtxt'] != null &&
+      question['rtxt']['blocks'] != null) {
+        question['rtxt']['blocks'].forEach((e) {
+          if(e['text'] != null ){
+            replacedString += """${e['text']}
+            """ ;
+          }
+        });
+  }else {
+    replacedString = "";
   }
 
-  var entityRanges = question['rtxt']['blocks'][0]['entityRanges'];
+  var blocks = question['rtxt']['blocks'];
+  var entityRanges = [];
+  blocks.forEach((e) { 
+    entityRanges.addAll(e['entityRanges']);
+    }
+  );
+  
   var entityMapping = question['rtxt']['entityMap'];
   final Map<dynamic, dynamic> stringToReplace = {};
 
-  if (entityRanges.length <= 0) {
-    return question['rtxt']['blocks'][0]['text'];
+  if (entityRanges.isEmpty) {
+    return replacedString;
   }
 
-  var replacedString = question['rtxt']['blocks'][0]['text'];
-  var extraOffset = 0;
 
   for (var i = 0; i < entityRanges.length; i++) {
     var currentEntity = entityRanges[i];
-    var textToReplace =
-        '#CHANGE_${entityMapping[currentEntity['key'].toString()]['data']['component_txt']}';
-    replacedString = replacedString.replaceFirst(
+    var textToReplace = entityMapping[currentEntity['key'].toString()]['data']['component_txt'];
+    replacedString = replacedString.replaceAll(
         RegExp(entityMapping[currentEntity['key'].toString()]['data']
             ['component_txt']),
-        textToReplace,
-        currentEntity['offset'] + extraOffset);
-    extraOffset += 8;
+        textToReplace);
     stringToReplace[i] = {};
     stringToReplace[i]['pramKey'] =
         entityMapping[currentEntity['key'].toString()]['data']['component_txt'];
     stringToReplace[i]['regexKey'] = textToReplace;
-
-    // entityMapping[currentEntity['key'].toString()]['data']['component_txt']['replace_txt'] = textToReplace;
   }
 
   for (var i = 0; i < stringToReplace.length; i++) {
