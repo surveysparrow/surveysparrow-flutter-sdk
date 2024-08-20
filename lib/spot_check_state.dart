@@ -2,12 +2,16 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
+
+
 
 class SpotCheckState extends StatelessWidget {
   SpotCheckState(
@@ -53,7 +57,14 @@ class SpotCheckState extends StatelessWidget {
   late WebViewController controller;
   final RxBool isLoading = true.obs;
 
+
+
+  @override
+  void initState(){
+
+  }
   void start() {
+
     Future.delayed(Duration(seconds: afterDelay.value), () {
       _isAnimated.value = true;
       isSpotCheckOpen.value = true;
@@ -63,6 +74,29 @@ class SpotCheckState extends StatelessWidget {
   void end() {
     isSpotCheckOpen.value = false;
   }
+
+
+  Future<List<String>> _androidFilePicker(FileSelectorParams params) async {
+    final result = await FilePicker.platform.pickFiles(allowMultiple: true);
+
+    if (result != null && result.files.isNotEmpty) {
+      final fileUris = result.files
+          .where((file) => file.path != null)
+          .map((file) => File(file.path!).uri.toString())
+          .toList();
+
+      return fileUris;
+    }
+
+    return [];
+  }
+
+  void addFileSelectionListener() async {
+    if (Platform.isAndroid) {
+      final androidController =
+      controller.platform as AndroidWebViewController;
+      await androidController.setOnShowFileSelector(_androidFilePicker);
+    }}
 
   Future<Map<String, dynamic>> sendTrackScreenRequest(String screen) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -126,6 +160,7 @@ class SpotCheckState extends StatelessWidget {
             setAppearance(responseJson!, screen);
             controller = WebViewController()
               ..setJavaScriptMode(JavaScriptMode.unrestricted)
+
               ..setBackgroundColor(const Color(0x00000000))
               ..loadRequest(Uri.parse(spotcheckURL.value))
               ..setNavigationDelegate(NavigationDelegate(
@@ -149,6 +184,8 @@ class SpotCheckState extends StatelessWidget {
                   log("Error decoding JSON: $e");
                 }
               });
+
+
 
             _isSpotPassed.value = true;
             log("Success: Spots or Checks or Visitor or Reccurence Condition Passed");
@@ -426,6 +463,7 @@ class SpotCheckState extends StatelessWidget {
                         ..setBackgroundColor(const Color(0x00000000))
                         ..loadRequest(Uri.parse(spotcheckURL.value))
                         ..setNavigationDelegate(NavigationDelegate(
+
                           onPageFinished: (url) {
                             isLoading.value = false;
                           },
@@ -526,9 +564,11 @@ class SpotCheckState extends StatelessWidget {
                         width: MediaQuery.of(context).size.width,
                         child: Stack(
                           children: [
+
                             WebViewWidget(
                               controller: controller,
                             ),
+
                             (isCloseButtonEnabled.value && !isLoading.value)
                                 ? Positioned(
                                     top: 6,
@@ -557,6 +597,7 @@ class SpotCheckState extends StatelessWidget {
                                     ),
                                   )
                                 : const SizedBox.shrink()
+
                           ],
                         ),
                       ),
@@ -623,9 +664,10 @@ class SpotCheckState extends StatelessWidget {
       variables.forEach((key, value) =>
           spotcheckURL.value = "${spotcheckURL.value}&$key=$value");
 
-      if (Platform.isAndroid) {
-        spotcheckURL.value = "${spotcheckURL.value}&isAndroidMobileTarget=true";
-      }
+      // if (Platform.isAndroid) {
+      //   spotcheckURL.value = "${spotcheckURL.value}&isAndroidMobileTarget=true";
+      // }
+
 
       if (sparrowLang.isNotEmpty) {
         spotcheckURL.value = "${spotcheckURL.value}&sparrowLang=$sparrowLang";
