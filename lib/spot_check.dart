@@ -35,6 +35,7 @@ class SpotCheck extends StatelessWidget {
     Map<String, dynamic> response =
         await spotCheckState.sendTrackScreenRequest(screen);
     if (response["valid"]) {
+      spotCheckState.addFileSelectionListener();
       spotCheckState.start();
     } else {
       log("TrackScreen Failed");
@@ -45,6 +46,7 @@ class SpotCheck extends StatelessWidget {
     Map<String, dynamic> response =
         await spotCheckState.sendTrackEventRequest(screen, event);
     if (response["valid"]) {
+      spotCheckState.addFileSelectionListener();
       spotCheckState.start();
     } else {
       log("TrackEvent Failed");
