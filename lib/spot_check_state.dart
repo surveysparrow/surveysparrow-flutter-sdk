@@ -647,10 +647,6 @@ class SpotCheckState extends StatelessWidget {
       variables.forEach((key, value) =>
           spotcheckURL.value = "${spotcheckURL.value}&$key=$value");
 
-      // if (Platform.isAndroid) {
-      //   spotcheckURL.value = "${spotcheckURL.value}&isAndroidMobileTarget=true";
-      // }
-
       if (sparrowLang.isNotEmpty) {
         spotcheckURL.value = "${spotcheckURL.value}&sparrowLang=$sparrowLang";
       }
