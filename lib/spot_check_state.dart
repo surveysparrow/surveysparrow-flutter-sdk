@@ -274,7 +274,15 @@ class SpotCheckState extends StatelessWidget {
                   } catch (e) {
                     log("Error decoding JSON: $e");
                   }
-                });
+                })
+
+                ..addJavaScriptChannel("SsFlutterSdk",
+                  onMessageReceived: (JavaScriptMessage response) {
+
+                    if (response.message == 'captureImage') {
+                      _captureImage();
+                    }
+                  },);
 
               _isChecksPassed.value = true;
               log("Success: Checks Condition Passed");
@@ -345,7 +353,15 @@ class SpotCheckState extends StatelessWidget {
                     } catch (e) {
                       log("Error decoding JSON: $e");
                     }
-                  });
+                  })
+
+                  ..addJavaScriptChannel("SsFlutterSdk",
+                    onMessageReceived: (JavaScriptMessage response) {
+
+                      if (response.message == 'captureImage') {
+                        _captureImage();
+                      }
+                    },);
 
                 return {"valid": true};
               }
@@ -463,7 +479,14 @@ class SpotCheckState extends StatelessWidget {
                         } catch (e) {
                           log("Error decoding JSON: $e");
                         }
-                      });
+                      })
+                      ..addJavaScriptChannel("SsFlutterSdk",
+                        onMessageReceived: (JavaScriptMessage response) {
+
+                          if (response.message == 'captureImage') {
+                            _captureImage();
+                          }
+                        },);
                     _isSpotPassed.value = true;
                     if (show) {
                       log("Success: Spots or Checks or Visitor or Reccurence Condition Passed");
@@ -517,7 +540,14 @@ class SpotCheckState extends StatelessWidget {
                           } catch (e) {
                             log("Error decoding JSON: $e");
                           }
-                        });
+                        })
+                        ..addJavaScriptChannel("SsFlutterSdk",
+                          onMessageReceived: (JavaScriptMessage response) {
+
+                            if (response.message == 'captureImage') {
+                              _captureImage();
+                            }
+                          },);
 
                       log("Success: Checks Condition Passed");
                       return {"valid": true};
