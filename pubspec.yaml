@@ -16,6 +16,7 @@ dependencies:
   uuid: ^4.4.2
   shared_preferences: ^2.2.3
   file_picker: ^8.1.2
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

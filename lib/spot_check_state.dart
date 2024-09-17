@@ -5,7 +5,9 @@ import 'dart:math' as math;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get/get_rx/get_rx.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -45,7 +47,7 @@ class SpotCheckState extends StatelessWidget {
   final RxInt currentQuestionHeight = 0.obs;
   final RxString triggerToken = "".obs;
   final RxString traceId = "".obs;
-
+  final RxBool _isImageCaptureActive = false.obs;
   final RxDouble maxHeight = 0.0.obs;
   final RxBool _isAnimated = false.obs;
   final RxBool _isSpotPassed = false.obs;
@@ -66,27 +68,64 @@ class SpotCheckState extends StatelessWidget {
     isSpotCheckOpen.value = false;
   }
 
-    Future<List<String>> _androidFilePicker(FileSelectorParams params) async {
-    final result = await FilePicker.platform.pickFiles(allowMultiple: true);
+  Future<List<String>> _androidFilePicker(FileSelectorParams params) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(allowMultiple: true);
 
-    if (result != null && result.files.isNotEmpty) {
-      final fileUris = result.files
-          .where((file) => file.path != null)
-          .map((file) => File(file.path!).uri.toString())
-          .toList();
+      if (result != null && result.files.isNotEmpty) {
+        final fileUris = result.files
+            .where((file) => file.path != null)
+            .map((file) => File(file.path!).uri.toString())
+            .toList();
 
-      return fileUris;
+        return fileUris;
+      }
+    } catch (e) {
+      log('Error picking Files');
     }
 
     return [];
   }
 
+  Future<List<String>> _androidImagePicker(FileSelectorParams params) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(source: ImageSource.camera);
+      _isImageCaptureActive.value = false;
+      addFileSelectionListener();
+
+      if (pickedFile != null) {
+        return [File(pickedFile.path).uri.toString()];
+      }
+    } catch (e) {
+      _isImageCaptureActive.value = false;
+      addFileSelectionListener();
+      log('Error picking Image');
+    }
+
+    return [];
+  }
+
+
   void addFileSelectionListener() async {
     if (Platform.isAndroid) {
-      final androidController =
-      controller.platform as AndroidWebViewController;
+
+      final androidController = controller.platform as AndroidWebViewController;
+      if(!_isImageCaptureActive.value){
       await androidController.setOnShowFileSelector(_androidFilePicker);
+      }
+      else{
+        await androidController.setOnShowFileSelector(_androidImagePicker);
+
+      }
     }}
+
+
+
+  void _captureImage(){
+    _isImageCaptureActive.value = true;
+    addFileSelectionListener();
+  }
 
   Future<Map<String, dynamic>> sendTrackScreenRequest(String screen) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -172,7 +211,15 @@ class SpotCheckState extends StatelessWidget {
                 } catch (e) {
                   log("Error decoding JSON: $e");
                 }
-              });
+              })
+
+            ..addJavaScriptChannel("SsFlutterSdk",
+              onMessageReceived: (JavaScriptMessage response) {
+
+              if (response.message == 'captureImage') {
+               _captureImage();
+              }
+            },);
 
             _isSpotPassed.value = true;
             log("Success: Spots or Checks or Visitor or Reccurence Condition Passed");
