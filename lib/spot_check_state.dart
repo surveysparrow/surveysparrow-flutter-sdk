@@ -158,7 +158,8 @@ class SpotCheckState extends StatelessWidget {
         "timezone": DateTime.now().timeZoneName,
       },
       "traceId": traceId.value,
-      "customProperties": customProperties
+      "customProperties": customProperties,
+      "sdk" : "FLUTTER"
     };
 
     final Uri url = Uri.parse(
@@ -431,7 +432,7 @@ class SpotCheckState extends StatelessWidget {
                   "customEvent": event,
                 },
                 "traceId": traceId.value,
-                "customProperties": customProperties
+                "customProperties": customProperties,
               };
 
               final Uri url = Uri.parse(
