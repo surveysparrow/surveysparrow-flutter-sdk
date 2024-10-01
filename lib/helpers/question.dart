@@ -15,7 +15,7 @@ parsedHeading(question, replacementVal) {
   if (question['rtxt'] != null &&
       question['rtxt']['blocks'] != null) {
         question['rtxt']['blocks'].forEach((e) {
-          if(e['text'] != null ){
+          if(e['text'] != null && e['text'].toString().isNotEmpty ){
             replacedString += """${e['text']}
             """ ;
           }

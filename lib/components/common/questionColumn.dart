@@ -93,7 +93,6 @@ class _QuestionColumnState extends State<QuestionColumn> {
                 fontFamily: customFont,
               ),
             ),
-            SizedBox(height: 8),
           ],
           Text(
             theme['showRequired'] && this.question['required']
@@ -107,7 +106,6 @@ class _QuestionColumnState extends State<QuestionColumn> {
                 fontWeight: FontWeight.w400,
                 color: theme['questionColor']),
           ),
-          SizedBox(height: 10),
           Text(
             this.question['rdesc'] != null &&
                     this.question['rdesc']['blocks'] != null &&
@@ -124,7 +122,6 @@ class _QuestionColumnState extends State<QuestionColumn> {
               color: theme['questionDescriptionColor'],
             ),
           ),
-          SizedBox(height: 40),
         ],
       ),
     );
