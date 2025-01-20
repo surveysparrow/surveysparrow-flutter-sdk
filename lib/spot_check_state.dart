@@ -126,7 +126,6 @@ class SpotCheckState extends StatelessWidget {
             setAppearance(responseJson!, screen);
             controller = WebViewController()
               ..setJavaScriptMode(JavaScriptMode.unrestricted)
-              ..setBackgroundColor(const Color(0x00000000))
               ..loadRequest(Uri.parse(spotcheckURL.value))
               ..setNavigationDelegate(NavigationDelegate(
                 onPageFinished: (url) {
@@ -181,7 +180,6 @@ class SpotCheckState extends StatelessWidget {
               setAppearance(responseJson!, screen);
               controller = WebViewController()
                 ..setJavaScriptMode(JavaScriptMode.unrestricted)
-                ..setBackgroundColor(const Color(0x00000000))
                 ..loadRequest(Uri.parse(spotcheckURL.value))
                 ..setNavigationDelegate(NavigationDelegate(
                   onPageFinished: (url) {
@@ -252,7 +250,6 @@ class SpotCheckState extends StatelessWidget {
               if (selectedSpotCheck.isNotEmpty) {
                 controller = WebViewController()
                   ..setJavaScriptMode(JavaScriptMode.unrestricted)
-                  ..setBackgroundColor(const Color(0x00000000))
                   ..loadRequest(Uri.parse(spotcheckURL.value))
                   ..setNavigationDelegate(NavigationDelegate(
                     onPageFinished: (url) {
@@ -369,7 +366,6 @@ class SpotCheckState extends StatelessWidget {
                     setAppearance(responseJson!, screen);
                     controller = WebViewController()
                       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-                      ..setBackgroundColor(const Color(0x00000000))
                       ..loadRequest(Uri.parse(spotcheckURL.value))
                       ..setNavigationDelegate(NavigationDelegate(
                         onPageFinished: (url) {
@@ -423,7 +419,6 @@ class SpotCheckState extends StatelessWidget {
                       setAppearance(responseJson!, screen);
                       controller = WebViewController()
                         ..setJavaScriptMode(JavaScriptMode.unrestricted)
-                        ..setBackgroundColor(const Color(0x00000000))
                         ..loadRequest(Uri.parse(spotcheckURL.value))
                         ..setNavigationDelegate(NavigationDelegate(
                           onPageFinished: (url) {
