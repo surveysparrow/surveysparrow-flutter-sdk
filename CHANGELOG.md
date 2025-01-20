@@ -90,3 +90,7 @@
 ## 1.2.0
 
 * SPOTCHECKS
+  
+## 1.2.1
+
+* MacOS Support on Spotchecks
