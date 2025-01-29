@@ -159,7 +159,6 @@ class SpotCheckState extends StatelessWidget {
       },
       "traceId": traceId.value,
       "customProperties": customProperties,
-      "sdk" : "FLUTTER"
     };
 
     final Uri url = Uri.parse(
