@@ -93,4 +93,8 @@
   
 ## 1.2.1
 
-* MacOS Support on Spotchecks
+* MacOS Support on Spotchecks  
+  
+## 1.2.2
+
+* Media Question Support for Android OS on Spotchecks
