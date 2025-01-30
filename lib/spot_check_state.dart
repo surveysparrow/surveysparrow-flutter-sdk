@@ -2,12 +2,16 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get/get_rx/get_rx.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 class SpotCheckState extends StatelessWidget {
   SpotCheckState(
@@ -43,7 +47,7 @@ class SpotCheckState extends StatelessWidget {
   final RxInt currentQuestionHeight = 0.obs;
   final RxString triggerToken = "".obs;
   final RxString traceId = "".obs;
-
+  final RxBool _isImageCaptureActive = false.obs;
   final RxDouble maxHeight = 0.0.obs;
   final RxBool _isAnimated = false.obs;
   final RxBool _isSpotPassed = false.obs;
@@ -62,6 +66,61 @@ class SpotCheckState extends StatelessWidget {
 
   void end() {
     isSpotCheckOpen.value = false;
+  }
+
+  Future<List<String>> _androidFilePicker(FileSelectorParams params) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(allowMultiple: true);
+
+      if (result != null && result.files.isNotEmpty) {
+        final fileUris = result.files
+            .where((file) => file.path != null)
+            .map((file) => File(file.path!).uri.toString())
+            .toList();
+
+        return fileUris;
+      }
+    } catch (e) {
+      log('Error picking Files');
+    }
+
+    return [];
+  }
+
+  Future<List<String>> _androidImagePicker(FileSelectorParams params) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile =
+          await picker.pickImage(source: ImageSource.camera);
+      _isImageCaptureActive.value = false;
+      addFileSelectionListener();
+
+      if (pickedFile != null) {
+        return [File(pickedFile.path).uri.toString()];
+      }
+    } catch (e) {
+      _isImageCaptureActive.value = false;
+      addFileSelectionListener();
+      log('Error picking Image');
+    }
+
+    return [];
+  }
+
+  void addFileSelectionListener() async {
+    if (Platform.isAndroid) {
+      final androidController = controller.platform as AndroidWebViewController;
+      if (!_isImageCaptureActive.value) {
+        await androidController.setOnShowFileSelector(_androidFilePicker);
+      } else {
+        await androidController.setOnShowFileSelector(_androidImagePicker);
+      }
+    }
+  }
+
+  void _captureImage() {
+    _isImageCaptureActive.value = true;
+    addFileSelectionListener();
   }
 
   Future<Map<String, dynamic>> sendTrackScreenRequest(String screen) async {
@@ -95,7 +154,7 @@ class SpotCheckState extends StatelessWidget {
         "timezone": DateTime.now().timeZoneName,
       },
       "traceId": traceId.value,
-      "customProperties": customProperties
+      "customProperties": customProperties,
     };
 
     final Uri url = Uri.parse(
@@ -147,7 +206,15 @@ class SpotCheckState extends StatelessWidget {
                 } catch (e) {
                   log("Error decoding JSON: $e");
                 }
-              });
+              })
+              ..addJavaScriptChannel(
+                "SsFlutterSdk",
+                onMessageReceived: (JavaScriptMessage response) {
+                  if (response.message == 'captureImage') {
+                    _captureImage();
+                  }
+                },
+              );
 
             _isSpotPassed.value = true;
             log("Success: Spots or Checks or Visitor or Reccurence Condition Passed");
@@ -201,7 +268,15 @@ class SpotCheckState extends StatelessWidget {
                   } catch (e) {
                     log("Error decoding JSON: $e");
                   }
-                });
+                })
+                ..addJavaScriptChannel(
+                  "SsFlutterSdk",
+                  onMessageReceived: (JavaScriptMessage response) {
+                    if (response.message == 'captureImage') {
+                      _captureImage();
+                    }
+                  },
+                );
 
               _isChecksPassed.value = true;
               log("Success: Checks Condition Passed");
@@ -271,7 +346,15 @@ class SpotCheckState extends StatelessWidget {
                     } catch (e) {
                       log("Error decoding JSON: $e");
                     }
-                  });
+                  })
+                  ..addJavaScriptChannel(
+                    "SsFlutterSdk",
+                    onMessageReceived: (JavaScriptMessage response) {
+                      if (response.message == 'captureImage') {
+                        _captureImage();
+                      }
+                    },
+                  );
 
                 return {"valid": true};
               }
@@ -305,7 +388,8 @@ class SpotCheckState extends StatelessWidget {
             spotCheck["checks"] ?? spotCheck["checkCondition"];
         if (checks.isNotEmpty) {
           Map<String, dynamic> customEvent = checks["customEvent"] ?? {};
-          if (customEvent.isNotEmpty && event.keys.contains(customEvent["eventName"])) {
+          if (customEvent.isNotEmpty &&
+              event.keys.contains(customEvent["eventName"])) {
             selectedSpotCheckID =
                 spotCheck["id"] ?? spotCheck["spotCheckId"] ?? intMax;
 
@@ -341,7 +425,7 @@ class SpotCheckState extends StatelessWidget {
                   "customEvent": event,
                 },
                 "traceId": traceId.value,
-                "customProperties": customProperties
+                "customProperties": customProperties,
               };
 
               final Uri url = Uri.parse(
@@ -388,7 +472,15 @@ class SpotCheckState extends StatelessWidget {
                         } catch (e) {
                           log("Error decoding JSON: $e");
                         }
-                      });
+                      })
+                      ..addJavaScriptChannel(
+                        "SsFlutterSdk",
+                        onMessageReceived: (JavaScriptMessage response) {
+                          if (response.message == 'captureImage') {
+                            _captureImage();
+                          }
+                        },
+                      );
                     _isSpotPassed.value = true;
                     if (show) {
                       log("Success: Spots or Checks or Visitor or Reccurence Condition Passed");
@@ -441,7 +533,15 @@ class SpotCheckState extends StatelessWidget {
                           } catch (e) {
                             log("Error decoding JSON: $e");
                           }
-                        });
+                        })
+                        ..addJavaScriptChannel(
+                          "SsFlutterSdk",
+                          onMessageReceived: (JavaScriptMessage response) {
+                            if (response.message == 'captureImage') {
+                              _captureImage();
+                            }
+                          },
+                        );
 
                       log("Success: Checks Condition Passed");
                       return {"valid": true};
@@ -617,10 +717,6 @@ class SpotCheckState extends StatelessWidget {
 
       variables.forEach((key, value) =>
           spotcheckURL.value = "${spotcheckURL.value}&$key=$value");
-
-      if (Platform.isAndroid) {
-        spotcheckURL.value = "${spotcheckURL.value}&isAndroidMobileTarget=true";
-      }
 
       if (sparrowLang.isNotEmpty) {
         spotcheckURL.value = "${spotcheckURL.value}&sparrowLang=$sparrowLang";
