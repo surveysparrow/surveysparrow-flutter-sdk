@@ -90,7 +90,8 @@ class SpotCheckState extends StatelessWidget {
   Future<List<String>> _androidImagePicker(FileSelectorParams params) async {
     try {
       final ImagePicker picker = ImagePicker();
-      final XFile? pickedFile = await picker.pickImage(source: ImageSource.camera);
+      final XFile? pickedFile =
+          await picker.pickImage(source: ImageSource.camera);
       _isImageCaptureActive.value = false;
       addFileSelectionListener();
 
@@ -106,23 +107,18 @@ class SpotCheckState extends StatelessWidget {
     return [];
   }
 
-
   void addFileSelectionListener() async {
     if (Platform.isAndroid) {
-
       final androidController = controller.platform as AndroidWebViewController;
-      if(!_isImageCaptureActive.value){
-      await androidController.setOnShowFileSelector(_androidFilePicker);
-      }
-      else{
+      if (!_isImageCaptureActive.value) {
+        await androidController.setOnShowFileSelector(_androidFilePicker);
+      } else {
         await androidController.setOnShowFileSelector(_androidImagePicker);
-
       }
-    }}
+    }
+  }
 
-
-
-  void _captureImage(){
+  void _captureImage() {
     _isImageCaptureActive.value = true;
     addFileSelectionListener();
   }
@@ -212,14 +208,14 @@ class SpotCheckState extends StatelessWidget {
                   log("Error decoding JSON: $e");
                 }
               })
-
-            ..addJavaScriptChannel("SsFlutterSdk",
-              onMessageReceived: (JavaScriptMessage response) {
-
-              if (response.message == 'captureImage') {
-               _captureImage();
-              }
-            },);
+              ..addJavaScriptChannel(
+                "SsFlutterSdk",
+                onMessageReceived: (JavaScriptMessage response) {
+                  if (response.message == 'captureImage') {
+                    _captureImage();
+                  }
+                },
+              );
 
             _isSpotPassed.value = true;
             log("Success: Spots or Checks or Visitor or Reccurence Condition Passed");
@@ -275,14 +271,14 @@ class SpotCheckState extends StatelessWidget {
                     log("Error decoding JSON: $e");
                   }
                 })
-
-                ..addJavaScriptChannel("SsFlutterSdk",
+                ..addJavaScriptChannel(
+                  "SsFlutterSdk",
                   onMessageReceived: (JavaScriptMessage response) {
-
                     if (response.message == 'captureImage') {
                       _captureImage();
                     }
-                  },);
+                  },
+                );
 
               _isChecksPassed.value = true;
               log("Success: Checks Condition Passed");
@@ -354,14 +350,14 @@ class SpotCheckState extends StatelessWidget {
                       log("Error decoding JSON: $e");
                     }
                   })
-
-                  ..addJavaScriptChannel("SsFlutterSdk",
+                  ..addJavaScriptChannel(
+                    "SsFlutterSdk",
                     onMessageReceived: (JavaScriptMessage response) {
-
                       if (response.message == 'captureImage') {
                         _captureImage();
                       }
-                    },);
+                    },
+                  );
 
                 return {"valid": true};
               }
@@ -395,7 +391,8 @@ class SpotCheckState extends StatelessWidget {
             spotCheck["checks"] ?? spotCheck["checkCondition"];
         if (checks.isNotEmpty) {
           Map<String, dynamic> customEvent = checks["customEvent"] ?? {};
-          if (customEvent.isNotEmpty && event.keys.contains(customEvent["eventName"])) {
+          if (customEvent.isNotEmpty &&
+              event.keys.contains(customEvent["eventName"])) {
             selectedSpotCheckID =
                 spotCheck["id"] ?? spotCheck["spotCheckId"] ?? intMax;
 
@@ -480,13 +477,14 @@ class SpotCheckState extends StatelessWidget {
                           log("Error decoding JSON: $e");
                         }
                       })
-                      ..addJavaScriptChannel("SsFlutterSdk",
+                      ..addJavaScriptChannel(
+                        "SsFlutterSdk",
                         onMessageReceived: (JavaScriptMessage response) {
-
                           if (response.message == 'captureImage') {
                             _captureImage();
                           }
-                        },);
+                        },
+                      );
                     _isSpotPassed.value = true;
                     if (show) {
                       log("Success: Spots or Checks or Visitor or Reccurence Condition Passed");
@@ -541,13 +539,14 @@ class SpotCheckState extends StatelessWidget {
                             log("Error decoding JSON: $e");
                           }
                         })
-                        ..addJavaScriptChannel("SsFlutterSdk",
+                        ..addJavaScriptChannel(
+                          "SsFlutterSdk",
                           onMessageReceived: (JavaScriptMessage response) {
-
                             if (response.message == 'captureImage') {
                               _captureImage();
                             }
-                          },);
+                          },
+                        );
 
                       log("Success: Checks Condition Passed");
                       return {"valid": true};
