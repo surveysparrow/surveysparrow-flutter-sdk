@@ -15,7 +15,7 @@ You can install the SDK on Xcode or Android Studio and configure when you want t
 
 ### Survey's Normal SDK Share is available here
 
-#### [SDK Share](https://github.com/surveysparrow/surveysparrow-flutter-sdk/tree/v1.1.3)
+#### [SDK Share](https://pub.dev/packages/surveysparrow_flutter_sdk/versions/1.1.4)
 
 
 > Please submit bugs/issues through GitHub issues we will try to fix it ASAP.
