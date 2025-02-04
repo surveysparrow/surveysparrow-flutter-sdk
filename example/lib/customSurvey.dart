@@ -9,7 +9,7 @@ class FullPage3 extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Builder(
-        builder: ((context) => Container(
+        builder: ((context) => const SizedBox(
             width: double.infinity, height: double.infinity, child: Page3())),
       ),
     );
@@ -46,20 +46,20 @@ class _Page3State extends State<Page3> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 500,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            margin: EdgeInsets.only(left: 12),
+            margin: const EdgeInsets.only(left: 12),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Rate Your Order: Fipola"),
-                SizedBox(height: 5),
+                const Text("Rate Your Order: Fipola"),
+                const SizedBox(height: 5),
                 RatingStars(
                   value: value,
                   onValueChanged: (v) {
@@ -91,7 +91,7 @@ class _Page3State extends State<Page3> {
                   starSpacing: 2,
                   maxValueVisibility: false,
                   valueLabelVisibility: false,
-                  animationDuration: Duration(milliseconds: 1000),
+                  animationDuration: const Duration(milliseconds: 1000),
                   valueLabelPadding:
                       const EdgeInsets.symmetric(vertical: 1, horizontal: 8),
                   valueLabelMargin: const EdgeInsets.only(right: 8),
@@ -101,21 +101,21 @@ class _Page3State extends State<Page3> {
               ],
             ),
           ),
-          SizedBox(height: 5),
-          Divider(
+          const SizedBox(height: 5),
+          const Divider(
             color: Colors.grey,
             indent: 10,
             endIndent: 10,
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            margin: EdgeInsets.only(left: 12),
+            margin: const EdgeInsets.only(left: 12),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("What Did you like"),
-                SizedBox(height: 10),
+                const Text("What Did you like"),
+                const SizedBox(height: 10),
                 Wrap(
                   crossAxisAlignment: WrapCrossAlignment.start,
                   alignment: WrapAlignment.start,
@@ -133,7 +133,7 @@ class _Page3State extends State<Page3> {
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey),
                           color: selectedChoice.contains(4651)
-                              ? Color.fromRGBO(252, 128, 25, 1.0)
+                              ? const Color.fromRGBO(252, 128, 25, 1.0)
                               : Colors.white,
                         ),
                         child: Center(
@@ -167,7 +167,7 @@ class _Page3State extends State<Page3> {
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey),
                           color: selectedChoice.contains(4652)
-                              ? Color.fromRGBO(252, 128, 25, 1.0)
+                              ? const Color.fromRGBO(252, 128, 25, 1.0)
                               : Colors.white,
                         ),
                         child: Center(
@@ -201,7 +201,7 @@ class _Page3State extends State<Page3> {
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey),
                           color: selectedChoice.contains(4653)
-                              ? Color.fromRGBO(252, 128, 25, 1.0)
+                              ? const Color.fromRGBO(252, 128, 25, 1.0)
                               : Colors.white,
                         ),
                         child: Center(
@@ -230,21 +230,21 @@ class _Page3State extends State<Page3> {
               ],
             ),
           ),
-          SizedBox(height: 10),
-          Divider(
+          const SizedBox(height: 10),
+          const Divider(
             color: Colors.black,
             indent: 10,
             endIndent: 10,
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            margin: EdgeInsets.only(left: 12),
+            margin: const EdgeInsets.only(left: 12),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Rate Delivery by: N Nagaraj"),
-                SizedBox(height: 5),
+                const Text("Rate Delivery by: N Nagaraj"),
+                const SizedBox(height: 5),
                 RatingStars(
                   value: value2,
                   onValueChanged: (v) {
@@ -276,7 +276,7 @@ class _Page3State extends State<Page3> {
                   starSpacing: 2,
                   maxValueVisibility: false,
                   valueLabelVisibility: false,
-                  animationDuration: Duration(milliseconds: 1000),
+                  animationDuration: const Duration(milliseconds: 1000),
                   valueLabelPadding:
                       const EdgeInsets.symmetric(vertical: 1, horizontal: 8),
                   valueLabelMargin: const EdgeInsets.only(right: 8),
@@ -286,20 +286,20 @@ class _Page3State extends State<Page3> {
               ],
             ),
           ),
-          SizedBox(height: 10),
-          Divider(
+          const SizedBox(height: 10),
+          const Divider(
             color: Colors.black,
             indent: 10,
             endIndent: 10,
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
-            margin: EdgeInsets.only(left: 12),
+            margin: const EdgeInsets.only(left: 12),
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
+                  SizedBox(
                     width: 390,
                     child: TextField(
                       onChanged: (text) {
@@ -310,9 +310,9 @@ class _Page3State extends State<Page3> {
                             key: 1658);
                         createAnswerPayloadOtherSurvey(textObj, surveyAns);
                       },
-                      style: TextStyle(color: Colors.black),
-                      cursorColor: Color.fromRGBO(252, 128, 25, 1.0),
-                      decoration: InputDecoration(
+                      style: const TextStyle(color: Colors.black),
+                      cursorColor: const Color.fromRGBO(252, 128, 25, 1.0),
+                      decoration: const InputDecoration(
                         focusedBorder: UnderlineInputBorder(
                           borderSide: BorderSide(color: Colors.grey),
                         ),
@@ -328,11 +328,11 @@ class _Page3State extends State<Page3> {
                   ),
                 ]),
           ),
-          SizedBox(
+          const SizedBox(
             height: 10,
           ),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             width: double.infinity,
             child: ElevatedButton(
                 onPressed: () {
@@ -341,7 +341,7 @@ class _Page3State extends State<Page3> {
                     Navigator.of(context).pop();
                   });
                 },
-                child: Text("Enter Delivery Rating")),
+                child: const Text("Enter Delivery Rating")),
           )
         ],
       ),

@@ -32,11 +32,11 @@ class YesOrNo extends StatefulWidget {
 
   @override
   State<YesOrNo> createState() => _YesOrNoState(
-      func: this.func,
-      answer: this.answer,
+      func: func,
+      answer: answer,
       question: question,
-      theme: this.theme,
-      customParams: this.customParams,
+      theme: theme,
+      customParams: customParams,
       currentQuestionNumber: currentQuestionNumber);
 }
 
@@ -71,13 +71,13 @@ class _YesOrNoState extends State<YesOrNo> {
   @override
   void initState() {
     super.initState();
-    if (this.widget.euiTheme != null) {
-      if (this.widget.euiTheme!['font'] != null) {
-        customFont = this.widget.euiTheme!['font'];
+    if (widget.euiTheme != null) {
+      if (widget.euiTheme!['font'] != null) {
+        customFont = widget.euiTheme!['font'];
       }
     }
-    if (this.answer[this.question['id']] != null) {
-      _selectedOption = convertBoolToIndex(this.answer[this.question['id']]);
+    if (answer[question['id']] != null) {
+      _selectedOption = convertBoolToIndex(answer[question['id']]);
     }
   }
 
@@ -95,10 +95,10 @@ class _YesOrNoState extends State<YesOrNo> {
       children: [
         QuestionColumn(
           question: question,
-          currentQuestionNumber: this.currentQuestionNumber,
-          customParams: this.customParams,
-          theme: this.theme,
-          euiTheme: this.widget.euiTheme,
+          currentQuestionNumber: currentQuestionNumber,
+          customParams: customParams,
+          theme: theme,
+          euiTheme: widget.euiTheme,
         ),
         // SizedBox(height: 40),
         SizedBox(height: 2.h),
@@ -110,7 +110,7 @@ class _YesOrNoState extends State<YesOrNo> {
           question: question,
           theme: theme,
           setSelectedOption: setSelectedOption,
-          euiTheme: this.widget.euiTheme,
+          euiTheme: widget.euiTheme,
         ),
 
         // OpnionScaleQuestion(
@@ -125,30 +125,31 @@ class _YesOrNoState extends State<YesOrNo> {
         // SizedBox(height: 40),
         SkipAndNextButtons(
           key: UniqueKey(),
-          disabled: this.widget.isLastQuestion
-              ? this.question['required']
+          disabled: widget.isLastQuestion
+              ? question['required']
                   ? _selectedOption == -1
                   : false
               : _selectedOption == -1,
-          showNext: this.widget.isLastQuestion,
-          showSkip: (this.question['required'] || this.widget.isLastQuestion)
-              ? false
-              : true,
-          showSubmit: this.widget.isLastQuestion,
+          showNext: widget.isLastQuestion,
+          showSkip:
+              (question['required'] || widget.isLastQuestion) ? false : true,
+          showSubmit: widget.isLastQuestion,
           onClickSkip: () {
-            this.func(null, question['id']);
+            func(null, question['id']);
           },
           onClickNext: () {
             // this.widget.submitData();
             if (_selectedOption != -1) {
-              this.widget.submitData();
+              widget.submitData();
             }
-            if(this.widget.isLastQuestion && _selectedOption == -1.0 && !this.question['required']){
-              this.widget.submitData();
+            if (widget.isLastQuestion &&
+                _selectedOption == -1.0 &&
+                !question['required']) {
+              widget.submitData();
             }
           },
-          theme: this.theme,
-          euiTheme: this.widget.euiTheme,
+          theme: theme,
+          euiTheme: widget.euiTheme,
         ),
       ],
     );
@@ -175,10 +176,10 @@ class YesOrNoQuestion extends StatefulWidget {
 
   @override
   State<YesOrNoQuestion> createState() => _YesOrNoQuestionState(
-        func: this.func,
-        answer: this.answer,
-        question: this.question,
-        theme: this.theme,
+        func: func,
+        answer: answer,
+        question: question,
+        theme: theme,
       );
 }
 
@@ -187,9 +188,6 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
   final Map<dynamic, dynamic> answer;
   final Map<dynamic, dynamic> question;
   final Map<dynamic, dynamic> theme;
-  var _start;
-  var _mid;
-  var _end;
   var luminanceValue = 0.5;
   var reversedOrder = false;
   var startLabel;
@@ -226,61 +224,57 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
   initState() {
     super.initState();
 
-    if (this.widget.euiTheme != null) {
-      if (this.widget.euiTheme!['font'] != null) {
-        customFont = this.widget.euiTheme!['font'];
+    if (widget.euiTheme != null) {
+      if (widget.euiTheme!['font'] != null) {
+        customFont = widget.euiTheme!['font'];
       }
 
-      if (this.widget.euiTheme!['yesOrNo'] != null) {
-        if (this.widget.euiTheme!['yesOrNo']['svgWidth'] != null) {
-          svgWidth = this.widget.euiTheme!['yesOrNo']['svgWidth'];
+      if (widget.euiTheme!['yesOrNo'] != null) {
+        if (widget.euiTheme!['yesOrNo']['svgWidth'] != null) {
+          svgWidth = widget.euiTheme!['yesOrNo']['svgWidth'];
         }
-        if (this.widget.euiTheme!['yesOrNo']['svgHeight'] != null) {
-          svgHeight = this.widget.euiTheme!['yesOrNo']['svgHeight'];
+        if (widget.euiTheme!['yesOrNo']['svgHeight'] != null) {
+          svgHeight = widget.euiTheme!['yesOrNo']['svgHeight'];
         }
-        if (this.widget.euiTheme!['yesOrNo']['outerContainerWidth'] != null) {
+        if (widget.euiTheme!['yesOrNo']['outerContainerWidth'] != null) {
           outerContainerWidth =
-              this.widget.euiTheme!['yesOrNo']['outerContainerWidth'];
+              widget.euiTheme!['yesOrNo']['outerContainerWidth'];
         }
-        if (this.widget.euiTheme!['yesOrNo']['outerContainerHeight'] != null) {
+        if (widget.euiTheme!['yesOrNo']['outerContainerHeight'] != null) {
           outerContainerHeight =
-              this.widget.euiTheme!['yesOrNo']['outerContainerHeight'];
+              widget.euiTheme!['yesOrNo']['outerContainerHeight'];
         }
-        if (this.widget.euiTheme!['yesOrNo']['fontSize'] != null) {
-          fontSize = this.widget.euiTheme!['yesOrNo']['fontSize'];
+        if (widget.euiTheme!['yesOrNo']['fontSize'] != null) {
+          fontSize = widget.euiTheme!['yesOrNo']['fontSize'];
         }
-        if (this.widget.euiTheme!['yesOrNo']['circleFontIndicatorSize'] !=
-            null) {
+        if (widget.euiTheme!['yesOrNo']['circleFontIndicatorSize'] != null) {
           circleFontIndicatorSize =
-              this.widget.euiTheme!['yesOrNo']['circleFontIndicatorSize'];
+              widget.euiTheme!['yesOrNo']['circleFontIndicatorSize'];
         }
-        if (this.widget.euiTheme!['yesOrNo']['customSvgSelected'] !=
-            null) {
+        if (widget.euiTheme!['yesOrNo']['customSvgSelected'] != null) {
           customSvgStringSelected =
-              this.widget.euiTheme!['yesOrNo']['customSvgSelected'];
+              widget.euiTheme!['yesOrNo']['customSvgSelected'];
         }
-        if (this.widget.euiTheme!['yesOrNo']['customSvgUnSelected'] !=
-            null) {
+        if (widget.euiTheme!['yesOrNo']['customSvgUnSelected'] != null) {
           customSvgStringUnSelected =
-              this.widget.euiTheme!['yesOrNo']['customSvgUnSelected'];
+              widget.euiTheme!['yesOrNo']['customSvgUnSelected'];
         }
       }
     }
 
-    yesLabel =
-        this.question['properties']['data']['yes'] == 'builder.yes_no.yes'
-            ? 'Yes'
-            : this.question['properties']['data']['yes'];
-    noLabel = this.question['properties']['data']['no'] == 'builder.yes_no.no'
+    yesLabel = question['properties']['data']['yes'] == 'builder.yes_no.yes'
+        ? 'Yes'
+        : question['properties']['data']['yes'];
+    noLabel = question['properties']['data']['no'] == 'builder.yes_no.no'
         ? 'No'
-        : this.question['properties']['data']['no'];
+        : question['properties']['data']['no'];
 
     luminanceValue =
-        this.theme['decodedOpnionBackgroundColorUnSelected'].computeLuminance();
+        theme['decodedOpnionBackgroundColorUnSelected'].computeLuminance();
 
-    if (this.answer[this.question['id']] != null) {
+    if (answer[question['id']] != null) {
       setState(() {
-        _selectedOption = convertBoolToIndex(this.answer[this.question['id']]);
+        _selectedOption = convertBoolToIndex(answer[question['id']]);
       });
     } else {
       setState(() {
@@ -305,81 +299,86 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
   }
 
   updateYesOrNoAnswer(val) {
-    this.widget.setSelectedOption(convertBoolToIndex(val));
+    widget.setSelectedOption(convertBoolToIndex(val));
     setState(() {
       _selectedOption = convertBoolToIndex(val);
     });
-    this.func(val, question['id']);
+    func(val, question['id']);
   }
 
   generateYesOrNoBlock(val) {
     return Container(
       width: outerContainerWidth,
       height: outerContainerHeight,
-      margin: EdgeInsets.only(right: 20),
+      margin: const EdgeInsets.only(right: 20),
       decoration: BoxDecoration(
         color: _selectedOption == val
-            ? this.theme['decodedOpnionBackgroundColorSelected']
-            : this.theme['decodedOpnionBackgroundColorUnSelected'],
-        borderRadius: BorderRadius.all(Radius.circular(10)),
+            ? theme['decodedOpnionBackgroundColorSelected']
+            : theme['decodedOpnionBackgroundColorUnSelected'],
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            margin: EdgeInsets.only(top: 40),
+            margin: const EdgeInsets.only(top: 40),
             child: val == 1
-                ? Container(
+                ? SizedBox(
                     width: svgWidth,
                     height: svgHeight,
                     child: SvgPicture.string(
-                      customSvgStringUnSelected !=null ? _selectedOption == val ? customSvgStringSelected : customSvgStringUnSelected  :this.question['properties']['data']['iconShape'] ==
-                              'YES_NO_ICON_TICK_CROSS' 
-                          ? generateYesOrNoTickUnSelected(
-                              _selectedOption == val
-                                  ? luminanceValue > 0.5
-                                      ? 'rgba(57,57,57,1)'
-                                      : 'rgba(255,255,255,1)'
-                                  : this.theme['ratingRgba'],
-                            )
-                          : generateYesOrNoThumbUnSelected(
-                              _selectedOption == val
-                                  ? luminanceValue > 0.5
-                                      ? 'rgba(57,57,57,1)'
-                                      : 'rgba(255,255,255,1)'
-                                  : this.theme['ratingRgba'],
-                            ),
+                      customSvgStringUnSelected != null
+                          ? _selectedOption == val
+                              ? customSvgStringSelected
+                              : customSvgStringUnSelected
+                          : question['properties']['data']['iconShape'] ==
+                                  'YES_NO_ICON_TICK_CROSS'
+                              ? generateYesOrNoTickUnSelected(
+                                  _selectedOption == val
+                                      ? luminanceValue > 0.5
+                                          ? 'rgba(57,57,57,1)'
+                                          : 'rgba(255,255,255,1)'
+                                      : theme['ratingRgba'],
+                                )
+                              : generateYesOrNoThumbUnSelected(
+                                  _selectedOption == val
+                                      ? luminanceValue > 0.5
+                                          ? 'rgba(57,57,57,1)'
+                                          : 'rgba(255,255,255,1)'
+                                      : theme['ratingRgba'],
+                                ),
                     ),
                   )
-                : Container(
-                    child: Container(
-                      width: svgWidth,
-                      height: svgHeight,
-                      child: SvgPicture.string(
-                        customSvgStringSelected !=null ? _selectedOption == val ? customSvgStringSelected : customSvgStringUnSelected : this.question['properties']['data']['iconShape'] ==
-                                'YES_NO_ICON_TICK_CROSS'
-                            ? generateYesOrNoTickSelected(
-                                _selectedOption == val
-                                    ? luminanceValue > 0.5
-                                        ? 'rgba(57,57,57,1)'
-                                        : 'rgba(255,255,255,1)'
-                                    : this.theme['ratingRgba'],
-                              )
-                            : generateYesOrNoThumbSelected(
-                                _selectedOption == val
-                                    ? luminanceValue > 0.5
-                                        ? 'rgba(57,57,57,1)'
-                                        : 'rgba(255,255,255,1)'
-                                    : this.theme['ratingRgba'],
-                              ),
-                      ),
+                : SizedBox(
+                    width: svgWidth,
+                    height: svgHeight,
+                    child: SvgPicture.string(
+                      customSvgStringSelected != null
+                          ? _selectedOption == val
+                              ? customSvgStringSelected
+                              : customSvgStringUnSelected
+                          : question['properties']['data']['iconShape'] ==
+                                  'YES_NO_ICON_TICK_CROSS'
+                              ? generateYesOrNoTickSelected(
+                                  _selectedOption == val
+                                      ? luminanceValue > 0.5
+                                          ? 'rgba(57,57,57,1)'
+                                          : 'rgba(255,255,255,1)'
+                                      : theme['ratingRgba'],
+                                )
+                              : generateYesOrNoThumbSelected(
+                                  _selectedOption == val
+                                      ? luminanceValue > 0.5
+                                          ? 'rgba(57,57,57,1)'
+                                          : 'rgba(255,255,255,1)'
+                                      : theme['ratingRgba'],
+                                ),
                     ),
                   ),
           ),
           Container(
-            margin: EdgeInsets.only(bottom: 10, right: 10, left: 10),
-            // color: Colors.red,
+            margin: const EdgeInsets.only(bottom: 10, right: 10, left: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -396,7 +395,7 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
                           ? luminanceValue > 0.5
                               ? Colors.black
                               : Colors.white
-                          : this.theme['answerColor'],
+                          : theme['answerColor'],
                     ),
                   ),
                 ),
@@ -404,7 +403,7 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
                   width: circleFontIndicatorSize,
                   height: circleFontIndicatorSize,
                   decoration: BoxDecoration(
-                    color: this.theme['answerColor'],
+                    color: theme['answerColor'],
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -431,7 +430,7 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
 
   @override
   Widget build(BuildContext context) {
-    outerContainerWidth = MediaQuery.of(context).size.width/100 * 31;
+    outerContainerWidth = MediaQuery.of(context).size.width / 100 * 31;
     var shortestSide = MediaQuery.of(context).size.shortestSide;
     final bool useMobileLayout = shortestSide < 600;
 
@@ -443,9 +442,7 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
           onTap: () {
             updateYesOrNoAnswer(convertIndexToBool(i));
           },
-          child: Container(
-            child: Container(child: generateYesOrNoBlock(i)),
-          ),
+          child: Container(child: generateYesOrNoBlock(i)),
         ),
       );
     }
@@ -453,14 +450,12 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
     // possible change is change the alignment for container to wrapalignment to start if needed in tablet
 
     // Have removed width:doubly.infinity
-    return Container(
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        alignment: useMobileLayout ? WrapAlignment.center : WrapAlignment.start,
-        runSpacing: 5,
-        direction: Axis.horizontal,
-        children: [...list],
-      ),
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      alignment: useMobileLayout ? WrapAlignment.center : WrapAlignment.start,
+      runSpacing: 5,
+      direction: Axis.horizontal,
+      children: [...list],
     );
   }
 }

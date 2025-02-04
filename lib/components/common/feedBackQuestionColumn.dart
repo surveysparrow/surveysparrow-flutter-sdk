@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:surveysparrow_flutter_sdk/helpers/cx.dart';
 import 'package:surveysparrow_flutter_sdk/providers/survey_provider.dart';
-import 'package:surveysparrow_flutter_sdk/surveysparrow.dart';
-
-import '../../helpers/question.dart';
 import 'package:provider/provider.dart';
 import 'package:surveysparrow_flutter_sdk/providers/answer_provider.dart';
 
@@ -31,8 +28,8 @@ class FeedBackQuestionColumn extends StatefulWidget {
   State<FeedBackQuestionColumn> createState() => _FeedBackQuestionColumnState(
         question: question,
         currentQuestionNumber: currentQuestionNumber,
-        theme: this.theme,
-        customParams: this.customParams,
+        theme: theme,
+        customParams: customParams,
       );
 }
 
@@ -41,7 +38,7 @@ class _FeedBackQuestionColumnState extends State<FeedBackQuestionColumn> {
   final int currentQuestionNumber;
   final Map<dynamic, dynamic> theme;
   final Map<String, String> customParams;
-  var customFont = null;
+  dynamic customFont;
   var questionHeadingFontSize = 24.0;
   var questionDescriptionFontSize = 14.0;
   var questionNumberFontSize = 14.0;
@@ -55,28 +52,25 @@ class _FeedBackQuestionColumnState extends State<FeedBackQuestionColumn> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    if (this.widget.euiTheme != null) {
-      if (this.widget.euiTheme!['font'] != null) {
-        customFont = this.widget.euiTheme!['font'];
+    if (widget.euiTheme != null) {
+      if (widget.euiTheme!['font'] != null) {
+        customFont = widget.euiTheme!['font'];
       }
 
-      if (this.widget.euiTheme!['question'] != null) {
-        if (this.widget.euiTheme!['question']['questionNumberFontSize'] !=
-            null) {
+      if (widget.euiTheme!['question'] != null) {
+        if (widget.euiTheme!['question']['questionNumberFontSize'] != null) {
           questionNumberFontSize =
-              this.widget.euiTheme!['question']['questionNumberFontSize'];
+              widget.euiTheme!['question']['questionNumberFontSize'];
         }
-        if (this.widget.euiTheme!['question']['questionHeadingFontSize'] !=
-            null) {
+        if (widget.euiTheme!['question']['questionHeadingFontSize'] != null) {
           questionHeadingFontSize =
-              this.widget.euiTheme!['question']['questionHeadingFontSize'];
+              widget.euiTheme!['question']['questionHeadingFontSize'];
         }
-        if (this.widget.euiTheme!['question']['questionDescriptionFontSize'] !=
+        if (widget.euiTheme!['question']['questionDescriptionFontSize'] !=
             null) {
           questionDescriptionFontSize =
-              this.widget.euiTheme!['question']['questionDescriptionFontSize'];
+              widget.euiTheme!['question']['questionDescriptionFontSize'];
         }
       }
     }
@@ -84,19 +78,21 @@ class _FeedBackQuestionColumnState extends State<FeedBackQuestionColumn> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            theme['showRequired'] && this.question['required']
-                ? "*" +
-                    getCXFeedBackQuestionHeading(
-                        this.question, this.widget.parentQuestion ,this.customParams, context.watch<WorkBench>().getWorkBenchData, context.watch<SurveyProvider>().getSurvey)
+            theme['showRequired'] && question['required']
+                ? "* ${getCXFeedBackQuestionHeading(question, widget.parentQuestion, customParams, context.watch<WorkBench>().getWorkBenchData, context.watch<SurveyProvider>().getSurvey)}"
                 : getCXFeedBackQuestionHeading(
-                        this.question, this.widget.parentQuestion ,this.customParams, context.watch<WorkBench>().getWorkBenchData, context.watch<SurveyProvider>().getSurvey),
+                    question,
+                    widget.parentQuestion,
+                    customParams,
+                    context.watch<WorkBench>().getWorkBenchData,
+                    context.watch<SurveyProvider>().getSurvey),
             textAlign: TextAlign.left,
             style: TextStyle(
                 fontFamily: customFont,
@@ -105,7 +101,7 @@ class _FeedBackQuestionColumnState extends State<FeedBackQuestionColumn> {
                 fontWeight: FontWeight.w400,
                 color: theme['questionColor']),
           ),
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
         ],
       ),
     );

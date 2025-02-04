@@ -2,19 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/questionColumn.dart';
 import 'package:surveysparrow_flutter_sdk/components/questions/npsFeedback.dart';
 import 'package:surveysparrow_flutter_sdk/helpers/cx.dart';
-import 'package:surveysparrow_flutter_sdk/helpers/theme.dart';
-
 import '../common/skipAndNext.dart';
 import 'package:sizer/sizer.dart';
-
-import 'package:flutter/material.dart';
-import 'package:flutter_rating_stars/flutter_rating_stars.dart';
-import 'package:surveysparrow_flutter_sdk/components/common/questionColumn.dart';
-import 'package:surveysparrow_flutter_sdk/helpers/question.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:surveysparrow_flutter_sdk/helpers/svg.dart';
-
-import '../common/skipAndNext.dart';
 
 class Csat extends StatefulWidget {
   final Function func;
@@ -42,11 +33,11 @@ class Csat extends StatefulWidget {
 
   @override
   State<Csat> createState() => _CsatState(
-      func: this.func,
-      answer: this.answer,
+      func: func,
+      answer: answer,
       question: question,
-      theme: this.theme,
-      customParams: this.customParams,
+      theme: theme,
+      customParams: customParams,
       currentQuestionNumber: currentQuestionNumber);
 }
 
@@ -83,12 +74,12 @@ class _CsatState extends State<Csat> {
   }
 
   handleNextButtonVisibility() {
-    var listSubQuestions = (this.question['subQuestions'] as List)
+    var listSubQuestions = (question['subQuestions'] as List)
         .map((e) => e as Map<dynamic, dynamic>)
         .toList();
     var subQuestion;
     var hasFeedBackQuestion = false;
-    if (listSubQuestions.length > 0) {
+    if (listSubQuestions.isNotEmpty) {
       hasFeedBackQuestion = true;
       subQuestion = listSubQuestions[0];
     }
@@ -113,7 +104,7 @@ class _CsatState extends State<Csat> {
         return true;
       }
     } else {
-      if (this.widget.isLastQuestion) {
+      if (widget.isLastQuestion) {
         return true;
       }
       return checkIfTheQuestionHasAFeedBack(question);
@@ -122,30 +113,26 @@ class _CsatState extends State<Csat> {
 
   @override
   initState() {
-    if (this.answer[this.question['id']] != null) {
-
+    super.initState();
+    if (answer[question['id']] != null) {
       var hasFeedBackQuestion = checkIfTheQuestionHasAFeedBack(question);
       if (hasFeedBackQuestion) {
         var feedBackQuestion = getFeedBackQuestion(question);
         handleFeedBackQuestionAnswer(
-            this.answer[feedBackQuestion['id']], feedBackQuestion['id']);
+            answer[feedBackQuestion['id']], feedBackQuestion['id']);
       }
       setState(() {
-        _selectedOption = this.answer[this.question['id']];
+        _selectedOption = answer[question['id']];
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    var listSubQuestions = (this.question['subQuestions'] as List)
+    var listSubQuestions = (question['subQuestions'] as List)
         .map((e) => e as Map<dynamic, dynamic>)
         .toList();
-    var subQuestion;
-    var hasFeedBackQuestion = false;
-    if (listSubQuestions.length > 0) {
-      hasFeedBackQuestion = true;
-    }
+    if (listSubQuestions.isNotEmpty) {}
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -153,23 +140,23 @@ class _CsatState extends State<Csat> {
       children: [
         QuestionColumn(
           question: question,
-          currentQuestionNumber: this.currentQuestionNumber,
-          customParams: this.customParams,
-          theme: this.theme,
-          euiTheme: this.widget.euiTheme,
+          currentQuestionNumber: currentQuestionNumber,
+          customParams: customParams,
+          theme: theme,
+          euiTheme: widget.euiTheme,
         ),
         // SizedBox(height: 40),
         SizedBox(height: 2.h),
         // SizedBox(height: 40),
         CsatQuestion(
-          func: this.func,
-          answer: this.answer,
-          question: this.question,
-          theme: this.theme,
+          func: func,
+          answer: answer,
+          question: question,
+          theme: theme,
           setSelectedOption: setSelectedOption,
-          euiTheme: this.widget.euiTheme,
-          customParams: this.customParams,
-          handleFeedBackQuestionAnswer: this.handleFeedBackQuestionAnswer,
+          euiTheme: widget.euiTheme,
+          customParams: customParams,
+          handleFeedBackQuestionAnswer: handleFeedBackQuestionAnswer,
         ),
         SizedBox(height: 7.h),
         // SizedBox(height: 40),
@@ -178,26 +165,21 @@ class _CsatState extends State<Csat> {
           disabled: handleNextButtonVisibility(),
           showNext: handleShowNextButton(),
           showSkip: false,
-          showSubmit: this.widget.isLastQuestion,
+          showSubmit: widget.isLastQuestion,
           onClickSkip: () {
-            this.func(null, question['id']);
+            func(null, question['id']);
           },
           onClickNext: () {
             if (subQuestionData != null) {
-              this.func(
-                  subQuestionData['value'], subQuestionData['questionId']);
+              func(subQuestionData['value'], subQuestionData['questionId']);
               FocusScope.of(context).requestFocus(new FocusNode());
             }
-            if (this.widget.isLastQuestion && _selectedOption != -1) {
-              this.widget.submitData();
+            if (widget.isLastQuestion && _selectedOption != -1) {
+              widget.submitData();
             }
-
-            // if (_selectedOption != -1) {
-            //   this.func(_selectedOption, question['id']);
-            // }
           },
-          theme: this.theme,
-          euiTheme: this.widget.euiTheme,
+          theme: theme,
+          euiTheme: widget.euiTheme,
         ),
       ],
     );
@@ -228,10 +210,7 @@ class CsatQuestion extends StatefulWidget {
 
   @override
   State<CsatQuestion> createState() => _CsatQuestionState(
-      func: this.func,
-      answer: this.answer,
-      question: this.question,
-      theme: this.theme);
+      func: func, answer: answer, question: question, theme: theme);
 }
 
 class _CsatQuestionState extends State<CsatQuestion> {
@@ -241,7 +220,7 @@ class _CsatQuestionState extends State<CsatQuestion> {
   final Map<dynamic, dynamic> theme;
   int _rating = -1;
   double widget1Opacity = 0.0;
-  var customSvg = null;
+  var customSvg;
 
   getRatingSvg(svgName, opacity, color, border) {
     if (opacity == 0.5 && customSvg != null) {
@@ -373,18 +352,18 @@ class _CsatQuestionState extends State<CsatQuestion> {
         children: [
           Column(
             children: [
-              Container(
+              SizedBox(
                 height: svgHeight,
                 width: svgWidth,
                 child: SvgPicture.string(
                   getSmiliySvg(
-                    this.question['properties']['data']['ratingScale'],
+                    question['properties']['data']['ratingScale'],
                     true,
                     index,
                   ),
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               AnimatedOpacity(
@@ -392,13 +371,12 @@ class _CsatQuestionState extends State<CsatQuestion> {
                 duration: const Duration(milliseconds: 200),
                 child: Text(
                   hasNumber ? (index + 1).toString() : '',
-                  style:
-                      TextStyle(color: this.theme['decodedOpnionLabelColor']),
+                  style: TextStyle(color: theme['decodedOpnionLabelColor']),
                 ),
               )
             ],
           ),
-          SizedBox(
+          const SizedBox(
             width: 10,
           )
         ],
@@ -408,15 +386,15 @@ class _CsatQuestionState extends State<CsatQuestion> {
       children: [
         Column(
           children: [
-            Container(
+            SizedBox(
               height: svgHeight,
               width: svgWidth,
               child: SvgPicture.string(
-                getSmiliySvg(this.question['properties']['data']['ratingScale'],
+                getSmiliySvg(question['properties']['data']['ratingScale'],
                     false, index),
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 10,
             ),
             AnimatedOpacity(
@@ -424,12 +402,12 @@ class _CsatQuestionState extends State<CsatQuestion> {
               duration: const Duration(milliseconds: 200),
               child: Text(
                 hasNumber ? (index + 1).toString() : '',
-                style: TextStyle(color: this.theme['decodedOpnionLabelColor']),
+                style: TextStyle(color: theme['decodedOpnionLabelColor']),
               ),
             )
           ],
         ),
-        SizedBox(
+        const SizedBox(
           width: 10,
         )
       ],
@@ -437,7 +415,7 @@ class _CsatQuestionState extends State<CsatQuestion> {
   }
 
   bool hasNumber = true;
-  var customSvgSelected = null;
+  var customSvgSelected;
   var svgHeight = 42.0;
   var svgWidth = 42.0;
   var hasFeedBackQuestion = false;
@@ -445,40 +423,37 @@ class _CsatQuestionState extends State<CsatQuestion> {
   @override
   initState() {
     super.initState();
-    if (this.widget.euiTheme != null) {
-      if (this.widget.euiTheme!['rating'] != null) {
-        if (this.widget.euiTheme!['rating']['hasNumber'] != null) {
-          hasNumber = this.widget.euiTheme!['rating']['hasNumber'];
+    if (widget.euiTheme != null) {
+      if (widget.euiTheme!['rating'] != null) {
+        if (widget.euiTheme!['rating']['hasNumber'] != null) {
+          hasNumber = widget.euiTheme!['rating']['hasNumber'];
         }
-        if (this.widget.euiTheme!['rating']['customRatingSVGUnselected'] !=
-            null) {
-          customSvg =
-              this.widget.euiTheme!['rating']['customRatingSVGUnselected'];
+        if (widget.euiTheme!['rating']['customRatingSVGUnselected'] != null) {
+          customSvg = widget.euiTheme!['rating']['customRatingSVGUnselected'];
         }
-        if (this.widget.euiTheme!['rating']['customRatingSVGSelected'] !=
-            null) {
+        if (widget.euiTheme!['rating']['customRatingSVGSelected'] != null) {
           customSvgSelected =
-              this.widget.euiTheme!['rating']['customRatingSVGSelected'];
+              widget.euiTheme!['rating']['customRatingSVGSelected'];
         }
-        if (this.widget.euiTheme!['rating']['svgHeight'] != null) {
-          svgHeight = this.widget.euiTheme!['rating']['svgHeight'];
+        if (widget.euiTheme!['rating']['svgHeight'] != null) {
+          svgHeight = widget.euiTheme!['rating']['svgHeight'];
         }
-        if (this.widget.euiTheme!['rating']['svgWidth'] != null) {
-          svgWidth = this.widget.euiTheme!['rating']['svgWidth'];
+        if (widget.euiTheme!['rating']['svgWidth'] != null) {
+          svgWidth = widget.euiTheme!['rating']['svgWidth'];
         }
       }
     }
-    if (this.answer[this.question['id']] != null) {
+    if (answer[question['id']] != null) {
       setState(() {
-        _rating = this.answer[this.question['id']];
+        _rating = answer[question['id']];
         hasFeedBackQuestion = checkIfTheQuestionHasAFeedBack(question);
       });
-    } else{
+    } else {
       setState(() {
         hasFeedBackQuestion = checkIfTheQuestionHasAFeedBack(question);
       });
     }
-    Future.delayed(Duration(milliseconds: 400), () {
+    Future.delayed(const Duration(milliseconds: 400), () {
       setState(() {
         widget1Opacity = 1.0;
       });
@@ -506,32 +481,29 @@ class _CsatQuestionState extends State<CsatQuestion> {
   }
 
   handleFeedBackText(text, questionId) {
-    this.widget.handleFeedBackQuestionAnswer(text, questionId);
+    widget.handleFeedBackQuestionAnswer(text, questionId);
   }
-
-  
-
   @override
   Widget build(BuildContext context) {
     final stars = List<Widget>.generate(
-        this.question['properties']['data']['ratingScale'], (index) {
+        question['properties']['data']['ratingScale'], (index) {
       return GestureDetector(
         onTap: () {
           setState(() {
             _rating = index + 1;
           });
-          this.func(index + 1, question['id']);
-          this.widget.setSelectedOption(index + 1);
+          func(index + 1, question['id']);
+          widget.setSelectedOption(index + 1);
         },
         child: _buildRatingStart(index),
       );
     });
 
-    var listSubQuestions = (this.question['subQuestions'] as List)
+    var listSubQuestions = (question['subQuestions'] as List)
         .map((e) => e as Map<dynamic, dynamic>)
         .toList();
     var subQuestion;
-    if (listSubQuestions.length > 0) {
+    if (listSubQuestions.isNotEmpty) {
       subQuestion = Map<dynamic, dynamic>.from(listSubQuestions[0]);
     }
 
@@ -542,7 +514,7 @@ class _CsatQuestionState extends State<CsatQuestion> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [...stars],
         ),
-        SizedBox(height: 40),
+        const SizedBox(height: 40),
         if (hasFeedBackQuestion && showFeedBackQuestion()) ...[
           FeedBackText(
             func: func,
@@ -551,10 +523,10 @@ class _CsatQuestionState extends State<CsatQuestion> {
             theme: theme,
             customParams: widget.customParams,
             handleFeedBackText: handleFeedBackText,
-            parentQuestion: this.question,
+            parentQuestion: question,
           )
         ],
-      ], 
+      ],
     );
   }
 }

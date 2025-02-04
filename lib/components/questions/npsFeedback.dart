@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/feedBackQuestionColumn.dart';
-import 'package:surveysparrow_flutter_sdk/components/common/questionColumn.dart';
-
-import '../common/skipAndNext.dart';
 
 class FeedBackText extends StatefulWidget {
   final Function func;
@@ -28,11 +25,11 @@ class FeedBackText extends StatefulWidget {
 
   @override
   State<FeedBackText> createState() => _FeedBackTextState(
-        func: this.func,
-        answer: this.answer,
+        func: func,
+        answer: answer,
         question: question,
-        theme: this.theme,
-        customParams: this.customParams,
+        theme: theme,
+        customParams: customParams,
       );
 }
 
@@ -61,29 +58,29 @@ class _FeedBackTextState extends State<FeedBackText> {
   initState() {
     super.initState();
 
-    if (this.widget.euiTheme != null) {
-      if (this.widget.euiTheme!['font'] != null) {
-        customFont = this.widget.euiTheme!['font'];
+    if (widget.euiTheme != null) {
+      if (widget.euiTheme!['font'] != null) {
+        customFont = widget.euiTheme!['font'];
       }
 
-      if (this.widget.euiTheme!['text'] != null) {
-        if (this.widget.euiTheme!['text']['fontSize'] != null) {
-          fontSize = this.widget.euiTheme!['text']['fontSize'];
+      if (widget.euiTheme!['text'] != null) {
+        if (widget.euiTheme!['text']['fontSize'] != null) {
+          fontSize = widget.euiTheme!['text']['fontSize'];
         }
-        if (this.widget.euiTheme!['text']['textFieldWidth'] != null) {
-          textFieldWidth = this.widget.euiTheme!['text']['textFieldWidth'];
+        if (widget.euiTheme!['text']['textFieldWidth'] != null) {
+          textFieldWidth = widget.euiTheme!['text']['textFieldWidth'];
         }
       }
     }
 
-    if (this.answer[this.question['id']] != null) {
+    if (answer[question['id']] != null) {
       var disabledState = false;
-      if (this.answer[this.question['id']] == "") {
+      if (answer[question['id']] == "") {
         disabledState = true;
       }
       setState(() {
         disabled = disabledState;
-        inputController.text = this.answer[this.question['id']];
+        inputController.text = answer[question['id']];
       });
     }
   }
@@ -106,103 +103,41 @@ class _FeedBackTextState extends State<FeedBackText> {
               currentQuestionNumber: 0,
               theme: theme,
               customParams: customParams,
-              answer: this.widget.answer,
-              parentQuestion: this.widget.parentQuestion,
+              answer: widget.answer,
+              parentQuestion: widget.parentQuestion,
             ),
             Container(
               constraints: BoxConstraints(
-                  maxWidth: textFieldWidth != null
-                      ? textFieldWidth
-                      : useMobileLayout
-                          ? 320
-                          : 500),
+                  maxWidth: textFieldWidth ?? (useMobileLayout ? 320 : 500)),
               child: TextField(
                 onChanged: (value) {
-                  this.widget.handleFeedBackText(value, question['id']);
-                  // if (value.length == 0) {
-                  //   setState(() {
-                  //     disabled = true;
-                  //   });
-                  // } else {
-                  //   setState(() {
-                  //     disabled = false;
-                  //   });
-                  // }
-
-                  // if (value == '') {
-                  //   this.widget.toggleNextButtonBlock(false);
-                  //   this.func(null, question['id'], changePage: false);
-                  //   return;
-                  // }
-                  // this.func(inputController.text, question['id'],
-                  //     changePage: false);
+                  widget.handleFeedBackText(value, question['id']);
                 },
-                maxLines:
-                    this.question['properties']['data']['type'] == "MULTI_LINE"
-                        ? null
-                        : 1,
+                maxLines: question['properties']['data']['type'] == "MULTI_LINE"
+                    ? null
+                    : 1,
                 style: TextStyle(
                     fontFamily: customFont,
-                    color: this.theme['answerColor'],
+                    color: theme['answerColor'],
                     fontSize: fontSize),
-                cursorColor: this.theme['answerColor'],
+                cursorColor: theme['answerColor'],
                 controller: inputController,
                 decoration: InputDecoration(
                   focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: this.theme['answerColor']),
+                    borderSide: BorderSide(color: theme['answerColor']),
                   ),
                   hintText: "Please Enter Your Response",
                   hintStyle: TextStyle(
                       fontFamily: customFont,
-                      color: this.theme['questionNumberColor']),
+                      color: theme['questionNumberColor']),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
-                      color: this.theme['questionDescriptionColor'],
+                      color: theme['questionDescriptionColor'],
                     ),
                   ),
                 ),
               ),
             ),
-            // const SizedBox(height: 30),
-            // SkipAndNextButtons(
-            //   key: UniqueKey(),
-            //   disabled: this.widget.isLastQuestion
-            //       ? this.question['required']
-            //           ? disabled
-            //           : false
-            //       : disabled,
-            //   showNext: true,
-            //   showSubmit: this.widget.isLastQuestion,
-            //   showSkip:
-            //       (this.question['required'] || this.widget.isLastQuestion)
-            //           ? false
-            //           : true,
-            //   onClickNext: () {
-            //     if (this.widget.isLastQuestion &&
-            //         disabled &&
-            //         !this.question['required']) {
-            //       this.widget.submitData();
-            //     }
-            //     FocusScope.of(context).requestFocus(new FocusNode());
-            //     if (!disabled) {
-            //       if (this.widget.isLastQuestion) {
-            //         this.func(inputController.text, question['id'],
-            //             isLastQuestionHandle: true);
-            //       } else {
-            //         this.func(inputController.text, question['id']);
-            //       }
-            //     }
-            //     if (!disabled && this.widget.isLastQuestion) {
-            //       this.widget.submitData();
-            //     }
-            //   },
-            //   onClickSkip: () {
-            //     this.widget.toggleNextButtonBlock(false);
-            //     this.func(null, question['id']);
-            //   },
-            //   theme: theme,
-            //   euiTheme: this.widget.euiTheme,
-            // ),
           ],
         ),
       ],

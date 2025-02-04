@@ -31,11 +31,11 @@ class TextRating extends StatefulWidget {
 
   @override
   State<TextRating> createState() => _TextRatingState(
-        func: this.func,
-        answer: this.answer,
+        func: func,
+        answer: answer,
         question: question,
-        theme: this.theme,
-        customParams: this.customParams,
+        theme: theme,
+        customParams: customParams,
         currentQuestionNumber: currentQuestionNumber,
         isLastQuestion: isLastQuestion,
       );
@@ -51,7 +51,7 @@ class _TextRatingState extends State<TextRating> {
   final bool isLastQuestion;
   bool disabled = true;
 
-  TextEditingController inputController = new TextEditingController();
+  TextEditingController inputController = TextEditingController();
   _TextRatingState({
     required this.func,
     required this.answer,
@@ -70,47 +70,47 @@ class _TextRatingState extends State<TextRating> {
   initState() {
     super.initState();
 
-    if (this.widget.euiTheme != null) {
-      if (this.widget.euiTheme!['font'] != null) {
-        customFont = this.widget.euiTheme!['font'];
+    if (widget.euiTheme != null) {
+      if (widget.euiTheme!['font'] != null) {
+        customFont = widget.euiTheme!['font'];
       }
-      if (this.question['type'] == 'EmailInput') {
-        if (this.widget.euiTheme!['email'] != null) {
-          if (this.widget.euiTheme!['email']['fontSize'] != null) {
-            fontSize = this.widget.euiTheme!['email']['fontSize'];
+      if (question['type'] == 'EmailInput') {
+        if (widget.euiTheme!['email'] != null) {
+          if (widget.euiTheme!['email']['fontSize'] != null) {
+            fontSize = widget.euiTheme!['email']['fontSize'];
           }
-          if (this.widget.euiTheme!['email']['textFieldWidth'] != null) {
-            textFieldWidth = this.widget.euiTheme!['email']['textFieldWidth'];
+          if (widget.euiTheme!['email']['textFieldWidth'] != null) {
+            textFieldWidth = widget.euiTheme!['email']['textFieldWidth'];
           }
         }
       }
 
-      if (this.question['type'] != 'EmailInput') {
-        if (this.widget.euiTheme!['text'] != null) {
-          if (this.widget.euiTheme!['text']['fontSize'] != null) {
-            fontSize = this.widget.euiTheme!['text']['fontSize'];
+      if (question['type'] != 'EmailInput') {
+        if (widget.euiTheme!['text'] != null) {
+          if (widget.euiTheme!['text']['fontSize'] != null) {
+            fontSize = widget.euiTheme!['text']['fontSize'];
           }
-          if (this.widget.euiTheme!['text']['textFieldWidth'] != null) {
-            textFieldWidth = this.widget.euiTheme!['text']['textFieldWidth'];
+          if (widget.euiTheme!['text']['textFieldWidth'] != null) {
+            textFieldWidth = widget.euiTheme!['text']['textFieldWidth'];
           }
         }
       }
     }
 
-    if (this.answer[this.question['id']] != null) {
-      if (this.question['type'] == 'EmailInput') {
-        checkIfEmailValid(this.answer[this.question['id']]);
+    if (answer[question['id']] != null) {
+      if (question['type'] == 'EmailInput') {
+        checkIfEmailValid(answer[question['id']]);
         setState(() {
-          inputController.text = this.answer[this.question['id']];
+          inputController.text = answer[question['id']];
         });
       } else {
         var disabledState = false;
-        if (this.answer[this.question['id']] == "") {
+        if (answer[question['id']] == "") {
           disabledState = true;
         }
         setState(() {
           disabled = disabledState;
-          inputController.text = this.answer[this.question['id']];
+          inputController.text = answer[question['id']];
         });
       }
     }
@@ -118,20 +118,20 @@ class _TextRatingState extends State<TextRating> {
 
   checkIfEmailValid(value) {
     if (value == "") {
-      this.widget.toggleNextButtonBlock(false);
+      widget.toggleNextButtonBlock(false);
       setState(() {
         disabled = true;
       });
       return;
     }
-    if (this.question['type'] == 'EmailInput') {
+    if (question['type'] == 'EmailInput') {
       if (!validateEmail(value)) {
-        this.widget.toggleNextButtonBlock(true);
+        widget.toggleNextButtonBlock(true);
         setState(() {
           disabled = true;
         });
       } else {
-        this.widget.toggleNextButtonBlock(false);
+        widget.toggleNextButtonBlock(false);
         setState(() {
           disabled = false;
         });
@@ -160,24 +160,20 @@ class _TextRatingState extends State<TextRating> {
           children: [
             QuestionColumn(
               question: question,
-              currentQuestionNumber: this.currentQuestionNumber,
-              customParams: this.customParams,
-              theme: this.theme,
-              euiTheme: this.widget.euiTheme,
+              currentQuestionNumber: currentQuestionNumber,
+              customParams: customParams,
+              theme: theme,
+              euiTheme: widget.euiTheme,
             ),
             Container(
               constraints: BoxConstraints(
-                  maxWidth: textFieldWidth != null
-                      ? textFieldWidth
-                      : useMobileLayout
-                          ? 320
-                          : 500),
+                  maxWidth: textFieldWidth ?? (useMobileLayout ? 320 : 500)),
               child: TextField(
                 onChanged: (value) {
-                  if (this.question['type'] == 'EmailInput') {
+                  if (question['type'] == 'EmailInput') {
                     checkIfEmailValid(value);
                   } else {
-                    if (value.length == 0) {
+                    if (value.isEmpty) {
                       setState(() {
                         disabled = true;
                       });
@@ -188,34 +184,32 @@ class _TextRatingState extends State<TextRating> {
                     }
                   }
                   if (value == '') {
-                    this.widget.toggleNextButtonBlock(false);
-                    this.func(null, question['id'], changePage: false);
+                    widget.toggleNextButtonBlock(false);
+                    func(null, question['id'], changePage: false);
                     return;
                   }
-                  this.func(inputController.text, question['id'],
-                      changePage: false);
+                  func(inputController.text, question['id'], changePage: false);
                 },
-                maxLines:
-                    this.question['properties']['data']['type'] == "MULTI_LINE"
-                        ? null
-                        : 1,
+                maxLines: question['properties']['data']['type'] == "MULTI_LINE"
+                    ? null
+                    : 1,
                 style: TextStyle(
                     fontFamily: customFont,
-                    color: this.theme['answerColor'],
+                    color: theme['answerColor'],
                     fontSize: fontSize),
-                cursorColor: this.theme['answerColor'],
+                cursorColor: theme['answerColor'],
                 controller: inputController,
                 decoration: InputDecoration(
                   focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: this.theme['answerColor']),
+                    borderSide: BorderSide(color: theme['answerColor']),
                   ),
                   hintText: "Please Enter Your Response",
                   hintStyle: TextStyle(
                       fontFamily: customFont,
-                      color: this.theme['questionNumberColor']),
+                      color: theme['questionNumberColor']),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
-                      color: this.theme['questionDescriptionColor'],
+                      color: theme['questionDescriptionColor'],
                     ),
                   ),
                 ),
@@ -224,42 +218,41 @@ class _TextRatingState extends State<TextRating> {
             const SizedBox(height: 30),
             SkipAndNextButtons(
               key: UniqueKey(),
-              disabled: this.widget.isLastQuestion
-                  ? this.question['required']
+              disabled: widget.isLastQuestion
+                  ? question['required']
                       ? disabled
                       : false
                   : disabled,
               showNext: true,
-              showSubmit: this.widget.isLastQuestion,
-              showSkip:
-                  (this.question['required'] || this.widget.isLastQuestion)
-                      ? false
-                      : true,
+              showSubmit: widget.isLastQuestion,
+              showSkip: (question['required'] || widget.isLastQuestion)
+                  ? false
+                  : true,
               onClickNext: () {
-                if (this.widget.isLastQuestion &&
+                if (widget.isLastQuestion &&
                     disabled &&
-                    !this.question['required']) {
-                  this.widget.submitData();
+                    !question['required']) {
+                  widget.submitData();
                 }
-                FocusScope.of(context).requestFocus(new FocusNode());
+                FocusScope.of(context).requestFocus(FocusNode());
                 if (!disabled) {
-                  if (this.widget.isLastQuestion) {
-                    this.func(inputController.text, question['id'],
+                  if (widget.isLastQuestion) {
+                    func(inputController.text, question['id'],
                         isLastQuestionHandle: true);
                   } else {
-                    this.func(inputController.text, question['id']);
+                    func(inputController.text, question['id']);
                   }
                 }
-                if (!disabled && this.widget.isLastQuestion) {
-                  this.widget.submitData();
+                if (!disabled && widget.isLastQuestion) {
+                  widget.submitData();
                 }
               },
               onClickSkip: () {
-                this.widget.toggleNextButtonBlock(false);
-                this.func(null, question['id']);
+                widget.toggleNextButtonBlock(false);
+                func(null, question['id']);
               },
               theme: theme,
-              euiTheme: this.widget.euiTheme,
+              euiTheme: widget.euiTheme,
             ),
           ],
         ),
