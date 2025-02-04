@@ -33,11 +33,11 @@ class CesScore extends StatefulWidget {
 
   @override
   State<CesScore> createState() => _CesScoreState(
-      func: this.func,
-      answer: this.answer,
+      func: func,
+      answer: answer,
       question: question,
-      theme: this.theme,
-      customParams: this.customParams,
+      theme: theme,
+      customParams: customParams,
       currentQuestionNumber: currentQuestionNumber);
 }
 
@@ -50,7 +50,7 @@ class _CesScoreState extends State<CesScore> {
   final int currentQuestionNumber;
   var _selectedOption = -1;
 
-  var subQuestionData;
+  dynamic subQuestionData;
 
   _CesScoreState({
     required this.func,
@@ -74,12 +74,12 @@ class _CesScoreState extends State<CesScore> {
   }
 
   handleNextButtonVisibility() {
-    var listSubQuestions = (this.question['subQuestions'] as List)
+    var listSubQuestions = (question['subQuestions'] as List)
         .map((e) => e as Map<dynamic, dynamic>)
         .toList();
     var subQuestion;
     var hasFeedBackQuestion = false;
-    if (listSubQuestions.length > 0) {
+    if (listSubQuestions.isNotEmpty) {
       hasFeedBackQuestion = true;
       subQuestion = listSubQuestions[0];
     }
@@ -104,7 +104,7 @@ class _CesScoreState extends State<CesScore> {
         return true;
       }
     } else {
-      if(this.widget.isLastQuestion){
+      if (widget.isLastQuestion) {
         return true;
       }
       return checkIfTheQuestionHasAFeedBack(question);
@@ -113,30 +113,26 @@ class _CesScoreState extends State<CesScore> {
 
   @override
   initState() {
-    if (this.answer[this.question['id']] != null) {
-
+    super.initState();
+    if (answer[question['id']] != null) {
       var hasFeedBackQuestion = checkIfTheQuestionHasAFeedBack(question);
       if (hasFeedBackQuestion) {
         var feedBackQuestion = getFeedBackQuestion(question);
         handleFeedBackQuestionAnswer(
-            this.answer[feedBackQuestion['id']], feedBackQuestion['id']);
+            answer[feedBackQuestion['id']], feedBackQuestion['id']);
       }
       setState(() {
-        _selectedOption = this.answer[this.question['id']];
+        _selectedOption = answer[question['id']];
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    var listSubQuestions = (this.question['subQuestions'] as List)
+    var listSubQuestions = (question['subQuestions'] as List)
         .map((e) => e as Map<dynamic, dynamic>)
         .toList();
-    var subQuestion;
-    var hasFeedBackQuestion = false;
-    if (listSubQuestions.length > 0) {
-      hasFeedBackQuestion = true;
-    }
+    if (listSubQuestions.isNotEmpty) {}
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -144,58 +140,43 @@ class _CesScoreState extends State<CesScore> {
       children: [
         QuestionColumn(
           question: question,
-          currentQuestionNumber: this.currentQuestionNumber,
-          customParams: this.customParams,
-          theme: this.theme,
-          euiTheme: this.widget.euiTheme,
+          currentQuestionNumber: currentQuestionNumber,
+          customParams: customParams,
+          theme: theme,
+          euiTheme: widget.euiTheme,
         ),
-        // SizedBox(height: 40),
         SizedBox(height: 2.h),
-        // SizedBox(height: 40),
         CesScoreQuestion(
-          func: this.func,
-          answer: this.answer,
-          question: this.question,
-          theme: this.theme,
+          func: func,
+          answer: answer,
+          question: question,
+          theme: theme,
           setSelectedOption: setSelectedOption,
-          euiTheme: this.widget.euiTheme,
-          customParams: this.customParams,
-          handleFeedBackQuestionAnswer: this.handleFeedBackQuestionAnswer,
+          euiTheme: widget.euiTheme,
+          customParams: customParams,
+          handleFeedBackQuestionAnswer: handleFeedBackQuestionAnswer,
         ),
         SizedBox(height: 7.h),
-        // SizedBox(height: 40),
         SkipAndNextButtons(
           key: UniqueKey(),
           disabled: handleNextButtonVisibility(),
           showNext: handleShowNextButton(),
           showSkip: false,
-          showSubmit: this.widget.isLastQuestion,
+          showSubmit: widget.isLastQuestion,
           onClickSkip: () {
-            this.func(null, question['id']);
+            func(null, question['id']);
           },
           onClickNext: () {
             if (subQuestionData != null) {
-              this.func(
-                  subQuestionData['value'], subQuestionData['questionId']);
-              FocusScope.of(context).requestFocus(new FocusNode());
+              func(subQuestionData['value'], subQuestionData['questionId']);
+              FocusScope.of(context).requestFocus(FocusNode());
             }
-            //             isLastQuestionHandle: true);
-            // this.widget.submitData();
-            // if (_selectedOption != -1) {
-            //   this.widget.submitData();
-            // }
-            if (this.widget.isLastQuestion &&
-                _selectedOption != -1.0) {
-              this.widget.submitData();
+            if (widget.isLastQuestion && _selectedOption != -1.0) {
+              widget.submitData();
             }
-
-            // if (_selectedOption != -1.0) {
-            //   this.func(_selectedOption, question['id']);
-            // }
           },
-          
-          theme: this.theme,
-          euiTheme: this.widget.euiTheme,
+          theme: theme,
+          euiTheme: widget.euiTheme,
         ),
       ],
     );
@@ -226,10 +207,7 @@ class CesScoreQuestion extends StatefulWidget {
 
   @override
   State<CesScoreQuestion> createState() => _CesScoreQuestionState(
-      func: this.func,
-      answer: this.answer,
-      question: this.question,
-      theme: this.theme);
+      func: func, answer: answer, question: question, theme: theme);
 }
 
 class _CesScoreQuestionState extends State<CesScoreQuestion> {
@@ -261,12 +239,12 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
   final GlobalKey<TooltipState> tooltipkey = GlobalKey<TooltipState>();
   final GlobalKey<TooltipState> tooltipkeyStart = GlobalKey<TooltipState>();
   updateOpnionScale(val) {
-    this.widget.setSelectedOption(val);
+    widget.setSelectedOption(val);
     setState(() {
       _selectedOption = val;
     });
     var hasfeedBackQuestion = checkIfTheQuestionHasAFeedBack(question);
-    this.func(val, question['id'], changePage: !hasfeedBackQuestion);
+    func(val, question['id'], changePage: !hasfeedBackQuestion);
   }
 
   generateStartStep(step, start) {
@@ -281,7 +259,7 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
     _step = start == 0 ? step + 1 : step;
   }
 
-  var customFont = null;
+  var customFont;
 
   var opnionBlockSizeWidth = 48.0;
   var opnionBlockSizeHeight = 60.0;
@@ -296,73 +274,72 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
   @override
   initState() {
     super.initState();
-    if (this.widget.euiTheme != null) {
-      if (this.widget.euiTheme!['font'] != null) {
-        customFont = this.widget.euiTheme!['font'];
+    if (widget.euiTheme != null) {
+      if (widget.euiTheme!['font'] != null) {
+        customFont = widget.euiTheme!['font'];
       }
 
-      if (this.widget.euiTheme!['opinionScale'] != null) {
-        if (this.widget.euiTheme!['opinionScale']['outerBlockWidth'] != null) {
+      if (widget.euiTheme!['opinionScale'] != null) {
+        if (widget.euiTheme!['opinionScale']['outerBlockWidth'] != null) {
           opnionBlockSizeWidth =
-              this.widget.euiTheme!['opinionScale']['outerBlockWidth'];
+              widget.euiTheme!['opinionScale']['outerBlockWidth'];
         }
-        if (this.widget.euiTheme!['opinionScale']['outerBlockHeight'] != null) {
+        if (widget.euiTheme!['opinionScale']['outerBlockHeight'] != null) {
           opnionBlockSizeHeight =
-              this.widget.euiTheme!['opinionScale']['outerBlockHeight'];
+              widget.euiTheme!['opinionScale']['outerBlockHeight'];
         }
 
-        if (this.widget.euiTheme!['opinionScale']['innerBlockWidth'] != null) {
+        if (widget.euiTheme!['opinionScale']['innerBlockWidth'] != null) {
           innerOpnionBlockSizeWidth =
-              this.widget.euiTheme!['opinionScale']['innerBlockWidth'];
+              widget.euiTheme!['opinionScale']['innerBlockWidth'];
         }
-        if (this.widget.euiTheme!['opinionScale']['innerBlockHeight'] != null) {
+        if (widget.euiTheme!['opinionScale']['innerBlockHeight'] != null) {
           innerOpnionBlockSizeHeight =
-              this.widget.euiTheme!['opinionScale']['innerBlockHeight'];
+              widget.euiTheme!['opinionScale']['innerBlockHeight'];
         }
-        if (this.widget.euiTheme!['opinionScale']['labelFontSize'] != null) {
+        if (widget.euiTheme!['opinionScale']['labelFontSize'] != null) {
           opnionLabelFontSize =
-              this.widget.euiTheme!['opinionScale']['labelFontSize'];
+              widget.euiTheme!['opinionScale']['labelFontSize'];
         }
-        if (this.widget.euiTheme!['opinionScale']['numberFontSize'] != null) {
-          numberFontSize =
-              this.widget.euiTheme!['opinionScale']['numberFontSize'];
+        if (widget.euiTheme!['opinionScale']['numberFontSize'] != null) {
+          numberFontSize = widget.euiTheme!['opinionScale']['numberFontSize'];
         }
-        if (this.widget.euiTheme!['opinionScale']['runSpacing'] != null) {
-          runSpacing = this.widget.euiTheme!['opinionScale']['runSpacing'];
+        if (widget.euiTheme!['opinionScale']['runSpacing'] != null) {
+          runSpacing = widget.euiTheme!['opinionScale']['runSpacing'];
         }
-        if (this.widget.euiTheme!['opinionScale']['positionedLabelTopValue'] !=
+        if (widget.euiTheme!['opinionScale']['positionedLabelTopValue'] !=
             null) {
           positionedLabelTopValue =
-              this.widget.euiTheme!['opinionScale']['positionedLabelTopValue'];
+              widget.euiTheme!['opinionScale']['positionedLabelTopValue'];
         }
       }
     }
 
-    startLabel = this.question['properties']['data']['labels']['left'] ==
+    startLabel = question['properties']['data']['labels']['left'] ==
             'builder.ces_score.min'
         ? 'Strongly Disagree'
-        : this.question['properties']['data']['labels']['left'];
+        : question['properties']['data']['labels']['left'];
     midLabel = 'Neutral';
-    endLabel = this.question['properties']['data']['labels']['right'] ==
+    endLabel = question['properties']['data']['labels']['right'] ==
             'builder.ces_score.max'
         ? 'Strongly Agree'
-        : this.question['properties']['data']['labels']['right'];
+        : question['properties']['data']['labels']['right'];
 
     luminanceValue =
-        this.theme['decodedOpnionBackgroundColorUnSelected'].computeLuminance();
+        theme['decodedOpnionBackgroundColorUnSelected'].computeLuminance();
 
-    if (this.question['properties'] != null &&
-        this.question['properties']['data'] != null &&
-        this.question['properties']['data']['reversedOrder'] != null) {
-      reversedOrder = this.question['properties']['data']['reversedOrder'];
+    if (question['properties'] != null &&
+        question['properties']['data'] != null &&
+        question['properties']['data']['reversedOrder'] != null) {
+      reversedOrder = question['properties']['data']['reversedOrder'];
     }
 
-    this.generateStartStep(
-        7, this.question['properties']['data']['startWithOne'] ? 1 : 0);
+    generateStartStep(
+        7, question['properties']['data']['startWithOne'] ? 1 : 0);
 
-    if (this.answer[this.question['id']] != null) {
+    if (answer[question['id']] != null) {
       setState(() {
-        _selectedOption = this.answer[this.question['id']];
+        _selectedOption = answer[question['id']];
         hasFeedBackQuestion = checkIfTheQuestionHasAFeedBack(question);
       });
     } else {
@@ -379,7 +356,7 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
   }
 
   handleFeedBackText(text, questionId) {
-    this.widget.handleFeedBackQuestionAnswer(text, questionId);
+    widget.handleFeedBackQuestionAnswer(text, questionId);
   }
 
   getOpnionScaleBlockColorUnSelected(val) {
@@ -387,21 +364,20 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
 
     if (hasSegmentedOpton) {
       var promoters =
-          this.question['properties']['data']['segmentColors']['lowEffort'];
-      var passives =
-          this.question['properties']['data']['segmentColors']['neutral'];
+          question['properties']['data']['segmentColors']['lowEffort'];
+      var passives = question['properties']['data']['segmentColors']['neutral'];
       var detractors =
-          this.question['properties']['data']['segmentColors']['highEffort'];
+          question['properties']['data']['segmentColors']['highEffort'];
 
       if (val <= 3) {
-        return convertRgbToColor(('#' + detractors), 1.0);
+        return convertRgbToColor(('#$detractors'), 1.0);
       }
       if (val <= 4) {
-        return convertRgbToColor(('#' + passives), 1.0);
+        return convertRgbToColor(('#$passives'), 1.0);
       }
-      return convertRgbToColor(('#' + promoters), 1.0);
+      return convertRgbToColor(('#$promoters'), 1.0);
     }
-    return this.theme['decodedOpnionBackgroundColorUnSelected'];
+    return theme['decodedOpnionBackgroundColorUnSelected'];
   }
 
   getOpnionScaleBlockColorSelected(val) {
@@ -409,7 +385,7 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
     if (hasSegmentedOpton) {
       return darkenColor(getOpnionScaleBlockColorUnSelected(val), 0.17);
     }
-    return this.theme['decodedOpnionBackgroundColorSelected'];
+    return theme['decodedOpnionBackgroundColorSelected'];
   }
 
   getOptionScaleBorderColor(val) {
@@ -417,7 +393,7 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
     if (hasSegmentedOpton) {
       return darkenColor(getOpnionScaleBlockColorUnSelected(val), 0.17);
     }
-    return this.theme['decodedOpnionBorderColor'];
+    return theme['decodedOpnionBorderColor'];
   }
 
   getAnswerColor(val, isSelectedOption) {
@@ -431,7 +407,7 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
         ? luminanceValue > 0.5
             ? Colors.black
             : Colors.white
-        : this.theme['answerColor'];
+        : theme['answerColor'];
   }
 
   generateOpmionBlock(val, isSelectedOption) {
@@ -440,8 +416,8 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
       height: opnionBlockSizeHeight,
       margin: _step == 3
           ? val == 0
-              ? EdgeInsets.only(left: 0.0)
-              : EdgeInsets.only(right: 30.0)
+              ? const EdgeInsets.only(left: 0.0)
+              : const EdgeInsets.only(right: 30.0)
           : null,
       child: Stack(
         clipBehavior: Clip.none,
@@ -450,8 +426,7 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
             Positioned(
               top: positionedLabelTopValue,
               left: -1,
-              child: Container(
-                  child: Tooltip(
+              child: Tooltip(
                 message: startLabel,
                 key: tooltipkeyStart,
                 triggerMode: TooltipTriggerMode.manual,
@@ -467,40 +442,35 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
                       decoration: TextDecoration.none,
                       fontSize: opnionLabelFontSize,
                       fontWeight: FontWeight.w400,
-                      // overflow: TextOverflow.ellipsis,
-                      // color: Color.fromRGBO(67, 67, 67, 1),
-                      color: this.theme['decodedOpnionLabelColor'],
+                      color: theme['decodedOpnionLabelColor'],
                       fontFamily: customFont,
                     ),
                   ),
                 ),
-              )),
+              ),
             ),
-          ]
-          else if (val == _end) ...[
+          ] else if (val == _end) ...[
             Positioned(
               top: positionedLabelTopValue,
               right: 0,
-              child: Container(
-                child: Tooltip(
-                  message: endLabel,
-                  key: tooltipkey,
-                  triggerMode: TooltipTriggerMode.manual,
-                  child: InkWell(
-                    onTap: () {
-                      tooltipkey.currentState?.ensureTooltipVisible();
-                    },
-                    child: Text(
-                      reversedOrder
-                          ? transformLabel(startLabel)
-                          : transformLabel(endLabel),
-                      style: TextStyle(
-                        decoration: TextDecoration.none,
-                        fontSize: opnionLabelFontSize,
-                        fontWeight: FontWeight.w400,
-                        color: this.theme['decodedOpnionLabelColor'],
-                        fontFamily: customFont,
-                      ),
+              child: Tooltip(
+                message: endLabel,
+                key: tooltipkey,
+                triggerMode: TooltipTriggerMode.manual,
+                child: InkWell(
+                  onTap: () {
+                    tooltipkey.currentState?.ensureTooltipVisible();
+                  },
+                  child: Text(
+                    reversedOrder
+                        ? transformLabel(startLabel)
+                        : transformLabel(endLabel),
+                    style: TextStyle(
+                      decoration: TextDecoration.none,
+                      fontSize: opnionLabelFontSize,
+                      fontWeight: FontWeight.w400,
+                      color: theme['decodedOpnionLabelColor'],
+                      fontFamily: customFont,
                     ),
                   ),
                 ),
@@ -509,18 +479,13 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
           ],
           Center(
             child: Container(
-              // color: Color.fromARGB(255, 255, 247, 0),
               width: innerOpnionBlockSizeWidth,
               height: innerOpnionBlockSizeHeight,
-              // constraints: BoxConstraints(
-              //    maxHeight: 40,maxWidth: 40),
               decoration: BoxDecoration(
                 color: isSelectedOption == val
                     ? getOpnionScaleBlockColorSelected(val)
                     : getOpnionScaleBlockColorUnSelected(val),
                 border: Border.all(
-                  // color: Color.fromRGBO(63, 63, 63, 0.5),
-                  // color: this.theme['decodedOpnionBorderColor'],
                   color: getOptionScaleBorderColor(val),
                   width: 1,
                 ),
@@ -562,9 +527,6 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
 
   @override
   Widget build(BuildContext context) {
-    var shortestSide = MediaQuery.of(context).size.shortestSide;
-    final bool useMobileLayout = shortestSide < 600;
-
     List<Widget> list = List<Widget>.empty(growable: true);
     if (reversedOrder) {
       for (var i = _end; i >= _start; i--) {
@@ -594,11 +556,11 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
       }
     }
 
-    var listSubQuestions = (this.question['subQuestions'] as List)
+    var listSubQuestions = (question['subQuestions'] as List)
         .map((e) => e as Map<dynamic, dynamic>)
         .toList();
     var subQuestion;
-    if (listSubQuestions.length > 0) {
+    if (listSubQuestions.isNotEmpty) {
       subQuestion = Map<dynamic, dynamic>.from(listSubQuestions[0]);
     }
 
@@ -608,16 +570,14 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
 
     return Column(
       children: [
-        Container(
-          child: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            alignment: WrapAlignment.center,
-            runSpacing: runSpacing,
-            direction: Axis.horizontal,
-            children: [...list],
-          ),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          alignment: WrapAlignment.center,
+          runSpacing: runSpacing,
+          direction: Axis.horizontal,
+          children: [...list],
         ),
-        SizedBox(height: 40),
+        const SizedBox(height: 40),
         if (hasFeedBackQuestion && showFeedBackQuestion()) ...[
           FeedBackText(
             func: func,
@@ -626,7 +586,7 @@ class _CesScoreQuestionState extends State<CesScoreQuestion> {
             theme: theme,
             customParams: widget.customParams,
             handleFeedBackText: handleFeedBackText,
-            parentQuestion: this.question,
+            parentQuestion: question,
           )
         ],
       ],

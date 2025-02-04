@@ -49,4 +49,8 @@
   
 ## 1.1.5
 
-* SSE-17829 FIx
+* SSE-17829 Fix
+
+## 1.1.5-beta.1
+
+* Bug Fix & CodeClean Up

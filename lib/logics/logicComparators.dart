@@ -1,7 +1,7 @@
-isEqualForRating(logic, _myMap) {
-  var _questionIdToCheck = logic['question_id'];
-  if (_myMap[_questionIdToCheck] != null) {
-    var answer = _myMap[_questionIdToCheck];
+isEqualForRating(logic, myMap) {
+  var questionIdToCheck = logic['question_id'];
+  if (myMap[questionIdToCheck] != null) {
+    var answer = myMap[questionIdToCheck];
     if (logic['value'].length > 0 && answer == int.parse(logic['value'])) {
       return true;
     } else {
@@ -12,10 +12,10 @@ isEqualForRating(logic, _myMap) {
   }
 }
 
-isNotEqualForRating(logic, _myMap) {
-  var _questionIdToCheck = logic['question_id'];
-  if (_myMap[_questionIdToCheck] != null) {
-    var answer = _myMap[_questionIdToCheck];
+isNotEqualForRating(logic, myMap) {
+  var questionIdToCheck = logic['question_id'];
+  if (myMap[questionIdToCheck] != null) {
+    var answer = myMap[questionIdToCheck];
     if (logic['value'].length > 0 && answer != int.parse(logic['value'])) {
       return true;
     } else {
@@ -26,10 +26,10 @@ isNotEqualForRating(logic, _myMap) {
   }
 }
 
-lessThanForRating(logic, _myMap) {
-  var _questionIdToCheck = logic['question_id'];
-  if (_myMap[_questionIdToCheck] != null) {
-    var answer = _myMap[_questionIdToCheck];
+lessThanForRating(logic, myMap) {
+  var questionIdToCheck = logic['question_id'];
+  if (myMap[questionIdToCheck] != null) {
+    var answer = myMap[questionIdToCheck];
     if (logic['value'].length > 0 && answer < int.parse(logic['value'])) {
       return true;
     } else {
@@ -40,19 +40,19 @@ lessThanForRating(logic, _myMap) {
   }
 }
 
-isAnswered(logic, _myMap) {
-  var _questionIdToCheck = logic['question_id'];
-  if (_myMap[_questionIdToCheck] != null) {
+isAnswered(logic, myMap) {
+  var questionIdToCheck = logic['question_id'];
+  if (myMap[questionIdToCheck] != null) {
     return true;
   } else {
     return false;
   }
 }
 
-greaterThanForRating(logic, _myMap) {
-  var _questionIdToCheck = logic['question_id'];
-  if (_myMap[_questionIdToCheck] != null) {
-    var answer = _myMap[_questionIdToCheck];
+greaterThanForRating(logic, myMap) {
+  var questionIdToCheck = logic['question_id'];
+  if (myMap[questionIdToCheck] != null) {
+    var answer = myMap[questionIdToCheck];
     if (answer > int.parse(logic['value'])) {
       return true;
     } else {
@@ -63,23 +63,20 @@ greaterThanForRating(logic, _myMap) {
   }
 }
 
-isNotAnswered(logic, _myMap) {
-  var _questionIdToCheck = logic['question_id'];
-  if (_myMap[_questionIdToCheck] != null) {
+isNotAnswered(logic, myMap) {
+  var questionIdToCheck = logic['question_id'];
+  if (myMap[questionIdToCheck] != null) {
     return false;
   } else {
     return true;
   }
 }
 
-
-
 // multiple choice
-
-isSelected(logic, _myMap) {
-  var _questionIdToCheck = logic['question_id'];
-  if (_myMap[_questionIdToCheck] != null) {
-    var answer = _myMap[_questionIdToCheck];
+isSelected(logic, myMap) {
+  var questionIdToCheck = logic['question_id'];
+  if (myMap[questionIdToCheck] != null) {
+    var answer = myMap[questionIdToCheck];
     if (logic['choice_id'] != null) {
       if (answer.contains(logic['choice_id'])) {
         return true;
@@ -94,10 +91,10 @@ isSelected(logic, _myMap) {
   }
 }
 
-isNotSelected(logic, _myMap) {
-  var _questionIdToCheck = logic['question_id'];
-  if (_myMap[_questionIdToCheck] != null) {
-    var answer = _myMap[_questionIdToCheck];
+isNotSelected(logic, myMap) {
+  var questionIdToCheck = logic['question_id'];
+  if (myMap[questionIdToCheck] != null) {
+    var answer = myMap[questionIdToCheck];
     if (logic['choice_id'] != null) {
       if (answer.contains(logic['choice_id'])) {
         return false;
@@ -114,10 +111,10 @@ isNotSelected(logic, _myMap) {
 
 // text input
 
-checkContains(logic, _myMap) {
-  var _questionIdToCheck = logic['question_id'];
-  if (_myMap[_questionIdToCheck] != null) {
-    var answer = _myMap[_questionIdToCheck];
+checkContains(logic, myMap) {
+  var questionIdToCheck = logic['question_id'];
+  if (myMap[questionIdToCheck] != null) {
+    var answer = myMap[questionIdToCheck];
     if (logic['value'] != null) {
       if (answer.contains(logic['value'])) {
         return true;
@@ -132,10 +129,10 @@ checkContains(logic, _myMap) {
   }
 }
 
-checkStartsWith(logic, _myMap) {
-  var _questionIdToCheck = logic['question_id'];
-  if (_myMap[_questionIdToCheck] != null) {
-    var answer = _myMap[_questionIdToCheck];
+checkStartsWith(logic, myMap) {
+  var questionIdToCheck = logic['question_id'];
+  if (myMap[questionIdToCheck] != null) {
+    var answer = myMap[questionIdToCheck];
     if (logic['value'] != null) {
       if (answer.startsWith(logic['value'])) {
         return true;
@@ -150,10 +147,10 @@ checkStartsWith(logic, _myMap) {
   }
 }
 
-checkEndsWith(logic, _myMap) {
-  var _questionIdToCheck = logic['question_id'];
-  if (_myMap[_questionIdToCheck] != null) {
-    var answer = _myMap[_questionIdToCheck];
+checkEndsWith(logic, myMap) {
+  var questionIdToCheck = logic['question_id'];
+  if (myMap[questionIdToCheck] != null) {
+    var answer = myMap[questionIdToCheck];
     if (logic['value'] != null) {
       if (answer.endsWith(logic['value'])) {
         return true;
@@ -168,10 +165,10 @@ checkEndsWith(logic, _myMap) {
   }
 }
 
-checkEqualsString(logic, _myMap) {
-  var _questionIdToCheck = logic['question_id'];
-  if (_myMap[_questionIdToCheck] != null) {
-    var answer = _myMap[_questionIdToCheck];
+checkEqualsString(logic, myMap) {
+  var questionIdToCheck = logic['question_id'];
+  if (myMap[questionIdToCheck] != null) {
+    var answer = myMap[questionIdToCheck];
     if (logic['value'] != null) {
       if (answer == logic['value']) {
         return true;
@@ -186,10 +183,10 @@ checkEqualsString(logic, _myMap) {
   }
 }
 
-checkEqualToForYesNo(logic, _myMap) {
-  var _questionIdToCheck = logic['question_id'];
-  if (_myMap[_questionIdToCheck] != null) {
-    var answer = _myMap[_questionIdToCheck];
+checkEqualToForYesNo(logic, myMap) {
+  var questionIdToCheck = logic['question_id'];
+  if (myMap[questionIdToCheck] != null) {
+    var answer = myMap[questionIdToCheck];
     if (answer.toString() == logic['value']) {
       return true;
     } else {
@@ -200,10 +197,10 @@ checkEqualToForYesNo(logic, _myMap) {
   }
 }
 
-checkNotEqualToForYesNo(logic, _myMap) {
-  var _questionIdToCheck = logic['question_id'];
-  if (_myMap[_questionIdToCheck] != null) {
-    var answer = _myMap[_questionIdToCheck];
+checkNotEqualToForYesNo(logic, myMap) {
+  var questionIdToCheck = logic['question_id'];
+  if (myMap[questionIdToCheck] != null) {
+    var answer = myMap[questionIdToCheck];
     if (answer.toString() != logic['value']) {
       return true;
     } else {

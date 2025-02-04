@@ -63,43 +63,43 @@ parsedHeading(question, replacementVal) {
 
 convertQuestionListToWidget(
     questionsToConvert,
-    _currentQuestionToRender,
+    currentQuestionToRender,
     storeAnswers,
-    _workBench,
-    _themeData,
+    workBench,
+    themeData,
     customParams,
-    _currentQuestionNumber,
+    currentQuestionNumber,
     submitData,
-    _lastQuestion,
-    _scrollController,
+    lastQuestion,
+    scrollController,
     euiTheme,
     toggleNextButtonBlock) {
-  List<Widget> _newquestionList = List<Widget>.empty(growable: true);
+  List<Widget> newquestionList = List<Widget>.empty(growable: true);
 
   var i = 0;
 
   for (var question in questionsToConvert) {
     if (question['type'] == 'Rating') {
-      _newquestionList.add(
+      newquestionList.add(
         AnimatedOpacity(
-          opacity: _currentQuestionToRender['id'] == null
+          opacity: currentQuestionToRender['id'] == null
               ? 1.0
-              : _currentQuestionToRender['id'] == question['id']
+              : currentQuestionToRender['id'] == question['id']
                   ? 1.0
                   : 0.0,
           duration: const Duration(milliseconds: 200),
           child: Center(
             child: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
+              physics: const BouncingScrollPhysics(),
               child: ColumnRating(
                 func: storeAnswers,
-                answer: _workBench,
+                answer: workBench,
                 question: question,
-                theme: _themeData,
+                theme: themeData,
                 customParams: customParams,
                 currentQuestionNumber: i + 1,
-                isLastQuestion: question['id'] == _lastQuestion['id'],
-                lastQuestionId: _lastQuestion['id'],
+                isLastQuestion: question['id'] == lastQuestion['id'],
+                lastQuestionId: lastQuestion['id'],
                 submitData: submitData,
                 euiTheme: euiTheme,
               ),
@@ -109,25 +109,25 @@ convertQuestionListToWidget(
       );
     }
     if (question['type'] == 'TextInput' || question['type'] == 'EmailInput') {
-      _newquestionList.add(
+      newquestionList.add(
         AnimatedOpacity(
-          opacity: _currentQuestionToRender['id'] == null
+          opacity: currentQuestionToRender['id'] == null
               ? 1.0
-              : _currentQuestionToRender['id'] == question['id']
+              : currentQuestionToRender['id'] == question['id']
                   ? 1.0
                   : 0.0,
           duration: const Duration(milliseconds: 200),
           child: Center(
             child: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
+              physics: const BouncingScrollPhysics(),
               child: TextRating(
                   func: storeAnswers,
-                  answer: _workBench,
+                  answer: workBench,
                   question: question,
-                  theme: _themeData,
+                  theme: themeData,
                   customParams: customParams,
                   currentQuestionNumber: i + 1,
-                  isLastQuestion: question['id'] == _lastQuestion['id'],
+                  isLastQuestion: question['id'] == lastQuestion['id'],
                   submitData: submitData,
                   euiTheme: euiTheme,
                   toggleNextButtonBlock: toggleNextButtonBlock),
@@ -137,27 +137,27 @@ convertQuestionListToWidget(
       );
     }
     if (question['type'] == 'MultiChoice') {
-      _newquestionList.add(
+      newquestionList.add(
         AnimatedOpacity(
-          opacity: _currentQuestionToRender['id'] == null
+          opacity: currentQuestionToRender['id'] == null
               ? 1.0
-              : _currentQuestionToRender['id'] == question['id']
+              : currentQuestionToRender['id'] == question['id']
                   ? 1.0
                   : 0.0,
           duration: const Duration(milliseconds: 200),
           child: Center(
             child: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
-              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              controller: scrollController,
               child: MultiChoice(
                 func: storeAnswers,
-                answer: _workBench,
+                answer: workBench,
                 question: question,
-                theme: _themeData,
+                theme: themeData,
                 customParams: customParams,
                 currentQuestionNumber: i + 1,
                 submitData: submitData,
-                isLastQuestion: question['id'] == _lastQuestion['id'],
+                isLastQuestion: question['id'] == lastQuestion['id'],
                 euiTheme: euiTheme,
                 toggleNextButtonBlock: toggleNextButtonBlock,
               ),
@@ -167,27 +167,27 @@ convertQuestionListToWidget(
       );
     }
     if (question['type'] == 'OpinionScale') {
-      _newquestionList.add(
+      newquestionList.add(
         AnimatedOpacity(
-          opacity: _currentQuestionToRender['id'] == null
+          opacity: currentQuestionToRender['id'] == null
               ? 1.0
-              : _currentQuestionToRender['id'] == question['id']
+              : currentQuestionToRender['id'] == question['id']
                   ? 1.0
                   : 0.0,
           duration: const Duration(milliseconds: 200),
           child: Center(
             child: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
-              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              controller: scrollController,
               child: ColumnOpnionScale(
                 func: storeAnswers,
-                answer: _workBench,
+                answer: workBench,
                 question: question,
-                theme: _themeData,
+                theme: themeData,
                 customParams: customParams,
                 currentQuestionNumber: i + 1,
                 submitData: submitData,
-                isLastQuestion: question['id'] == _lastQuestion['id'],
+                isLastQuestion: question['id'] == lastQuestion['id'],
                 euiTheme: euiTheme,
               ),
             ),
@@ -196,28 +196,28 @@ convertQuestionListToWidget(
       );
     }
     if (question['type'] == 'NPSScore') {
-      var isLastQuestionSubQuestion = _lastQuestion['subQuestion'] ?? false;
-      var lastQuestionId = _lastQuestion['id'];
-      if(isLastQuestionSubQuestion){
-        lastQuestionId = _lastQuestion['parent_question_id'];
+      var isLastQuestionSubQuestion = lastQuestion['subQuestion'] ?? false;
+      var lastQuestionId = lastQuestion['id'];
+      if (isLastQuestionSubQuestion) {
+        lastQuestionId = lastQuestion['parent_question_id'];
       }
-      _newquestionList.add(
+      newquestionList.add(
         AnimatedOpacity(
-          opacity: _currentQuestionToRender['id'] == null
+          opacity: currentQuestionToRender['id'] == null
               ? 1.0
-              : _currentQuestionToRender['id'] == question['id']
+              : currentQuestionToRender['id'] == question['id']
                   ? 1.0
                   : 0.0,
           duration: const Duration(milliseconds: 200),
           child: Center(
             child: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
-              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              controller: scrollController,
               child: NpsScore(
                 func: storeAnswers,
-                answer: _workBench,
+                answer: workBench,
                 question: question,
-                theme: _themeData,
+                theme: themeData,
                 customParams: customParams,
                 currentQuestionNumber: i + 1,
                 submitData: submitData,
@@ -230,28 +230,28 @@ convertQuestionListToWidget(
       );
     }
     if (question['type'] == 'CESScore') {
-      var isLastQuestionSubQuestion = _lastQuestion['subQuestion'] ?? false;
-      var lastQuestionId = _lastQuestion['id'];
-      if(isLastQuestionSubQuestion){
-        lastQuestionId = _lastQuestion['parent_question_id'];
+      var isLastQuestionSubQuestion = lastQuestion['subQuestion'] ?? false;
+      var lastQuestionId = lastQuestion['id'];
+      if (isLastQuestionSubQuestion) {
+        lastQuestionId = lastQuestion['parent_question_id'];
       }
-      _newquestionList.add(
+      newquestionList.add(
         AnimatedOpacity(
-          opacity: _currentQuestionToRender['id'] == null
+          opacity: currentQuestionToRender['id'] == null
               ? 1.0
-              : _currentQuestionToRender['id'] == question['id']
+              : currentQuestionToRender['id'] == question['id']
                   ? 1.0
                   : 0.0,
           duration: const Duration(milliseconds: 200),
           child: Center(
             child: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
-              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              controller: scrollController,
               child: CesScore(
                 func: storeAnswers,
-                answer: _workBench,
+                answer: workBench,
                 question: question,
-                theme: _themeData,
+                theme: themeData,
                 customParams: customParams,
                 currentQuestionNumber: i + 1,
                 submitData: submitData,
@@ -263,29 +263,29 @@ convertQuestionListToWidget(
         ),
       );
     }
-    if(question['type'] == 'CSATScore'){
-var isLastQuestionSubQuestion = _lastQuestion['subQuestion'] ?? false;
-      var lastQuestionId = _lastQuestion['id'];
-      if(isLastQuestionSubQuestion){
-        lastQuestionId = _lastQuestion['parent_question_id'];
+    if (question['type'] == 'CSATScore') {
+      var isLastQuestionSubQuestion = lastQuestion['subQuestion'] ?? false;
+      var lastQuestionId = lastQuestion['id'];
+      if (isLastQuestionSubQuestion) {
+        lastQuestionId = lastQuestion['parent_question_id'];
       }
-      _newquestionList.add(
+      newquestionList.add(
         AnimatedOpacity(
-          opacity: _currentQuestionToRender['id'] == null
+          opacity: currentQuestionToRender['id'] == null
               ? 1.0
-              : _currentQuestionToRender['id'] == question['id']
+              : currentQuestionToRender['id'] == question['id']
                   ? 1.0
                   : 0.0,
           duration: const Duration(milliseconds: 200),
           child: Center(
             child: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
-              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              controller: scrollController,
               child: Csat(
                 func: storeAnswers,
-                answer: _workBench,
+                answer: workBench,
                 question: question,
-                theme: _themeData,
+                theme: themeData,
                 customParams: customParams,
                 currentQuestionNumber: i + 1,
                 submitData: submitData,
@@ -298,25 +298,25 @@ var isLastQuestionSubQuestion = _lastQuestion['subQuestion'] ?? false;
       );
     }
     if (question['type'] == 'PhoneNumber') {
-      _newquestionList.add(
+      newquestionList.add(
         AnimatedOpacity(
-          opacity: _currentQuestionToRender['id'] == null
+          opacity: currentQuestionToRender['id'] == null
               ? 1.0
-              : _currentQuestionToRender['id'] == question['id']
+              : currentQuestionToRender['id'] == question['id']
                   ? 1.0
                   : 0.0,
           duration: const Duration(milliseconds: 200),
           child: Center(
             child: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
+              physics: const BouncingScrollPhysics(),
               child: ColumnPhone(
                 func: storeAnswers,
-                answer: _workBench,
+                answer: workBench,
                 question: question,
-                theme: _themeData,
+                theme: themeData,
                 customParams: customParams,
                 currentQuestionNumber: i + 1,
-                isLastQuestion: question['id'] == _lastQuestion['id'],
+                isLastQuestion: question['id'] == lastQuestion['id'],
                 submitData: submitData,
                 euiTheme: euiTheme,
               ),
@@ -326,26 +326,26 @@ var isLastQuestionSubQuestion = _lastQuestion['subQuestion'] ?? false;
       );
     }
     if (question['type'] == 'YesNo') {
-      _newquestionList.add(
+      newquestionList.add(
         AnimatedOpacity(
-          opacity: _currentQuestionToRender['id'] == null
+          opacity: currentQuestionToRender['id'] == null
               ? 1.0
-              : _currentQuestionToRender['id'] == question['id']
+              : currentQuestionToRender['id'] == question['id']
                   ? 1.0
                   : 0.0,
           duration: const Duration(milliseconds: 200),
           child: Center(
             child: SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
+              physics: const BouncingScrollPhysics(),
               child: YesOrNo(
                 func: storeAnswers,
-                answer: _workBench,
+                answer: workBench,
                 question: question,
-                theme: _themeData,
+                theme: themeData,
                 customParams: customParams,
                 currentQuestionNumber: i + 1,
                 submitData: submitData,
-                isLastQuestion: question['id'] == _lastQuestion['id'],
+                isLastQuestion: question['id'] == lastQuestion['id'],
                 euiTheme: euiTheme,
               ),
             ),
@@ -355,48 +355,47 @@ var isLastQuestionSubQuestion = _lastQuestion['subQuestion'] ?? false;
     }
     i += 1;
   }
-  return _newquestionList;
+  return newquestionList;
 }
 
-setTheme(_themeData, _surveyThemeClass) {
-  _themeData['questionColor'] = _surveyThemeClass.questionColor;
-  _themeData['answerColor'] = _surveyThemeClass.answerColor;
-  _themeData['backgroundColor'] = _surveyThemeClass.backgroundColor;
-  _themeData['questionDescriptionColor'] =
-      _surveyThemeClass.questionDescriptionColor;
-  _themeData['questionNumberColor'] = _surveyThemeClass.questionNumberColor;
-  _themeData['decodedOpnionBackgroundColorSelected'] =
-      _surveyThemeClass.decodedOpnionBackgroundColorSelected;
-  _themeData['decodedOpnionBackgroundColorUnSelected'] =
-      _surveyThemeClass.decodedOpnionBackgroundColorUnSelected;
-  _themeData['decodedOpnionBorderColor'] =
-      _surveyThemeClass.decodedOpnionBorderColor;
-  _themeData['decodedOpnionLabelColor'] =
-      _surveyThemeClass.decodedOpnionLabelColor;
-  _themeData['ctaButtonColor'] = _surveyThemeClass.ctaButtonColor;
-  _themeData['ratingRgba'] = _surveyThemeClass.ratingRgba;
-  _themeData['ratingRgbaBorder'] = _surveyThemeClass.ratingRgbaBorder;
-  _themeData['ctaButtonDisabledColor'] =
-      _surveyThemeClass.ctaButtonDisabledColor;
-  _themeData['showRequired'] = _surveyThemeClass.showRequired;
-  _themeData['buttonStyle'] = _surveyThemeClass.buttonStyle;
-  _themeData['showBranding'] = _surveyThemeClass.showBranding;
-  _themeData['questionString'] = _surveyThemeClass.questionString;
-  _themeData['hasGradient'] = _surveyThemeClass.hasGradient;
-  _themeData['gradientColors'] = _surveyThemeClass.gradientColors;
-  _themeData['showQuestionNumber'] = _surveyThemeClass.showQuestionNumber;
-  _themeData['showProgressBar'] = _surveyThemeClass.showProgressBar;
-  _themeData['hasHeader'] = _surveyThemeClass.hasHeader;
-  _themeData['headerText'] = _surveyThemeClass.headerText;
-  _themeData['headerLogoUrl'] = _surveyThemeClass.headerLogoUrl;
-  _themeData['hasFooter'] = _surveyThemeClass.hasFooter;
-  _themeData['footerText'] = _surveyThemeClass.footerText;
+setTheme(themeData, surveyThemeClass) {
+  themeData['questionColor'] = surveyThemeClass.questionColor;
+  themeData['answerColor'] = surveyThemeClass.answerColor;
+  themeData['backgroundColor'] = surveyThemeClass.backgroundColor;
+  themeData['questionDescriptionColor'] =
+      surveyThemeClass.questionDescriptionColor;
+  themeData['questionNumberColor'] = surveyThemeClass.questionNumberColor;
+  themeData['decodedOpnionBackgroundColorSelected'] =
+      surveyThemeClass.decodedOpnionBackgroundColorSelected;
+  themeData['decodedOpnionBackgroundColorUnSelected'] =
+      surveyThemeClass.decodedOpnionBackgroundColorUnSelected;
+  themeData['decodedOpnionBorderColor'] =
+      surveyThemeClass.decodedOpnionBorderColor;
+  themeData['decodedOpnionLabelColor'] =
+      surveyThemeClass.decodedOpnionLabelColor;
+  themeData['ctaButtonColor'] = surveyThemeClass.ctaButtonColor;
+  themeData['ratingRgba'] = surveyThemeClass.ratingRgba;
+  themeData['ratingRgbaBorder'] = surveyThemeClass.ratingRgbaBorder;
+  themeData['ctaButtonDisabledColor'] = surveyThemeClass.ctaButtonDisabledColor;
+  themeData['showRequired'] = surveyThemeClass.showRequired;
+  themeData['buttonStyle'] = surveyThemeClass.buttonStyle;
+  themeData['showBranding'] = surveyThemeClass.showBranding;
+  themeData['questionString'] = surveyThemeClass.questionString;
+  themeData['hasGradient'] = surveyThemeClass.hasGradient;
+  themeData['gradientColors'] = surveyThemeClass.gradientColors;
+  themeData['showQuestionNumber'] = surveyThemeClass.showQuestionNumber;
+  themeData['showProgressBar'] = surveyThemeClass.showProgressBar;
+  themeData['hasHeader'] = surveyThemeClass.hasHeader;
+  themeData['headerText'] = surveyThemeClass.headerText;
+  themeData['headerLogoUrl'] = surveyThemeClass.headerLogoUrl;
+  themeData['hasFooter'] = surveyThemeClass.hasFooter;
+  themeData['footerText'] = surveyThemeClass.footerText;
 }
 
-getPrefilledAnswers(firstQuestionAnswer, createAnswerPayload, _collectedAnswers,
-    _surveyToMap, onError) {
+getPrefilledAnswers(firstQuestionAnswer, createAnswerPayload, collectedAnswers,
+    surveyToMap, onError) {
   try {
-    var _workBenchDatas = {};
+    var workBenchDatas = {};
 
     for (var i = 0; i < firstQuestionAnswer!.answers.length; i++) {
       if (firstQuestionAnswer!.answers[i].rating != null) {
@@ -404,13 +403,13 @@ getPrefilledAnswers(firstQuestionAnswer, createAnswerPayload, _collectedAnswers,
         var data = firstQuestionAnswer!.answers[i].rating?.data;
         var skipped = firstQuestionAnswer!.answers[i].rating!.skipped;
         var timeTaken = firstQuestionAnswer!.answers[i].rating?.timeTaken;
-        _workBenchDatas[key] = data?.toDouble();
+        workBenchDatas[key] = data?.toDouble();
 
         createAnswerPayload(
-          _collectedAnswers,
+          collectedAnswers,
           key,
           skipped != null && skipped == true ? null : data,
-          _surveyToMap,
+          surveyToMap,
           false,
           "",
           0,
@@ -425,13 +424,13 @@ getPrefilledAnswers(firstQuestionAnswer, createAnswerPayload, _collectedAnswers,
         var data = firstQuestionAnswer!.answers[i].opnionScale?.data;
         var skipped = firstQuestionAnswer!.answers[i].opnionScale!.skipped;
         var timeTaken = firstQuestionAnswer!.answers[i].opnionScale?.timeTaken;
-        _workBenchDatas[key] = data;
+        workBenchDatas[key] = data;
 
         createAnswerPayload(
-          _collectedAnswers,
+          collectedAnswers,
           key,
           skipped != null && skipped == true ? null : data,
-          _surveyToMap,
+          surveyToMap,
           false,
           "",
           0,
@@ -446,13 +445,13 @@ getPrefilledAnswers(firstQuestionAnswer, createAnswerPayload, _collectedAnswers,
         var data = firstQuestionAnswer!.answers[i].yesOrNo?.data;
         var skipped = firstQuestionAnswer!.answers[i].yesOrNo!.skipped;
         var timeTaken = firstQuestionAnswer!.answers[i].yesOrNo?.timeTaken;
-        _workBenchDatas[key] = data;
+        workBenchDatas[key] = data;
 
         createAnswerPayload(
-          _collectedAnswers,
+          collectedAnswers,
           key,
           skipped != null && skipped == true ? null : data,
-          _surveyToMap,
+          surveyToMap,
           false,
           "",
           0,
@@ -470,14 +469,14 @@ getPrefilledAnswers(firstQuestionAnswer, createAnswerPayload, _collectedAnswers,
         var skipped = firstQuestionAnswer!.answers[i].phoneNumber!.skipped;
         var timeTaken = firstQuestionAnswer!.answers[i].phoneNumber?.timeTaken;
 
-        _workBenchDatas[key] = data;
-        _workBenchDatas['${key}_phone'] = phoneData;
+        workBenchDatas[key] = data;
+        workBenchDatas['${key}_phone'] = phoneData;
 
         createAnswerPayload(
-          _collectedAnswers,
+          collectedAnswers,
           key,
           skipped != null && skipped == true ? null : data,
-          _surveyToMap,
+          surveyToMap,
           false,
           "",
           0,
@@ -492,13 +491,13 @@ getPrefilledAnswers(firstQuestionAnswer, createAnswerPayload, _collectedAnswers,
         var data = firstQuestionAnswer!.answers[i].text?.data;
         var skipped = firstQuestionAnswer!.answers[i].text!.skipped;
         var timeTaken = firstQuestionAnswer!.answers[i].text?.timeTaken;
-        _workBenchDatas[key] = data;
+        workBenchDatas[key] = data;
 
         createAnswerPayload(
-          _collectedAnswers,
+          collectedAnswers,
           key,
           skipped != null && skipped == true ? null : data,
-          _surveyToMap,
+          surveyToMap,
           false,
           "",
           0,
@@ -513,13 +512,13 @@ getPrefilledAnswers(firstQuestionAnswer, createAnswerPayload, _collectedAnswers,
         var data = firstQuestionAnswer!.answers[i].email?.data;
         var skipped = firstQuestionAnswer!.answers[i].email!.skipped;
         var timeTaken = firstQuestionAnswer!.answers[i].email?.timeTaken;
-        _workBenchDatas[key] = data;
+        workBenchDatas[key] = data;
 
         createAnswerPayload(
-          _collectedAnswers,
+          collectedAnswers,
           key,
           skipped != null && skipped == true ? null : data,
-          _surveyToMap,
+          surveyToMap,
           false,
           "",
           0,
@@ -535,13 +534,13 @@ getPrefilledAnswers(firstQuestionAnswer, createAnswerPayload, _collectedAnswers,
         var skipped = firstQuestionAnswer!.answers[i].multipleChoice!.skipped;
         var timeTaken =
             firstQuestionAnswer!.answers[i].multipleChoice?.timeTaken;
-        _workBenchDatas[key] = data;
+        workBenchDatas[key] = data;
 
         createAnswerPayload(
-          _collectedAnswers,
+          collectedAnswers,
           key,
           skipped != null && skipped == true ? null : data,
-          _surveyToMap,
+          surveyToMap,
           false,
           "",
           0,
@@ -552,7 +551,7 @@ getPrefilledAnswers(firstQuestionAnswer, createAnswerPayload, _collectedAnswers,
       }
     }
 
-    return _workBenchDatas;
+    return workBenchDatas;
   } catch (e) {
     if (onError != null) {
       onError!('prefilled Answers is not configured properly');

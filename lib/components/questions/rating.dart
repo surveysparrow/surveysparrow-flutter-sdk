@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_stars/flutter_rating_stars.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/questionColumn.dart';
-import 'package:surveysparrow_flutter_sdk/helpers/question.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:surveysparrow_flutter_sdk/helpers/svg.dart';
 
@@ -35,11 +33,11 @@ class ColumnRating extends StatefulWidget {
 
   @override
   State<ColumnRating> createState() => _ColumnRatingState(
-        func: this.func,
-        answer: this.answer,
+        func: func,
+        answer: answer,
         question: question,
-        theme: this.theme,
-        customParams: this.customParams,
+        theme: theme,
+        customParams: customParams,
         currentQuestionNumber: currentQuestionNumber,
       );
 }
@@ -65,8 +63,8 @@ class _ColumnRatingState extends State<ColumnRating> {
   @override
   initState() {
     super.initState();
-    if (this.answer[this.question['id']] != null) {
-      _selectedOption = this.answer[this.question['id']];
+    if (answer[question['id']] != null) {
+      _selectedOption = answer[question['id']];
     }
   }
 
@@ -82,46 +80,46 @@ class _ColumnRatingState extends State<ColumnRating> {
       children: [
         QuestionColumn(
           question: question,
-          currentQuestionNumber: this.currentQuestionNumber,
-          customParams: this.customParams,
-          theme: this.theme,
-          euiTheme: this.widget.euiTheme,
+          currentQuestionNumber: currentQuestionNumber,
+          customParams: customParams,
+          theme: theme,
+          euiTheme: widget.euiTheme,
         ),
         RatingQuestion(
-          func: this.func,
-          answer: this.answer,
-          question: this.question,
-          theme: this.theme,
+          func: func,
+          answer: answer,
+          question: question,
+          theme: theme,
           setSelectedOption: setSelectedOption,
-          euiTheme: this.widget.euiTheme,
+          euiTheme: widget.euiTheme,
         ),
-        SizedBox(height: 40),
-        //!this.question['required']
+        const SizedBox(height: 40),
         SkipAndNextButtons(
           key: UniqueKey(),
-          disabled: this.widget.isLastQuestion
-              ? this.question['required']
+          disabled: widget.isLastQuestion
+              ? question['required']
                   ? _selectedOption == -1.0
                   : false
               : _selectedOption == -1.0,
-          showNext: this.widget.isLastQuestion,
-          showSkip: (this.question['required'] || this.widget.isLastQuestion)
-              ? false
-              : true,
-          showSubmit: this.widget.isLastQuestion,
+          showNext: widget.isLastQuestion,
+          showSkip:
+              (question['required'] || widget.isLastQuestion) ? false : true,
+          showSubmit: widget.isLastQuestion,
           onClickSkip: () {
-            this.func(null, question['id']);
+            func(null, question['id']);
           },
           onClickNext: () {
             if (_selectedOption != -1.0) {
-              this.widget.submitData();
+              widget.submitData();
             }
-            if(this.widget.isLastQuestion && _selectedOption == -1.0 && !this.question['required']){
-              this.widget.submitData();
+            if (widget.isLastQuestion &&
+                _selectedOption == -1.0 &&
+                !question['required']) {
+              widget.submitData();
             }
           },
           theme: theme,
-          euiTheme: this.widget.euiTheme,
+          euiTheme: widget.euiTheme,
         ),
       ],
     );
@@ -147,10 +145,7 @@ class RatingQuestion extends StatefulWidget {
 
   @override
   State<RatingQuestion> createState() => _RatingQuestionState(
-      func: this.func,
-      answer: this.answer,
-      question: this.question,
-      theme: this.theme);
+      func: func, answer: answer, question: question, theme: theme);
 }
 
 class _RatingQuestionState extends State<RatingQuestion> {
@@ -287,25 +282,24 @@ class _RatingQuestionState extends State<RatingQuestion> {
   }
 
   _buildRatingStart(int index) {
-    if (this.question['properties']['data']['iconArrayName'] ==
-        "RATING_SMILEY") {
+    if (question['properties']['data']['iconArrayName'] == "RATING_SMILEY") {
       if (_rating - 1 == index.toDouble()) {
         return Row(
           children: [
             Column(
               children: [
-                Container(
+                SizedBox(
                   height: svgHeight,
                   width: svgWidth,
                   child: SvgPicture.string(
                     getSmiliySvg(
-                      this.question['properties']['data']['ratingScale'],
+                      question['properties']['data']['ratingScale'],
                       true,
                       index,
                     ),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 10,
                 ),
                 AnimatedOpacity(
@@ -313,13 +307,12 @@ class _RatingQuestionState extends State<RatingQuestion> {
                   duration: const Duration(milliseconds: 200),
                   child: Text(
                     hasNumber ? (index + 1).toString() : '',
-                    style:
-                        TextStyle(color: this.theme['decodedOpnionLabelColor']),
+                    style: TextStyle(color: theme['decodedOpnionLabelColor']),
                   ),
                 )
               ],
             ),
-            SizedBox(
+            const SizedBox(
               width: 10,
             )
           ],
@@ -329,17 +322,15 @@ class _RatingQuestionState extends State<RatingQuestion> {
         children: [
           Column(
             children: [
-              Container(
+              SizedBox(
                 height: svgHeight,
                 width: svgWidth,
                 child: SvgPicture.string(
-                  getSmiliySvg(
-                      this.question['properties']['data']['ratingScale'],
-                      false,
-                      index),
+                  getSmiliySvg(question['properties']['data']['ratingScale'],
+                      false, index),
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               AnimatedOpacity(
@@ -347,13 +338,12 @@ class _RatingQuestionState extends State<RatingQuestion> {
                 duration: const Duration(milliseconds: 200),
                 child: Text(
                   hasNumber ? (index + 1).toString() : '',
-                  style:
-                      TextStyle(color: this.theme['decodedOpnionLabelColor']),
+                  style: TextStyle(color: theme['decodedOpnionLabelColor']),
                 ),
               )
             ],
           ),
-          SizedBox(
+          const SizedBox(
             width: 10,
           )
         ],
@@ -364,19 +354,19 @@ class _RatingQuestionState extends State<RatingQuestion> {
           children: [
             Column(
               children: [
-                Container(
+                SizedBox(
                   height: svgHeight,
                   width: svgWidth,
                   child: SvgPicture.string(
                     getRatingSvg(
-                      this.question['properties']['data']['iconArrayName'],
+                      question['properties']['data']['iconArrayName'],
                       1,
-                      this.theme['ratingRgba'],
-                      this.theme['ratingRgba'],
+                      theme['ratingRgba'],
+                      theme['ratingRgba'],
                     ),
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 10,
                 ),
                 AnimatedOpacity(
@@ -384,13 +374,12 @@ class _RatingQuestionState extends State<RatingQuestion> {
                   duration: const Duration(milliseconds: 200),
                   child: Text(
                     hasNumber ? (index + 1).toString() : '',
-                    style:
-                        TextStyle(color: this.theme['decodedOpnionLabelColor']),
+                    style: TextStyle(color: theme['decodedOpnionLabelColor']),
                   ),
                 )
               ],
             ),
-            SizedBox(
+            const SizedBox(
               width: 10,
             )
           ],
@@ -400,19 +389,19 @@ class _RatingQuestionState extends State<RatingQuestion> {
         children: [
           Column(
             children: [
-              Container(
+              SizedBox(
                 height: svgHeight,
                 width: svgWidth,
                 child: SvgPicture.string(
                   getRatingSvg(
-                    this.question['properties']['data']['iconArrayName'],
+                    question['properties']['data']['iconArrayName'],
                     0.5,
                     'none',
-                    this.theme['ratingRgba'],
+                    theme['ratingRgba'],
                   ),
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               AnimatedOpacity(
@@ -420,13 +409,12 @@ class _RatingQuestionState extends State<RatingQuestion> {
                 duration: const Duration(milliseconds: 200),
                 child: Text(
                   hasNumber ? (index + 1).toString() : '',
-                  style:
-                      TextStyle(color: this.theme['decodedOpnionLabelColor']),
+                  style: TextStyle(color: theme['decodedOpnionLabelColor']),
                 ),
               )
             ],
           ),
-          SizedBox(
+          const SizedBox(
             width: 10,
           )
         ],
@@ -442,35 +430,32 @@ class _RatingQuestionState extends State<RatingQuestion> {
   @override
   initState() {
     super.initState();
-    if (this.widget.euiTheme != null) {
-      if (this.widget.euiTheme!['rating'] != null) {
-        if (this.widget.euiTheme!['rating']['hasNumber'] != null) {
-          hasNumber = this.widget.euiTheme!['rating']['hasNumber'];
+    if (widget.euiTheme != null) {
+      if (widget.euiTheme!['rating'] != null) {
+        if (widget.euiTheme!['rating']['hasNumber'] != null) {
+          hasNumber = widget.euiTheme!['rating']['hasNumber'];
         }
-        if (this.widget.euiTheme!['rating']['customRatingSVGUnselected'] !=
-            null) {
-          customSvg =
-              this.widget.euiTheme!['rating']['customRatingSVGUnselected'];
+        if (widget.euiTheme!['rating']['customRatingSVGUnselected'] != null) {
+          customSvg = widget.euiTheme!['rating']['customRatingSVGUnselected'];
         }
-        if (this.widget.euiTheme!['rating']['customRatingSVGSelected'] !=
-            null) {
+        if (widget.euiTheme!['rating']['customRatingSVGSelected'] != null) {
           customSvgSelected =
-              this.widget.euiTheme!['rating']['customRatingSVGSelected'];
+              widget.euiTheme!['rating']['customRatingSVGSelected'];
         }
-        if (this.widget.euiTheme!['rating']['svgHeight'] != null) {
-          svgHeight = this.widget.euiTheme!['rating']['svgHeight'];
+        if (widget.euiTheme!['rating']['svgHeight'] != null) {
+          svgHeight = widget.euiTheme!['rating']['svgHeight'];
         }
-        if (this.widget.euiTheme!['rating']['svgWidth'] != null) {
-          svgWidth = this.widget.euiTheme!['rating']['svgWidth'];
+        if (widget.euiTheme!['rating']['svgWidth'] != null) {
+          svgWidth = widget.euiTheme!['rating']['svgWidth'];
         }
       }
     }
-    if (this.answer[this.question['id']] != null) {
+    if (answer[question['id']] != null) {
       setState(() {
-        _rating = this.answer[this.question['id']];
+        _rating = answer[question['id']];
       });
     }
-    Future.delayed(Duration(milliseconds: 400), () {
+    Future.delayed(const Duration(milliseconds: 400), () {
       setState(() {
         widget1Opacity = 1.0;
       });
@@ -486,14 +471,14 @@ class _RatingQuestionState extends State<RatingQuestion> {
   @override
   Widget build(BuildContext context) {
     final stars = List<Widget>.generate(
-        this.question['properties']['data']['ratingScale'], (index) {
+        question['properties']['data']['ratingScale'], (index) {
       return GestureDetector(
         onTap: () {
           setState(() {
             _rating = index + 1.toDouble();
           });
-          this.func(index + 1.toDouble(), question['id']);
-          this.widget.setSelectedOption(index + 1.toDouble());
+          func(index + 1.toDouble(), question['id']);
+          widget.setSelectedOption(index + 1.toDouble());
         },
         child: _buildRatingStart(index),
       );
@@ -520,10 +505,3 @@ class _RatingSvgState extends State<RatingSvg> {
     return Container();
   }
 }
-
-
-// Icon(
-//   Icons.star_rounded,
-//   size: 60,
-//   color: this.theme['answerColor'],
-// ),
