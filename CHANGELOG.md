@@ -58,3 +58,7 @@
 ## 1.1.5-beta.2
 
 * Bug Fix & CodeClean Up
+  
+## 1.1.5
+
+* Bug Fixes & CodeClean Up
