@@ -42,3 +42,23 @@
 ## 1.1.3
 
 * Submission Queue Support
+  
+## 1.1.4
+
+* HTTP UserAgentFix
+  
+## 1.1.5
+
+* SSE-17829 Fix
+
+## 1.1.5-beta.1
+
+* Bug Fix & CodeClean Up
+  
+## 1.1.5-beta.2
+
+* Bug Fix & CodeClean Up
+  
+## 1.1.5
+
+* Bug Fixes & CodeClean Up

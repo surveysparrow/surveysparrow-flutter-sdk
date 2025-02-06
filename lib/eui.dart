@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:surveysparrow_flutter_sdk/components/common/bottomNavigation.dart';
@@ -12,7 +14,6 @@ import 'package:surveysparrow_flutter_sdk/helpers/cx.dart';
 import 'package:surveysparrow_flutter_sdk/helpers/question.dart';
 import 'package:surveysparrow_flutter_sdk/logics/displayLogic.dart';
 import 'package:surveysparrow_flutter_sdk/logics/thankYou.dart';
-import 'package:surveysparrow_flutter_sdk/models/answer.dart';
 import 'package:surveysparrow_flutter_sdk/models/customSurveyTheme.dart';
 import 'package:surveysparrow_flutter_sdk/models/firstQuestionAnswer.dart';
 import 'package:surveysparrow_flutter_sdk/models/theme.dart';
@@ -51,47 +52,32 @@ class SurveyModal extends StatelessWidget {
     this.email,
   }) : super(key: key);
 
-  late Future<Map<dynamic, dynamic>> testeru =
-      fetchSurvey(this.token, this.domain);
+  late Future<Map<dynamic, dynamic>> testeru = fetchSurvey(token, domain);
 
   @override
   Widget build(BuildContext context) {
-    if (this.survey != null) {
-      return Container(
-        child: Sizer(
-          builder: (context, orientation, deviceType) {
-            // return QuestionsPage(
-            //   token: this.token,
-            //   domain: this.domain,
-            //   Questions: this.survey!,
-            //   customParams: variables ?? {},
-            //   firstQuestionAnswer: firstQuestionAnswer,
-            //   onNext: onNext,
-            //   onSubmit: onSubmit,
-            //   euiTheme: customSurveyTheme?.toMap() ?? {},
-            //   onError: this.onError,
-            // );
-
-            return MultiProvider(
-              providers: [
-                ChangeNotifierProvider(create: (_) => WorkBench()),
-                ChangeNotifierProvider(create: (_) => SurveyProvider())
-              ],
-              child: QuestionsPage(
-                token: this.token,
-                domain: this.domain,
-                Questions: this.survey!,
-                customParams: variables ?? {},
-                firstQuestionAnswer: firstQuestionAnswer,
-                onNext: onNext,
-                onSubmit: onSubmit,
-                euiTheme: customSurveyTheme?.toMap() ?? {},
-                onError: this.onError,
-                email: this.email,
-              ),
-            );
-          },
-        ),
+    if (survey != null) {
+      return Sizer(
+        builder: (context, orientation, deviceType) {
+          return MultiProvider(
+            providers: [
+              ChangeNotifierProvider(create: (_) => WorkBench()),
+              ChangeNotifierProvider(create: (_) => SurveyProvider())
+            ],
+            child: QuestionsPage(
+              token: token,
+              domain: domain,
+              Questions: survey!,
+              customParams: variables ?? {},
+              firstQuestionAnswer: firstQuestionAnswer,
+              onNext: onNext,
+              onSubmit: onSubmit,
+              euiTheme: customSurveyTheme?.toMap() ?? {},
+              onError: onError,
+              email: email,
+            ),
+          );
+        },
       );
     }
 
@@ -132,16 +118,16 @@ class SurveyModal extends StatelessWidget {
                         ChangeNotifierProvider(create: (_) => SurveyProvider())
                       ],
                       child: QuestionsPage(
-                        token: this.token,
-                        domain: this.domain,
+                        token: token,
+                        domain: domain,
                         Questions: snapshot.data,
                         customParams: variables ?? {},
                         firstQuestionAnswer: firstQuestionAnswer,
                         onNext: onNext,
                         onSubmit: onSubmit,
                         euiTheme: customSurveyTheme?.toMap() ?? {},
-                        onError: this.onError,
-                        email: this.email,
+                        onError: onError,
+                        email: email,
                       ),
                     );
                     // return QuestionsPage(
@@ -159,7 +145,7 @@ class SurveyModal extends StatelessWidget {
                 );
                 return surveyWidgetToRender;
               } catch (e) {
-                print("some error has happened inside survey modal ${e}");
+                print("some error has happened inside survey modal $e");
               }
             }
           }
@@ -207,11 +193,7 @@ class QuestionsPage extends StatefulWidget {
 
   @override
   State<QuestionsPage> createState() => _QuestionsPageState(
-      this.token,
-      this.Questions,
-      this.customParams,
-      this.firstQuestionAnswer,
-      this.onError);
+      token, Questions, customParams, firstQuestionAnswer, onError);
 }
 
 class _QuestionsPageState extends State<QuestionsPage>
@@ -225,24 +207,22 @@ class _QuestionsPageState extends State<QuestionsPage>
   final FirstQuestionAnswer? firstQuestionAnswer;
   _QuestionsPageState(this.token, this.Survey, this.customParams,
       this.firstQuestionAnswer, this.onError);
-  List<Map<dynamic, dynamic>> _allQuestionList = [];
-  List _allowedQuestionIds = [];
+  final List<Map<dynamic, dynamic>> _allQuestionList = [];
+  final List _allowedQuestionIds = [];
   Map<dynamic, dynamic> _workBench = {};
-  Map<dynamic, dynamic> _themeData = {};
+  final Map<dynamic, dynamic> _themeData = {};
   Map<dynamic, dynamic> _lastQuestion = {};
   dynamic _hasThankYouLogicSkip = false;
   var _surveyThemeClass;
   int _currentQuestionNumber = 1;
   Map<dynamic, dynamic> _currentQuestionToRender = {};
-  Map<dynamic, dynamic> _currentQuestionInView = {};
-  List<Map<dynamic, dynamic>> _collectedAnswers = [];
-  List<Map<dynamic, dynamic>> _answersToSync = [];
+  final List<Map<dynamic, dynamic>> _collectedAnswers = [];
   Timer? _debounce;
 
   int _pageNumber = 0;
   double _progressMade = 0.0;
-  int _answeredCount = 0;
-  List<Widget> questionList = new List<Widget>.empty(growable: true);
+  final int _answeredCount = 0;
+  List<Widget> questionList = List<Widget>.empty(growable: true);
 
   int _scrollCountTop = 0;
   int _scrollCountBottom = 0;
@@ -253,13 +233,12 @@ class _QuestionsPageState extends State<QuestionsPage>
   final allowedQuestionTypes = allowedQuestions;
 
   storePrefilledAnswers() {
-    var _workBenchDatas = getPrefilledAnswers(firstQuestionAnswer,
+    var workBenchDatas = getPrefilledAnswers(firstQuestionAnswer,
         createAnswerPayload, _collectedAnswers, _surveyToMap, onError);
 
-    var _cloneWorkBench = {..._workBench};
     if (mounted) {
       setState(() {
-        _workBench = _workBenchDatas;
+        _workBench = workBenchDatas;
       });
     }
     widget.onNext!(_collectedAnswers);
@@ -296,10 +275,10 @@ class _QuestionsPageState extends State<QuestionsPage>
       (_stopwatch.elapsedMilliseconds / 1000).round(),
     );
 
-    var _cloneWorkBench = {..._workBench};
+    var cloneWorkBench = {..._workBench};
 
     var newWorkBench = getWorkBenchData(
-      _cloneWorkBench,
+      cloneWorkBench,
       key,
       value,
       otherInputText,
@@ -318,7 +297,7 @@ class _QuestionsPageState extends State<QuestionsPage>
     }
     widget.onNext!(_collectedAnswers);
     if (isLastQuestionSubmission == true) {
-      print("MOVE LAST ${isLastQuestionSubmission}");
+      log("MOVE LAST $isLastQuestionSubmission");
       Future.delayed(const Duration(milliseconds: 500), () {
         _handleNextQuestion(changePage: changePage);
       });
@@ -338,21 +317,20 @@ class _QuestionsPageState extends State<QuestionsPage>
 
     var email = context.read<SurveyProvider>().getEmail;
 
-    if (this.widget.email != null) {
-      email = this.widget.email!;
+    if (widget.email != null) {
+      email = widget.email!;
     }
     var data = await submitAnswer(
         _collectedAnswers,
         (_stopwatch.elapsedMilliseconds / 1000).round(),
         customParams,
-        this.token,
-        this.widget.domain,
+        token,
+        widget.domain,
         email,
         Survey["isSubmissionQueued"]);
   }
 
   _scrollListener() {
-    // scrollHandler(_scrollControler, _scrollCountBottom, _scrollCountTop, _handleNextQuestion, _handlePreviousQuestion);
     if (_scrollControler.offset >= _scrollControler.position.maxScrollExtent &&
         !_scrollControler.position.outOfRange) {
       _scrollCountBottom += 1;
@@ -399,17 +377,17 @@ class _QuestionsPageState extends State<QuestionsPage>
   var thankYouPageJson = {};
 
   incrementCount(token, domain) async {
-    var url = Uri.parse(
-        'https://${domain}/api/internal/sdk/increment-count/${token}');
+    var url =
+        Uri.parse('https://$domain/api/internal/sdk/increment-count/$token');
     final response = await http.get(url);
   }
 
   @override
   initState() {
     super.initState();
-    incrementCount(token, this.widget.domain);
+    incrementCount(token, widget.domain);
 
-    context.read<SurveyProvider>().setSurvey(this.Survey);
+    context.read<SurveyProvider>().setSurvey(Survey);
 
     if (widget.euiTheme!['animationDirection'] != null) {
       if (widget.euiTheme!['animationDirection'] == "horizontal") {
@@ -417,12 +395,12 @@ class _QuestionsPageState extends State<QuestionsPage>
       }
     }
 
-    if (this.Survey['welcome_rtxt'] != null) {
+    if (Survey['welcome_rtxt'] != null) {
       hasWelcomePage = true;
-      welcomePageDetails = this.Survey['welcome_rtxt'];
-      welcomeButtonDesc = this.Survey['welcomeScreenYesButtonText'];
-      welcomeDesc = this.Survey['welcomeDescription'];
-      welcomeEntity = this.Survey['welcome_rtxt']['entityMap'] ?? {};
+      welcomePageDetails = Survey['welcome_rtxt'];
+      welcomeButtonDesc = Survey['welcomeScreenYesButtonText'];
+      welcomeDesc = Survey['welcomeDescription'];
+      welcomeEntity = Survey['welcome_rtxt']['entityMap'] ?? {};
     }
 
     //scroll controller
@@ -433,20 +411,19 @@ class _QuestionsPageState extends State<QuestionsPage>
     _stopwatch = Stopwatch();
     _stopwatch.start();
 
-    if (this.Survey['surveyTheme'] != null) {
-      _surveyThemeClass =
-          SurveyThemeData.fromJson(json: this.Survey['surveyTheme']);
+    if (Survey['surveyTheme'] != null) {
+      _surveyThemeClass = SurveyThemeData.fromJson(json: Survey['surveyTheme']);
     } else {
       _surveyThemeClass = SurveyThemeData.fromJson();
     }
 
     setTheme(_themeData, _surveyThemeClass);
 
-    var _index = 0;
-    for (var section in this.Survey['sections']) {
+    var index = 0;
+    for (var section in Survey['sections']) {
       for (var question in section['questions']) {
         if (allowedQuestionTypes.contains(question['type'])) {
-          _questionPos[question['id']] = _index;
+          _questionPos[question['id']] = index;
           _surveyToMap[question['id']] = question;
           var listSubQuestions = [];
           if (question['subQuestions'] != null) {
@@ -454,22 +431,22 @@ class _QuestionsPageState extends State<QuestionsPage>
                 .map((e) => e as Map<dynamic, dynamic>)
                 .toList();
           }
-          if (listSubQuestions.length > 0) {
+          if (listSubQuestions.isNotEmpty) {
             var subQuestion = listSubQuestions[0];
             _surveyToMap[subQuestion['id']] = subQuestion;
           }
           _allQuestionList.add(question);
           _allowedQuestionIds.add(question['id']);
-          _index = _index + 1;
+          index = index + 1;
         }
       }
     }
-    if (_index == 0) {
-      this.onError!('No supported question is added');
+    if (index == 0) {
+      onError!('No supported question is added');
       throw Exception('No supported question is added');
     }
 
-    if (this.Survey['welcome_rtxt'] == null) {
+    if (Survey['welcome_rtxt'] == null) {
       if (firstQuestionAnswer != null) {
         storePrefilledAnswers();
       }
@@ -487,17 +464,17 @@ class _QuestionsPageState extends State<QuestionsPage>
               submitData,
               _lastQuestion,
               _scrollControler,
-              this.widget.euiTheme,
+              widget.euiTheme,
               toggleNextButtonBlock);
           _currentQuestionToRender = _allQuestionList[_pageNumber];
         }
       });
     }
 
-    if (this.Survey['thankyou_json'].length > 0) {
+    if (Survey['thankyou_json'].length > 0) {
       hasThankYouPage = true;
       thankYouPageJson = checkThankYouLogics(
-          this.Survey['thankyou_json'], _workBench, _hasThankYouLogicSkip);
+          Survey['thankyou_json'], _workBench, _hasThankYouLogicSkip);
     }
   }
 
@@ -516,51 +493,50 @@ class _QuestionsPageState extends State<QuestionsPage>
     bool hasCustomOffset = false,
     int customOffsetNumber = 0,
   }) {
-    List<Map<dynamic, dynamic>> _questionsToConvert = [];
-    var _questionArrayToConvert = [];
-    var _currentQuestionIndex = _allQuestionList[0]['id'];
+    List<Map<dynamic, dynamic>> questionsToConvert = [];
+    var questionArrayToConvert = [];
+    var currentQuestionIndex = _allQuestionList[0]['id'];
 
     do {
-      _questionArrayToConvert.add(_currentQuestionIndex);
-      var evaluatedLogics = handleDisplayLogic(_currentQuestionIndex,
+      questionArrayToConvert.add(currentQuestionIndex);
+      var evaluatedLogics = handleDisplayLogic(currentQuestionIndex,
           _allQuestionList, _allowedQuestionIds, _workBench, _questionPos);
-      _currentQuestionIndex = evaluatedLogics[0];
+      currentQuestionIndex = evaluatedLogics[0];
 
       if (evaluatedLogics[1] is String && evaluatedLogics[1] != false) {
         _hasThankYouLogicSkip = evaluatedLogics[1];
       }
-    } while (_currentQuestionIndex != null);
+    } while (currentQuestionIndex != null);
 
-    for (var question in _questionArrayToConvert) {
-      _questionsToConvert.add(_surveyToMap[question]);
+    for (var question in questionArrayToConvert) {
+      questionsToConvert.add(_surveyToMap[question]);
     }
 
     if (mounted) {
       setState(() {
-        _lastQuestion = _questionsToConvert.last;
-        _currentQuestionInView = _questionsToConvert[_pageNumber];
+        _lastQuestion = questionsToConvert.last;
       });
     }
 
     if (changePage) {
       if (hadleNextSelect == true) {
         if (hasCustomOffset) {
-          if (_pageNumber + customOffsetNumber < _questionsToConvert.length) {
+          if (_pageNumber + customOffsetNumber < questionsToConvert.length) {
             _currentQuestionNumber =
                 _currentQuestionNumber + customOffsetNumber;
             if (mounted) {
               setState(() {
                 _currentQuestionToRender =
-                    _questionsToConvert[_pageNumber + customOffsetNumber];
+                    questionsToConvert[_pageNumber + customOffsetNumber];
               });
             }
           }
         } else {
-          if (_pageNumber + 1 < _questionsToConvert.length) {
+          if (_pageNumber + 1 < questionsToConvert.length) {
             _currentQuestionNumber = _currentQuestionNumber + 1;
             if (mounted) {
               setState(() {
-                _currentQuestionToRender = _questionsToConvert[_pageNumber + 1];
+                _currentQuestionToRender = questionsToConvert[_pageNumber + 1];
               });
             }
           }
@@ -569,11 +545,10 @@ class _QuestionsPageState extends State<QuestionsPage>
 
       if (hadleNextSelect == false) {
         if (_pageNumber > 0) {
-          var updatedQuestionNumber = _currentQuestionNumber - 1;
           _currentQuestionNumber = _currentQuestionNumber - 1;
           if (mounted) {
             setState(() {
-              _currentQuestionToRender = _questionsToConvert[_pageNumber - 1];
+              _currentQuestionToRender = questionsToConvert[_pageNumber - 1];
             });
           }
         }
@@ -583,7 +558,7 @@ class _QuestionsPageState extends State<QuestionsPage>
     if (mounted) {
       setState(() {
         questionList = convertQuestionListToWidget(
-            _questionsToConvert,
+            questionsToConvert,
             _currentQuestionToRender,
             storeAnswers,
             _workBench,
@@ -593,10 +568,10 @@ class _QuestionsPageState extends State<QuestionsPage>
             submitData,
             _lastQuestion,
             _scrollControler,
-            this.widget.euiTheme,
+            widget.euiTheme,
             toggleNextButtonBlock);
         _progressMade =
-            (_collectedAnswers.length / _questionsToConvert.length).toDouble();
+            (_collectedAnswers.length / questionsToConvert.length).toDouble();
       });
     }
   }
@@ -617,8 +592,8 @@ class _QuestionsPageState extends State<QuestionsPage>
     if (blockNextButton) return;
     var canUpdateQuestions = true;
 
-    if (this._currentQuestionToRender['required'] != null &&
-        this._currentQuestionToRender['required'] == true) {
+    if (_currentQuestionToRender['required'] != null &&
+        _currentQuestionToRender['required'] == true) {
       var hasFeedBackQuestion =
           checkIfTheQuestionHasAFeedBack(_currentQuestionToRender);
       if (hasFeedBackQuestion) {
@@ -695,20 +670,17 @@ class _QuestionsPageState extends State<QuestionsPage>
         });
       }
       controller.animateToPage(updatedPageNumber,
-          duration: Duration(milliseconds: 400), curve: Curves.easeIn);
+          duration: const Duration(milliseconds: 400), curve: Curves.easeIn);
     }
   }
 
   final PageController controller = PageController(initialPage: 0);
 
   var _pageType = "welcome";
-  var _showWelcome = true;
 
   setPageType(val) {
     if (mounted) {
-      setState(() {
-        _showWelcome = false;
-      });
+      setState(() {});
     }
     Future.delayed(const Duration(milliseconds: 200), () {
       if (mounted) {
@@ -732,7 +704,7 @@ class _QuestionsPageState extends State<QuestionsPage>
               submitData,
               _lastQuestion,
               _scrollControler,
-              this.widget.euiTheme,
+              widget.euiTheme,
               toggleNextButtonBlock);
           _currentQuestionToRender = _allQuestionList[_pageNumber];
         });
@@ -756,20 +728,16 @@ class _QuestionsPageState extends State<QuestionsPage>
     final bool useMobileLayout = shortestSide < 600;
     final bool isSmallerPhone = shortestSide < 350;
 
-    var showEmailPage = this.Survey['survey_type'] == 'NPS' ||
-        this.Survey['survey_type'] == 'CSAT' ||
-        this.Survey['survey_type'] == 'CES';
+    var showEmailPage = Survey['survey_type'] == 'NPS' ||
+        Survey['survey_type'] == 'CSAT' ||
+        Survey['survey_type'] == 'CES';
     var email = context.watch<SurveyProvider>().getEmail;
-    if (this.widget.email != null) {
-      email = this.widget.email!;
+    if (widget.email != null) {
+      email = widget.email!;
     }
 
     if (showEmailPage && email == '') {
-      return Container(
-        child: Container(
-          child: CXEmailForm(),
-        ),
-      );
+      return const CXEmailForm();
     }
 
     if (hasWelcomePage && _pageType == "welcome") {
@@ -781,7 +749,7 @@ class _QuestionsPageState extends State<QuestionsPage>
           gradient: _themeData['hasGradient']
               ? LinearGradient(
                   begin: Alignment.centerLeft,
-                  end: Alignment(0.8, 0.0),
+                  end: const Alignment(0.8, 0.0),
                   colors: _themeData['gradientColors'])
               : null,
           image: _surveyThemeClass.backgroundImage != 'noImage' &&
@@ -801,11 +769,11 @@ class _QuestionsPageState extends State<QuestionsPage>
             child: WelcomePage(
               setPageType: setPageType,
               theme: _themeData,
-              welcomePageData: this.welcomePageDetails,
-              welcomeButtonDesc: this.welcomeButtonDesc,
-              welcomeDesc: this.welcomeDesc,
-              welcomeEntity: this.welcomeEntity,
-              euiTheme: this.widget.euiTheme,
+              welcomePageData: welcomePageDetails,
+              welcomeButtonDesc: welcomeButtonDesc,
+              welcomeDesc: welcomeDesc,
+              welcomeEntity: welcomeEntity,
+              euiTheme: widget.euiTheme,
             ),
           ),
         ),
@@ -817,12 +785,12 @@ class _QuestionsPageState extends State<QuestionsPage>
           _hasThankYouLogicSkip.contains("http")) {
         widget.onSubmit!(_collectedAnswers);
         _launchInBrowser(_hasThankYouLogicSkip);
-        return SizedBox.shrink();
+        return const SizedBox.shrink();
       }
-      if (this.Survey['thankyou_json'].length > 0) {
+      if (Survey['thankyou_json'].length > 0) {
         hasThankYouPage = true;
         thankYouPageJson = checkThankYouLogics(
-            this.Survey['thankyou_json'], _workBench, _hasThankYouLogicSkip);
+            Survey['thankyou_json'], _workBench, _hasThankYouLogicSkip);
       }
 
       thankYouCloseFunction() {
@@ -837,7 +805,7 @@ class _QuestionsPageState extends State<QuestionsPage>
           gradient: _themeData['hasGradient']
               ? LinearGradient(
                   begin: Alignment.centerLeft,
-                  end: Alignment(0.8, 0.0),
+                  end: const Alignment(0.8, 0.0),
                   colors: _themeData['gradientColors'])
               : null,
           image: _surveyThemeClass.backgroundImage != 'noImage' &&
@@ -856,14 +824,14 @@ class _QuestionsPageState extends State<QuestionsPage>
             child: ThankYouPage(
               setPageType: setPageType,
               theme: _themeData,
-              thankYouPageData: this.welcomePageDetails,
-              welcomeButtonDesc: this.welcomeButtonDesc,
-              welcomeDesc: this.welcomeDesc,
-              welcomeEntity: this.welcomeEntity,
+              thankYouPageData: welcomePageDetails,
+              welcomeButtonDesc: welcomeButtonDesc,
+              welcomeDesc: welcomeDesc,
+              welcomeEntity: welcomeEntity,
               thankYouPageJson: thankYouPageJson,
               closeModalFunction: thankYouCloseFunction,
-              euiTheme: this.widget.euiTheme,
-              onError: this.widget.onError,
+              euiTheme: widget.euiTheme,
+              onError: widget.onError,
             ),
           ),
         ),
@@ -902,7 +870,7 @@ class _QuestionsPageState extends State<QuestionsPage>
           gradient: _themeData['hasGradient']
               ? LinearGradient(
                   begin: Alignment.centerLeft,
-                  end: Alignment(0.8, 0.0),
+                  end: const Alignment(0.8, 0.0),
                   colors: _themeData['gradientColors'])
               : null,
           image: _surveyThemeClass.backgroundImage != 'noImage' &&
@@ -931,7 +899,7 @@ class _QuestionsPageState extends State<QuestionsPage>
                 color: _surveyThemeClass.answerColor,
               ),
               if (!_themeData['hasHeader']) ...[
-                SizedBox(
+                const SizedBox(
                   height: 10,
                 ),
               ]
@@ -939,9 +907,9 @@ class _QuestionsPageState extends State<QuestionsPage>
             if (_themeData['hasHeader']) ...[
               HeaderSection(
                 theme: _themeData,
-                euiTheme: this.widget.euiTheme,
+                euiTheme: widget.euiTheme,
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
             ],
@@ -953,7 +921,7 @@ class _QuestionsPageState extends State<QuestionsPage>
                     left: useMobileLayout ? 24.0 : 10.w,
                     right: useMobileLayout ? 24.0 : 10.w),
                 child: PageView(
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   scrollDirection: isVertical ? Axis.horizontal : Axis.vertical,
                   controller: controller,
                   children: <Widget>[
@@ -969,13 +937,13 @@ class _QuestionsPageState extends State<QuestionsPage>
               onClickPrevious: () {
                 _handlePreviousQuestion();
               },
-              euiTheme: this.widget.euiTheme,
+              euiTheme: widget.euiTheme,
               theme: _themeData,
             ),
             if (_themeData['hasFooter']) ...[
               FooterSection(
                 theme: _themeData,
-                euiTheme: this.widget.euiTheme,
+                euiTheme: widget.euiTheme,
               )
             ],
           ],
@@ -991,7 +959,7 @@ Future<Map<dynamic, dynamic>> fetchSurvey(token, domain) async {
   // }
 
   // check url before prod
-  var url = 'https://${domain}/api/internal/sdk/get-survey/${token}';
+  var url = 'https://$domain/api/internal/sdk/get-survey/$token';
 
   final response = await http.get(Uri.parse(url));
   if (response.statusCode == 200) {

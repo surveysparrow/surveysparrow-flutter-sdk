@@ -1,9 +1,7 @@
 import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:surveysparrow_flutter_sdk/models/answer.dart';
-import 'package:fk_user_agent/fk_user_agent.dart';
-import 'package:ua_client_hints/ua_client_hints.dart';
 
 getAnswerValueToStore(
     value, otherInput, otherInputText, otherInputId, isPhoneInput, phoneValue) {
@@ -26,30 +24,17 @@ getAnswerValueToStore(
   }
 }
 
-Future initPlatformState() async {
-  String platformVersion;
-  // Platform messages may fail, so we use a try/catch PlatformException.
-  try {
-    platformVersion = FkUserAgent.userAgent!;
-  } on PlatformException {
-    platformVersion = 'Failed to get platform version.';
-  }
-
-  // If the widget was removed from the tree while the asynchronous platform
-  // message was in flight, we want to discard the reply rather than calling
-  // setState to update our non-existent appearance.
-  return platformVersion;
-}
-
-submitAnswer(
-    _collectedAnswers, finalTime, customParams, token, domain, email, isSubmissionQueued) async {
+submitAnswer(collectedAnswers, finalTime, customParams, token, domain, email,
+    isSubmissionQueued) async {
   // check url before prod
-  var url = isSubmissionQueued ? Uri.parse('https://${domain}/api/internal/v1/submission/answers/${token}'):  Uri.parse('https://${domain}/api/internal/submission/answers/${token}');
+  var url = isSubmissionQueued
+      ? Uri.parse(
+          'https://${domain}/api/internal/v1/submission/answers/${token}')
+      : Uri.parse('https://${domain}/api/internal/submission/answers/${token}');
   Map<dynamic, dynamic> payload = {};
-  final ua = await userAgent();
-
+  final ua = "${Platform.operatingSystem} ${Platform.operatingSystemVersion} Mobile - Flutter SDK";
   var submissionObjPayload = {
-    'answers': _collectedAnswers,
+    'answers': collectedAnswers,
     'stripe': {
       'currency': {},
       'amount': '',
@@ -68,7 +53,7 @@ submitAnswer(
     submissionObjPayload['email'] = email;
   }
 
-  payload['answers'] = _collectedAnswers;
+  payload['answers'] = collectedAnswers;
   payload['finalTime'] = finalTime;
   payload['customParam'] = customParams;
 
@@ -81,10 +66,10 @@ submitAnswer(
 }
 
 createAnswerPayload(
-  _collectedAnswers,
+  collectedAnswers,
   key,
   value,
-  _surveyToMap,
+  surveyToMap,
   otherInput,
   otherInputText,
   otherInputId,
@@ -92,31 +77,31 @@ createAnswerPayload(
   phoneValue,
   time,
 ) {
-  var currentAnswer;
-  var currentAnswerToSync;
+  
+  dynamic currentAnswer;
 
   var isAnswerCollected =
-      _collectedAnswers.where((e) => e['question_id'] == key);
+      collectedAnswers.where((e) => e['question_id'] == key);
 
   if (isAnswerCollected.length > 0) {
     currentAnswer = isAnswerCollected.first;
     if (value == null) {
-      currentAnswer[_surveyToMap[key]['type']]
+      currentAnswer[surveyToMap[key]['type']]
           .removeWhere((key, value) => key == "data");
-      if (currentAnswer[_surveyToMap[key]['type']]['notApplicable'] != null) {
-        currentAnswer[_surveyToMap[key]['type']]
+      if (currentAnswer[surveyToMap[key]['type']]['notApplicable'] != null) {
+        currentAnswer[surveyToMap[key]['type']]
             .removeWhere((key, value) => key == "notApplicable");
       }
-      // currentAnswer[_surveyToMap[key]['type']]['data'] = null;
-      currentAnswer[_surveyToMap[key]['type']]['skipped'] = true;
+      // currentAnswer[surveyToMap[key]['type']]['data'] = null;
+      currentAnswer[surveyToMap[key]['type']]['skipped'] = true;
     } else {
       if (value == -2) {
-        currentAnswer[_surveyToMap[key]['type']]
+        currentAnswer[surveyToMap[key]['type']]
             .removeWhere((key, value) => key == "data");
-        currentAnswer[_surveyToMap[key]['type']]['skipped'] = true;
-        currentAnswer[_surveyToMap[key]['type']]['notApplicable'] = true;
+        currentAnswer[surveyToMap[key]['type']]['skipped'] = true;
+        currentAnswer[surveyToMap[key]['type']]['notApplicable'] = true;
       } else {
-        currentAnswer[_surveyToMap[key]['type']]['data'] =
+        currentAnswer[surveyToMap[key]['type']]['data'] =
             getAnswerValueToStore(
           value,
           otherInput,
@@ -125,32 +110,31 @@ createAnswerPayload(
           isPhoneInput,
           phoneValue,
         );
-        if (currentAnswer[_surveyToMap[key]['type']]['notApplicable'] != null) {
-          currentAnswer[_surveyToMap[key]['type']]
+        if (currentAnswer[surveyToMap[key]['type']]['notApplicable'] != null) {
+          currentAnswer[surveyToMap[key]['type']]
               .removeWhere((key, value) => key == "notApplicable");
         }
-        currentAnswer[_surveyToMap[key]['type']]['skipped'] = false;
+        currentAnswer[surveyToMap[key]['type']]['skipped'] = false;
       }
     }
   } else {
     currentAnswer = {};
-    currentAnswerToSync = {};
     if (value == null) {
       currentAnswer['question_id'] = key;
-      currentAnswer[_surveyToMap[key]['type']] = {};
-      currentAnswer[_surveyToMap[key]['type']]['skipped'] = true;
-      currentAnswer[_surveyToMap[key]['type']]['timeTaken'] = time;
+      currentAnswer[surveyToMap[key]['type']] = {};
+      currentAnswer[surveyToMap[key]['type']]['skipped'] = true;
+      currentAnswer[surveyToMap[key]['type']]['timeTaken'] = time;
     } else {
       if (value == -2) {
         currentAnswer['question_id'] = key;
-        currentAnswer[_surveyToMap[key]['type']] = {};
-        currentAnswer[_surveyToMap[key]['type']]['skipped'] = true;
-        currentAnswer[_surveyToMap[key]['type']]['notApplicable'] = true;
-        currentAnswer[_surveyToMap[key]['type']]['timeTaken'] = time;
+        currentAnswer[surveyToMap[key]['type']] = {};
+        currentAnswer[surveyToMap[key]['type']]['skipped'] = true;
+        currentAnswer[surveyToMap[key]['type']]['notApplicable'] = true;
+        currentAnswer[surveyToMap[key]['type']]['timeTaken'] = time;
       } else {
         currentAnswer['question_id'] = key;
-        currentAnswer[_surveyToMap[key]['type']] = {};
-        currentAnswer[_surveyToMap[key]['type']]['data'] =
+        currentAnswer[surveyToMap[key]['type']] = {};
+        currentAnswer[surveyToMap[key]['type']]['data'] =
             getAnswerValueToStore(
           value,
           otherInput,
@@ -159,11 +143,11 @@ createAnswerPayload(
           isPhoneInput,
           phoneValue,
         );
-        currentAnswer[_surveyToMap[key]['type']]['skipped'] = false;
-        currentAnswer[_surveyToMap[key]['type']]['timeTaken'] = time;
+        currentAnswer[surveyToMap[key]['type']]['skipped'] = false;
+        currentAnswer[surveyToMap[key]['type']]['timeTaken'] = time;
       }
     }
-    _collectedAnswers.add(currentAnswer);
+    collectedAnswers.add(currentAnswer);
   }
 }
 
@@ -211,10 +195,8 @@ createAnswerPayloadOtherSurvey(obj, surArr) {
 
 submitAnswerOtherSurvey(domain, token, value) async {
   var url =
-      Uri.parse('https://${domain}/api/internal/submission/answers/${token}');
-  // var url = Uri.parse(
-  //     'http://sample.surveysparrow.test/api/internal/submission/answers/${token}');
-  Map<dynamic, dynamic> payload = {};
+      Uri.parse('https://$domain/api/internal/submission/answers/$token');
+
 
   var submissionObjPayload = {
     'answers': value,
@@ -240,46 +222,46 @@ submitAnswerOtherSurvey(domain, token, value) async {
 }
 
 getWorkBenchData(
-  Map<dynamic, dynamic> _workBench,
+  Map<dynamic, dynamic> workBench,
   key,
   value,
   otherInputText,
-  _answeredCount,
+  answeredCount,
   otherInput,
   isPhoneInput,
   phoneValue,
 ) {
   if (value == null) {
-    if (_workBench[key] != null && _workBench['${key}_phone'] != null) {
-      _workBench.remove(key);
-      _workBench.remove('${key}_phone');
+    if (workBench[key] != null && workBench['${key}_phone'] != null) {
+      workBench.remove(key);
+      workBench.remove('${key}_phone');
     }
 
-    if (_workBench[key] != null && _workBench['${key}_other'] != null) {
-      _workBench.remove(key);
-      _workBench.remove('${key}_other');
+    if (workBench[key] != null && workBench['${key}_other'] != null) {
+      workBench.remove(key);
+      workBench.remove('${key}_other');
     }
-    if (_workBench[key] != null) {
-      _workBench.remove(key);
+    if (workBench[key] != null) {
+      workBench.remove(key);
     }
   }
 
   if (value != null) {
-    _answeredCount += 1;
+    answeredCount += 1;
     if (otherInput == true) {
-      var _newMap = {..._workBench};
-      _newMap[key] = value;
-      _newMap['${key}_other'] = otherInputText;
-      _workBench = _newMap;
+      var newMap = {...workBench};
+      newMap[key] = value;
+      newMap['${key}_other'] = otherInputText;
+      workBench = newMap;
     } else if (isPhoneInput) {
-      var _newMap = {..._workBench};
-      _newMap[key] = value;
-      _newMap['${key}_phone'] = phoneValue;
-      _workBench = _newMap;
+      var newMap = {...workBench};
+      newMap[key] = value;
+      newMap['${key}_phone'] = phoneValue;
+      workBench = newMap;
     } else {
-      _workBench[key] = value;
+      workBench[key] = value;
     }
   }
 
-  return _workBench;
+  return workBench;
 }

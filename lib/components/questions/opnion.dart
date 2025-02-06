@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/questionColumn.dart';
-
 import '../common/skipAndNext.dart';
 import 'package:sizer/sizer.dart';
-import 'package:flutter/material.dart';
+
 class ColumnOpnionScale extends StatefulWidget {
   final Function func;
   final Map<dynamic, dynamic> answer;
@@ -30,11 +29,11 @@ class ColumnOpnionScale extends StatefulWidget {
 
   @override
   State<ColumnOpnionScale> createState() => _ColumnOpnionScaleState(
-      func: this.func,
-      answer: this.answer,
+      func: func,
+      answer: answer,
       question: question,
-      theme: this.theme,
-      customParams: this.customParams,
+      theme: theme,
+      customParams: customParams,
       currentQuestionNumber: currentQuestionNumber);
 }
 
@@ -70,52 +69,47 @@ class _ColumnOpnionScaleState extends State<ColumnOpnionScale> {
       children: [
         QuestionColumn(
           question: question,
-          currentQuestionNumber: this.currentQuestionNumber,
-          customParams: this.customParams,
-          theme: this.theme,
-          euiTheme: this.widget.euiTheme,
+          currentQuestionNumber: currentQuestionNumber,
+          customParams: customParams,
+          theme: theme,
+          euiTheme: widget.euiTheme,
         ),
- 
         SizedBox(height: 2.h),
-    
         OpnionScaleQuestion(
-          func: this.func,
-          answer: this.answer,
-          question: this.question,
-          theme: this.theme,
+          func: func,
+          answer: answer,
+          question: question,
+          theme: theme,
           setSelectedOption: setSelectedOption,
-          euiTheme: this.widget.euiTheme,
+          euiTheme: widget.euiTheme,
         ),
         SizedBox(height: 7.h),
-
         SkipAndNextButtons(
           key: UniqueKey(),
-          disabled: this.widget.isLastQuestion
-              ? this.question['required']
+          disabled: widget.isLastQuestion
+              ? question['required']
                   ? _selectedOption == -1
                   : false
               : _selectedOption == -1,
-          showNext: this.widget.isLastQuestion,
-          showSkip: (this.question['required'] || this.widget.isLastQuestion)
-              ? false
-              : true,
-          showSubmit: this.widget.isLastQuestion,
+          showNext: widget.isLastQuestion,
+          showSkip:
+              (question['required'] || widget.isLastQuestion) ? false : true,
+          showSubmit: widget.isLastQuestion,
           onClickSkip: () {
-            this.func(null, question['id']);
+            func(null, question['id']);
           },
           onClickNext: () {
-            // this.widget.submitData();
             if (_selectedOption != -1) {
-              this.widget.submitData();
+              widget.submitData();
             }
-            if (this.widget.isLastQuestion &&
+            if (widget.isLastQuestion &&
                 _selectedOption == -1.0 &&
-                !this.question['required']) {
-              this.widget.submitData();
+                !question['required']) {
+              widget.submitData();
             }
           },
-          theme: this.theme,
-          euiTheme: this.widget.euiTheme,
+          theme: theme,
+          euiTheme: widget.euiTheme,
         ),
       ],
     );
@@ -142,10 +136,7 @@ class OpnionScaleQuestion extends StatefulWidget {
 
   @override
   State<OpnionScaleQuestion> createState() => _OpnionScaleQuestionState(
-      func: this.func,
-      answer: this.answer,
-      question: this.question,
-      theme: this.theme);
+      func: func, answer: answer, question: question, theme: theme);
 }
 
 class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
@@ -175,11 +166,11 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
   });
 
   updateOpnionScale(val) {
-    this.widget.setSelectedOption(val);
+    widget.setSelectedOption(val);
     setState(() {
       _selectedOption = val;
     });
-    this.func(val, question['id']);
+    func(val, question['id']);
   }
 
   generateStartStep(step, start) {
@@ -211,82 +202,81 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
   initState() {
     super.initState();
 
-    if (this.widget.euiTheme != null) {
-      if (this.widget.euiTheme!['font'] != null) {
-        customFont = this.widget.euiTheme!['font'];
+    if (widget.euiTheme != null) {
+      if (widget.euiTheme!['font'] != null) {
+        customFont = widget.euiTheme!['font'];
       }
 
-      if (this.widget.euiTheme!['opinionScale'] != null) {
-        if (this.widget.euiTheme!['opinionScale']['outerBlockWidth'] != null) {
+      if (widget.euiTheme!['opinionScale'] != null) {
+        if (widget.euiTheme!['opinionScale']['outerBlockWidth'] != null) {
           opnionBlockSizeWidth =
-              this.widget.euiTheme!['opinionScale']['outerBlockWidth'];
+              widget.euiTheme!['opinionScale']['outerBlockWidth'];
         }
-        if (this.widget.euiTheme!['opinionScale']['outerBlockHeight'] != null) {
+        if (widget.euiTheme!['opinionScale']['outerBlockHeight'] != null) {
           opnionBlockSizeHeight =
-              this.widget.euiTheme!['opinionScale']['outerBlockHeight'];
+              widget.euiTheme!['opinionScale']['outerBlockHeight'];
         }
 
-        if (this.widget.euiTheme!['opinionScale']['innerBlockWidth'] != null) {
+        if (widget.euiTheme!['opinionScale']['innerBlockWidth'] != null) {
           innerOpnionBlockSizeWidth =
-              this.widget.euiTheme!['opinionScale']['innerBlockWidth'];
+              widget.euiTheme!['opinionScale']['innerBlockWidth'];
         }
-        if (this.widget.euiTheme!['opinionScale']['innerBlockHeight'] != null) {
+        if (widget.euiTheme!['opinionScale']['innerBlockHeight'] != null) {
           innerOpnionBlockSizeHeight =
-              this.widget.euiTheme!['opinionScale']['innerBlockHeight'];
+              widget.euiTheme!['opinionScale']['innerBlockHeight'];
         }
-        if (this.widget.euiTheme!['opinionScale']['labelFontSize'] != null) {
+        if (widget.euiTheme!['opinionScale']['labelFontSize'] != null) {
           opnionLabelFontSize =
-              this.widget.euiTheme!['opinionScale']['labelFontSize'];
+              widget.euiTheme!['opinionScale']['labelFontSize'];
         }
-        if (this.widget.euiTheme!['opinionScale']['numberFontSize'] != null) {
-          numberFontSize =
-              this.widget.euiTheme!['opinionScale']['numberFontSize'];
+        if (widget.euiTheme!['opinionScale']['numberFontSize'] != null) {
+          numberFontSize = widget.euiTheme!['opinionScale']['numberFontSize'];
         }
-        if (this.widget.euiTheme!['opinionScale']['runSpacing'] != null) {
-          runSpacing = this.widget.euiTheme!['opinionScale']['runSpacing'];
+        if (widget.euiTheme!['opinionScale']['runSpacing'] != null) {
+          runSpacing = widget.euiTheme!['opinionScale']['runSpacing'];
         }
-        if (this.widget.euiTheme!['opinionScale']['positionedLabelTopValue'] !=
+        if (widget.euiTheme!['opinionScale']['positionedLabelTopValue'] !=
             null) {
           positionedLabelTopValue =
-              this.widget.euiTheme!['opinionScale']['positionedLabelTopValue'];
+              widget.euiTheme!['opinionScale']['positionedLabelTopValue'];
         }
       }
     }
 
-    startLabel = this.question['properties']['data']['min'] ==
-            'builder.opinion_scale.min'
-        ? 'Least Likely'
-        : this.question['properties']['data']['min'];
-    midLabel = this.question['properties']['data']['mid'] ==
-            'builder.opinion_scale.mid'
-        ? 'Neutral'
-        : this.question['properties']['data']['mid'];
-    endLabel = this.question['properties']['data']['max'] ==
-            'builder.opinion_scale.max'
-        ? 'Most Likely'
-        : this.question['properties']['data']['max'];
+    startLabel =
+        question['properties']['data']['min'] == 'builder.opinion_scale.min'
+            ? 'Least Likely'
+            : question['properties']['data']['min'];
+    midLabel =
+        question['properties']['data']['mid'] == 'builder.opinion_scale.mid'
+            ? 'Neutral'
+            : question['properties']['data']['mid'];
+    endLabel =
+        question['properties']['data']['max'] == 'builder.opinion_scale.max'
+            ? 'Most Likely'
+            : question['properties']['data']['max'];
 
     luminanceValue =
-        this.theme['decodedOpnionBackgroundColorUnSelected'].computeLuminance();
+        theme['decodedOpnionBackgroundColorUnSelected'].computeLuminance();
 
-    if (this.question['properties'] != null &&
-        this.question['properties']['data'] != null &&
-        this.question['properties']['data']['reversedOrder'] != null) {
-      reversedOrder = this.question['properties']['data']['reversedOrder'];
+    if (question['properties'] != null &&
+        question['properties']['data'] != null &&
+        question['properties']['data']['reversedOrder'] != null) {
+      reversedOrder = question['properties']['data']['reversedOrder'];
     }
 
-    if (this.question['properties'] != null &&
-        this.question['properties']['data'] != null &&
-        this.question['properties']['data']['notApplicable'] != null) {
-      hasNAoption = this.question['properties']['data']['notApplicable'];
+    if (question['properties'] != null &&
+        question['properties']['data'] != null &&
+        question['properties']['data']['notApplicable'] != null) {
+      hasNAoption = question['properties']['data']['notApplicable'];
     }
 
-    this.generateStartStep(this.question['properties']['data']['step'],
-        this.question['properties']['data']['start']);
+    generateStartStep(question['properties']['data']['step'],
+        question['properties']['data']['start']);
 
-    if (this.answer[this.question['id']] != null) {
+    if (answer[question['id']] != null) {
       setState(() {
-        _selectedOption = this.answer[this.question['id']];
+        _selectedOption = answer[question['id']];
       });
     } else {
       setState(() {
@@ -306,8 +296,8 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
       height: opnionBlockSizeHeight,
       margin: _step == 3
           ? val == 0
-              ? EdgeInsets.only(left: 0.0)
-              : EdgeInsets.only(right: 30.0)
+              ? const EdgeInsets.only(left: 0.0)
+              : const EdgeInsets.only(right: 30.0)
           : null,
       child: Stack(
         clipBehavior: Clip.none,
@@ -316,8 +306,7 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
             Positioned(
               top: positionedLabelTopValue,
               left: -1,
-              child: Container(
-                  child: Text(
+              child: Text(
                 reversedOrder
                     ? transformLabel(endLabel)
                     : transformLabel(startLabel),
@@ -325,12 +314,10 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
                   decoration: TextDecoration.none,
                   fontSize: opnionLabelFontSize,
                   fontWeight: FontWeight.w400,
-                  // overflow: TextOverflow.ellipsis,
-                  // color: Color.fromRGBO(67, 67, 67, 1),
-                  color: this.theme['decodedOpnionLabelColor'],
+                  color: theme['decodedOpnionLabelColor'],
                   fontFamily: customFont,
                 ),
-              )),
+              ),
             ),
           ]
           // possible style change can be changing the right to -1 and positionedLabelTopValue depending on the width
@@ -338,53 +325,45 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
             Positioned(
                 top: positionedLabelTopValue,
                 left: -1,
-                child: Container(
-                  child: Text(
-                    transformLabel(midLabel),
-                    style: TextStyle(
-                      decoration: TextDecoration.none,
-                      fontSize: opnionLabelFontSize,
-                      fontWeight: FontWeight.w400,
-                      // color: Color.fromRGBO(67, 67, 67, 1),
-                      color: this.theme['decodedOpnionLabelColor'],
-                      fontFamily: customFont,
-                    ),
+                child: Text(
+                  transformLabel(midLabel),
+                  style: TextStyle(
+                    decoration: TextDecoration.none,
+                    fontSize: opnionLabelFontSize,
+                    fontWeight: FontWeight.w400,
+                    // color: Color.fromRGBO(67, 67, 67, 1),
+                    color: theme['decodedOpnionLabelColor'],
+                    fontFamily: customFont,
                   ),
                 )),
           ] else if (val == _end) ...[
             Positioned(
               top: positionedLabelTopValue,
               right: 0,
-              child: Container(
-                child: Text(
-                  reversedOrder
-                      ? transformLabel(startLabel)
-                      : transformLabel(endLabel),
-                  style: TextStyle(
-                    decoration: TextDecoration.none,
-                    fontSize: opnionLabelFontSize,
-                    fontWeight: FontWeight.w400,
-                    color: this.theme['decodedOpnionLabelColor'],
-                    fontFamily: customFont,
-                  ),
+              child: Text(
+                reversedOrder
+                    ? transformLabel(startLabel)
+                    : transformLabel(endLabel),
+                style: TextStyle(
+                  decoration: TextDecoration.none,
+                  fontSize: opnionLabelFontSize,
+                  fontWeight: FontWeight.w400,
+                  color: theme['decodedOpnionLabelColor'],
+                  fontFamily: customFont,
                 ),
               ),
             ),
           ],
           Center(
             child: Container(
-              // color: Color.fromARGB(255, 255, 247, 0),
               width: innerOpnionBlockSizeWidth,
               height: innerOpnionBlockSizeHeight,
-              // constraints: BoxConstraints(
-              //    maxHeight: 40,maxWidth: 40),
               decoration: BoxDecoration(
                 color: isSelectedOption == val
-                    ? this.theme['decodedOpnionBackgroundColorSelected']
-                    : this.theme['decodedOpnionBackgroundColorUnSelected'],
+                    ? theme['decodedOpnionBackgroundColorSelected']
+                    : theme['decodedOpnionBackgroundColorUnSelected'],
                 border: Border.all(
-                  // color: Color.fromRGBO(63, 63, 63, 0.5),
-                  color: this.theme['decodedOpnionBorderColor'],
+                  color: theme['decodedOpnionBorderColor'],
                   width: 1,
                 ),
                 borderRadius: BorderRadius.circular(8),
@@ -401,7 +380,7 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
                         ? luminanceValue > 0.5
                             ? Colors.black
                             : Colors.white
-                        : this.theme['answerColor'],
+                        : theme['answerColor'],
                     fontFamily: customFont,
                   ),
                 ),
@@ -419,26 +398,22 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
       height: opnionBlockSizeHeight,
       margin: _step == 3
           ? val == 0
-              ? EdgeInsets.only(left: 0.0)
-              : EdgeInsets.only(right: 30.0)
+              ? const EdgeInsets.only(left: 0.0)
+              : const EdgeInsets.only(right: 30.0)
           : null,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Center(
             child: Container(
-              // color: Color.fromARGB(255, 255, 247, 0),
               width: innerOpnionBlockSizeWidth,
               height: innerOpnionBlockSizeHeight,
-              // constraints: BoxConstraints(
-              //    maxHeight: 40,maxWidth: 40),
               decoration: BoxDecoration(
                 color: isSelectedOption == -2
-                    ? this.theme['decodedOpnionBackgroundColorSelected']
-                    : this.theme['decodedOpnionBackgroundColorUnSelected'],
+                    ? theme['decodedOpnionBackgroundColorSelected']
+                    : theme['decodedOpnionBackgroundColorUnSelected'],
                 border: Border.all(
-                  // color: Color.fromRGBO(63, 63, 63, 0.5),
-                  color: this.theme['decodedOpnionBorderColor'],
+                  color: theme['decodedOpnionBorderColor'],
                   width: 1,
                 ),
                 borderRadius: BorderRadius.circular(8),
@@ -455,7 +430,7 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
                         ? luminanceValue > 0.5
                             ? Colors.black
                             : Colors.white
-                        : this.theme['answerColor'],
+                        : theme['answerColor'],
                     fontFamily: customFont,
                   ),
                 ),
@@ -481,9 +456,6 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
 
   @override
   Widget build(BuildContext context) {
-    var shortestSide = MediaQuery.of(context).size.shortestSide;
-    final bool useMobileLayout = shortestSide < 600;
-
     List<Widget> list = List<Widget>.empty(growable: true);
     if (reversedOrder) {
       for (var i = _end; i >= _start; i--) {
@@ -511,37 +483,13 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
           ),
         );
       }
-      // list.add(
-      //     GestureDetector(
-      //       onTap: () {
-      //         updateOpnionScale(-2);
-      //       },
-      // child: Container(
-      //   child: generateOpmionBlock("N/A", _selectedOption),
-      // ),
-      //     ),
-      //   );
     }
-
-    // possible change is change the alignment for container to wrapalignment to start if needed in tablet
-    // return Container(
-    //   child: Wrap(
-    //     crossAxisAlignment: WrapCrossAlignment.center,
-    //     alignment: WrapAlignment.center,
-    //     runSpacing: runSpacing,
-    //     direction: Axis.horizontal,
-    //     children: [...list],
-    //   ),
-    // );
-
-    // Have removed width:doubly.infinity
-    var opnionBlocks = _end;
 
     if (hasNAoption) {
       return Row(
         children: [
           Container(
-            constraints: BoxConstraints(minWidth: 240, maxWidth: 240),
+            constraints: const BoxConstraints(minWidth: 240, maxWidth: 240),
             child: Wrap(
               crossAxisAlignment: WrapCrossAlignment.center,
               alignment: WrapAlignment.center,
@@ -550,7 +498,7 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
               children: [...list],
             ),
           ),
-          SizedBox(
+          const SizedBox(
             width: 8,
           ),
           Container(
@@ -558,7 +506,7 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
             height: getHeight(_end + 1) + 10,
             width: 1,
           ),
-          SizedBox(
+          const SizedBox(
             width: 6,
           ),
           Container(
@@ -582,14 +530,12 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
       );
     }
 
-    return Container(
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        alignment: WrapAlignment.center,
-        runSpacing: runSpacing,
-        direction: Axis.horizontal,
-        children: [...list],
-      ),
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      alignment: WrapAlignment.center,
+      runSpacing: runSpacing,
+      direction: Axis.horizontal,
+      children: [...list],
     );
   }
 }

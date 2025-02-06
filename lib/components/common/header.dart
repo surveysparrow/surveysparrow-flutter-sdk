@@ -1,8 +1,4 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:surveysparrow_flutter_sdk/helpers/svg.dart';
 
 class HeaderSection extends StatefulWidget {
   final Map<dynamic, dynamic>? euiTheme;
@@ -33,7 +29,7 @@ class _HeaderSectionState extends State<HeaderSection> {
   var logoHeight = 120.0;
   var logoWidth = 120.0;
 
-  var customFont = null;
+  dynamic customFont;
 
   @override
   void initState() {
@@ -41,10 +37,10 @@ class _HeaderSectionState extends State<HeaderSection> {
 
     luminanceValue = widget.theme!['backgroundColor'].computeLuminance();
 
-    if (this.widget.euiTheme != null) {
-      if (this.widget.euiTheme!['font'] != null) {
-        customFont = this.widget.euiTheme!['font'];
-      }    
+    if (widget.euiTheme != null) {
+      if (widget.euiTheme!['font'] != null) {
+        customFont = widget.euiTheme!['font'];
+      }
     }
 
     if (widget.euiTheme != null) {
@@ -52,7 +48,7 @@ class _HeaderSectionState extends State<HeaderSection> {
         if (widget.euiTheme!['logo']['bannerHeight'] != null) {
           bannerHeight = widget.euiTheme!['logo']['bannerHeight'];
         }
-        
+
         if (widget.euiTheme!['logo']['fontSize'] != null) {
           fontSize = widget.euiTheme!['logo']['fontSize'];
         }
@@ -73,14 +69,11 @@ class _HeaderSectionState extends State<HeaderSection> {
   Widget build(BuildContext context) {
     var textWidget = Text(widget.theme!['headerText'],
         style: TextStyle(
-          decoration: TextDecoration.none,
-          fontSize: fontSize,
-          fontWeight: FontWeight.bold,
-          color: luminanceValue > 0.5 ? Colors.black : Colors.white,
-          fontFamily: customFont
-        )
-        // fontFamily: customFont),
-        );
+            decoration: TextDecoration.none,
+            fontSize: fontSize,
+            fontWeight: FontWeight.bold,
+            color: luminanceValue > 0.5 ? Colors.black : Colors.white,
+            fontFamily: customFont));
 
     return Container(
       decoration: BoxDecoration(
@@ -100,7 +93,7 @@ class _HeaderSectionState extends State<HeaderSection> {
             : Container(
                 height: logoHeight,
                 width: logoWidth,
-                margin: EdgeInsets.only(top: 4.0, bottom: 4.0),
+                margin: const EdgeInsets.only(top: 4.0, bottom: 4.0),
                 child: Image.network(
                   widget.theme!['headerLogoUrl'],
                   fit: BoxFit.contain,
