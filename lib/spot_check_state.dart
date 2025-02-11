@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 import 'dart:developer';
@@ -19,8 +20,7 @@ class SpotCheckState extends StatelessWidget {
       required this.domainName,
       required this.userDetails,
       required this.variables,
-      required this.customProperties,
-      required this.sparrowLang})
+      required this.customProperties})
       : super(key: key);
 
   final String targetToken;
@@ -29,8 +29,7 @@ class SpotCheckState extends StatelessWidget {
   final Map<String, dynamic> customProperties;
   double screenHeight = 0;
   double screenWidth = 0;
-  Map<String, dynamic> userDetails;
-  final String sparrowLang;
+  final Map<String, dynamic> userDetails;
 
   final RxBool isValid = false.obs;
   final RxBool isFullScreenMode = false.obs;
@@ -52,9 +51,17 @@ class SpotCheckState extends StatelessWidget {
   final RxBool _isSpotPassed = false.obs;
   final RxBool _isChecksPassed = false.obs;
   final RxList<dynamic> customEventsSpotChecks = [].obs;
-
-  late WebViewController controller;
-  final RxBool isLoading = true.obs;
+  final RxString spotCheckType = ''.obs;
+  final Rx<WebViewController?> chatController = Rx<WebViewController?>(null);
+  final Rx<WebViewController?> classicController = Rx<WebViewController?>(null);
+  final RxBool isMounted = false.obs;
+  final RxBool isChatLoading = true.obs;
+  final RxBool isClassicLoading = true.obs;
+  final RxList<dynamic> filteredSpotChecks = <dynamic>[].obs;
+  final RxString chatUrl = ''.obs;
+  final RxString classicUrl = ''.obs;
+  final RxBool isInit = false.obs;
+  final RxBool isInjected = false.obs;
 
   void start() {
     Future.delayed(Duration(seconds: afterDelay.value), () {
@@ -65,61 +72,81 @@ class SpotCheckState extends StatelessWidget {
 
   void end() {
     isSpotCheckOpen.value = false;
-  }
+    isFullScreenMode.value = false;
+    spotcheckID.value = 0;
+    position.value = "";
+    currentQuestionHeight.value = 0;
+    isCloseButtonEnabled.value = false;
+    closeButtonStyle.value = {};
+    spotcheckContactID.value = 0;
+    spotcheckURL.value = "";
+    isMounted.value = false;
+    isInjected.value = false;
+    WebViewController? webViewRef = spotCheckType.value == 'chat'
+        ? chatController.value
+        : classicController.value;
 
-  Future<List<String>> _androidFilePicker(FileSelectorParams params) async {
-    try {
-      final result = await FilePicker.platform.pickFiles(allowMultiple: true);
+    if (webViewRef != null) {
+      String injectedJavaScript = """
+      (function() {
+        window.dispatchEvent(new MessageEvent('message', {
+          data: ${jsonEncode({"type": "UNMOUNT_APP"})}
+        }));
+      })();
+    """;
 
-      if (result != null && result.files.isNotEmpty) {
-        final fileUris = result.files
-            .where((file) => file.path != null)
-            .map((file) => File(file.path!).uri.toString())
-            .toList();
-
-        return fileUris;
-      }
-    } catch (e) {
-      log('Error picking Files');
+      webViewRef.runJavaScript(injectedJavaScript);
+      spotCheckType.value = "";
     }
-
-    return [];
   }
 
-  Future<List<String>> _androidImagePicker(FileSelectorParams params) async {
+  Future<List<String>> _pickFiles({bool isImage = false}) async {
     try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? pickedFile =
-          await picker.pickImage(source: ImageSource.camera);
-      _isImageCaptureActive.value = false;
-      addFileSelectionListener();
+      if (isImage) {
+        final picker = ImagePicker();
+        final XFile? pickedFile =
+            await picker.pickImage(source: ImageSource.camera);
+        _isImageCaptureActive.value = false;
+        _updateFileSelectionListener();
 
-      if (pickedFile != null) {
-        return [File(pickedFile.path).uri.toString()];
-      }
-    } catch (e) {
-      _isImageCaptureActive.value = false;
-      addFileSelectionListener();
-      log('Error picking Image');
-    }
-
-    return [];
-  }
-
-  void addFileSelectionListener() async {
-    if (Platform.isAndroid) {
-      final androidController = controller.platform as AndroidWebViewController;
-      if (!_isImageCaptureActive.value) {
-        await androidController.setOnShowFileSelector(_androidFilePicker);
+        return pickedFile != null ? [File(pickedFile.path).uri.toString()] : [];
       } else {
-        await androidController.setOnShowFileSelector(_androidImagePicker);
+        final result = await FilePicker.platform.pickFiles(allowMultiple: true);
+        return result?.files
+                .where((file) => file.path != null)
+                .map((file) => File(file.path!).uri.toString())
+                .toList() ??
+            [];
       }
+    } catch (e) {
+      log('Error picking ${isImage ? "Image" : "Files"}: $e');
+      _isImageCaptureActive.value = false;
+      _updateFileSelectionListener();
+    }
+
+    return [];
+  }
+
+  void _updateFileSelectionListener() async {
+    if (!Platform.isAndroid || spotCheckType.value.isEmpty) return;
+
+    final AndroidWebViewController? androidController =
+        (spotCheckType.value == "classic"
+            ? classicController.value?.platform
+            : chatController.value?.platform) as AndroidWebViewController?;
+
+    if (androidController != null) {
+      await androidController.setOnShowFileSelector((params) async {
+        return _isImageCaptureActive.value
+            ? await _pickFiles(isImage: true)
+            : await _pickFiles();
+      });
     }
   }
 
   void _captureImage() {
     _isImageCaptureActive.value = true;
-    addFileSelectionListener();
+    _updateFileSelectionListener();
   }
 
   Future<Map<String, dynamic>> sendTrackScreenRequest(String screen) async {
@@ -182,38 +209,6 @@ class SpotCheckState extends StatelessWidget {
 
           if (show) {
             setAppearance(responseJson!, screen);
-            controller = WebViewController()
-              ..setJavaScriptMode(JavaScriptMode.unrestricted)
-              ..loadRequest(Uri.parse(spotcheckURL.value))
-              ..setNavigationDelegate(NavigationDelegate(
-                onPageFinished: (url) {
-                  isLoading.value = false;
-                },
-              ))
-              ..addJavaScriptChannel("flutterSpotCheckData",
-                  onMessageReceived: (JavaScriptMessage response) {
-                try {
-                  var jsonResponse = json.decode(response.message);
-                  log(jsonResponse.toString());
-                  if (jsonResponse['type'] == "spotCheckData") {
-                    var height =
-                        jsonResponse['data']['currentQuestionSize']['height'];
-                    currentQuestionHeight.value = height;
-                  } else if (jsonResponse['type'] == "surveyCompleted") {
-                    end();
-                  }
-                } catch (e) {
-                  log("Error decoding JSON: $e");
-                }
-              })
-              ..addJavaScriptChannel(
-                "SsFlutterSdk",
-                onMessageReceived: (JavaScriptMessage response) {
-                  if (response.message == 'captureImage') {
-                    _captureImage();
-                  }
-                },
-              );
 
             _isSpotPassed.value = true;
             log("Success: Spots or Checks or Visitor or Reccurence Condition Passed");
@@ -244,38 +239,6 @@ class SpotCheckState extends StatelessWidget {
               }
 
               setAppearance(responseJson!, screen);
-              controller = WebViewController()
-                ..setJavaScriptMode(JavaScriptMode.unrestricted)
-                ..loadRequest(Uri.parse(spotcheckURL.value))
-                ..setNavigationDelegate(NavigationDelegate(
-                  onPageFinished: (url) {
-                    isLoading.value = false;
-                  },
-                ))
-                ..addJavaScriptChannel("flutterSpotCheckData",
-                    onMessageReceived: (JavaScriptMessage response) {
-                  try {
-                    var jsonResponse = json.decode(response.message);
-                    log(jsonResponse.toString());
-                    if (jsonResponse['type'] == "spotCheckData") {
-                      var height =
-                          jsonResponse['data']['currentQuestionSize']['height'];
-                      currentQuestionHeight.value = height;
-                    } else if (jsonResponse['type'] == "surveyCompleted") {
-                      end();
-                    }
-                  } catch (e) {
-                    log("Error decoding JSON: $e");
-                  }
-                })
-                ..addJavaScriptChannel(
-                  "SsFlutterSdk",
-                  onMessageReceived: (JavaScriptMessage response) {
-                    if (response.message == 'captureImage') {
-                      _captureImage();
-                    }
-                  },
-                );
 
               _isChecksPassed.value = true;
               log("Success: Checks Condition Passed");
@@ -322,39 +285,6 @@ class SpotCheckState extends StatelessWidget {
               setAppearance(selectedSpotCheck, screen);
 
               if (selectedSpotCheck.isNotEmpty) {
-                controller = WebViewController()
-                  ..setJavaScriptMode(JavaScriptMode.unrestricted)
-                  ..loadRequest(Uri.parse(spotcheckURL.value))
-                  ..setNavigationDelegate(NavigationDelegate(
-                    onPageFinished: (url) {
-                      isLoading.value = false;
-                    },
-                  ))
-                  ..addJavaScriptChannel("flutterSpotCheckData",
-                      onMessageReceived: (JavaScriptMessage response) {
-                    try {
-                      var jsonResponse = json.decode(response.message);
-                      log(jsonResponse.toString());
-                      if (jsonResponse['type'] == "spotCheckData") {
-                        var height = jsonResponse['data']['currentQuestionSize']
-                            ['height'];
-                        currentQuestionHeight.value = height;
-                      } else if (jsonResponse['type'] == "surveyCompleted") {
-                        end();
-                      }
-                    } catch (e) {
-                      log("Error decoding JSON: $e");
-                    }
-                  })
-                  ..addJavaScriptChannel(
-                    "SsFlutterSdk",
-                    onMessageReceived: (JavaScriptMessage response) {
-                      if (response.message == 'captureImage') {
-                        _captureImage();
-                      }
-                    },
-                  );
-
                 return {"valid": true};
               }
             }
@@ -447,39 +377,6 @@ class SpotCheckState extends StatelessWidget {
                   if (responseJson?["show"] != null) {
                     bool show = responseJson?["show"];
                     setAppearance(responseJson!, screen);
-                    controller = WebViewController()
-                      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-                      ..loadRequest(Uri.parse(spotcheckURL.value))
-                      ..setNavigationDelegate(NavigationDelegate(
-                        onPageFinished: (url) {
-                          isLoading.value = false;
-                        },
-                      ))
-                      ..addJavaScriptChannel("flutterSpotCheckData",
-                          onMessageReceived: (JavaScriptMessage response) {
-                        try {
-                          var jsonResponse = json.decode(response.message);
-                          log(jsonResponse.toString());
-                          if (jsonResponse['type'] == "spotCheckData") {
-                            var height = jsonResponse['data']
-                                ['currentQuestionSize']['height'];
-                            currentQuestionHeight.value = height;
-                          } else if (jsonResponse['type'] ==
-                              "surveyCompleted") {
-                            end();
-                          }
-                        } catch (e) {
-                          log("Error decoding JSON: $e");
-                        }
-                      })
-                      ..addJavaScriptChannel(
-                        "SsFlutterSdk",
-                        onMessageReceived: (JavaScriptMessage response) {
-                          if (response.message == 'captureImage') {
-                            _captureImage();
-                          }
-                        },
-                      );
                     _isSpotPassed.value = true;
                     if (show) {
                       log("Success: Spots or Checks or Visitor or Reccurence Condition Passed");
@@ -508,39 +405,6 @@ class SpotCheckState extends StatelessWidget {
                       }
 
                       setAppearance(responseJson!, screen);
-                      controller = WebViewController()
-                        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-                        ..loadRequest(Uri.parse(spotcheckURL.value))
-                        ..setNavigationDelegate(NavigationDelegate(
-                          onPageFinished: (url) {
-                            isLoading.value = false;
-                          },
-                        ))
-                        ..addJavaScriptChannel("flutterSpotCheckData",
-                            onMessageReceived: (JavaScriptMessage response) {
-                          try {
-                            var jsonResponse = json.decode(response.message);
-                            log(jsonResponse.toString());
-                            if (jsonResponse['type'] == "spotCheckData") {
-                              var height = jsonResponse['data']
-                                  ['currentQuestionSize']['height'];
-                              currentQuestionHeight.value = height;
-                            } else if (jsonResponse['type'] ==
-                                "surveyCompleted") {
-                              end();
-                            }
-                          } catch (e) {
-                            log("Error decoding JSON: $e");
-                          }
-                        })
-                        ..addJavaScriptChannel(
-                          "SsFlutterSdk",
-                          onMessageReceived: (JavaScriptMessage response) {
-                            if (response.message == 'captureImage') {
-                              _captureImage();
-                            }
-                          },
-                        );
 
                       log("Success: Checks Condition Passed");
                       return {"valid": true};
@@ -564,103 +428,263 @@ class SpotCheckState extends StatelessWidget {
     }
   }
 
+  Future<void> initializeWidget(String domainName, String targetToken) async {
+    try {
+      const String SDK = 'FLUTTER';
+      final Uri url = Uri.parse(
+          'https://$domainName/api/internal/spotcheck/widget/$targetToken/init?sdk=$SDK');
+
+      final response = await http.get(url);
+      if (response.statusCode != 200) {
+        print('Error fetching widget data: ${response.statusCode}');
+        return;
+      }
+
+      final data = json.decode(response.body) as Map<String, dynamic>;
+      if (data['filteredSpotChecks'] != null) {
+        filteredSpotChecks.value =
+            List<dynamic>.from(data['filteredSpotChecks']);
+      }
+
+      bool isClassicIframe = false, isChatIframe = false;
+
+      for (final spotcheck in filteredSpotChecks) {
+        final String mode = spotcheck['appearance']['mode'] as String;
+        final String? surveyType =
+            spotcheck['survey']?['surveyType'] as String?;
+
+        if (mode == 'card' || mode == 'fullScreen') {
+          isClassicIframe = true;
+          if (mode == 'fullScreen' && isChatSurvey(surveyType)) {
+            isChatIframe = true;
+          }
+        }
+      }
+
+      chatUrl.value =
+          isChatIframe ? 'https://$domainName/eui-template/chat' : '';
+      classicUrl.value =
+          isClassicIframe ? 'https://$domainName/eui-template/classic' : '';
+
+      void setupWebViewController(
+          WebViewController controller, String url, RxBool loadingState) {
+        controller
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..loadRequest(Uri.parse(url))
+          ..setNavigationDelegate(NavigationDelegate(
+            onPageFinished: (_) => loadingState.value = false,
+          ))
+          ..addJavaScriptChannel("flutterSpotCheckData",
+              onMessageReceived: (response) {
+            try {
+              var jsonResponse = json.decode(response.message);
+              log(jsonResponse.toString());
+              if (jsonResponse['type'] == "spotCheckData") {
+                currentQuestionHeight.value =
+                    jsonResponse['data']['currentQuestionSize']['height'];
+              } else if (jsonResponse['type'] == "surveyCompleted") {
+                end();
+              } else if (jsonResponse["type"] == 'slideInFrame') {
+                isMounted.value = true;
+              }
+            } catch (e) {
+              log("Error decoding JSON: $e");
+            }
+          })
+          ..addJavaScriptChannel("SsFlutterSdk", onMessageReceived: (response) {
+            if (response.message == 'captureImage') {
+              _captureImage();
+            }
+          });
+      }
+
+      if (isChatIframe) {
+        chatController.value = WebViewController();
+        setupWebViewController(
+            chatController.value!, chatUrl.value, isChatLoading);
+      }
+
+      if (isClassicIframe) {
+        classicController.value = WebViewController();
+        setupWebViewController(
+            classicController.value!, classicUrl.value, isClassicLoading);
+      }
+
+      if (isChatIframe || isClassicIframe) {
+        isInit.value = true;
+      }
+    } catch (error) {
+      print('Error initializing widget: $error');
+    }
+  }
+
+  bool isChatSurvey(String? type) {
+    return type == 'Conversational' ||
+        type == 'CESChat' ||
+        type == 'NPSChat' ||
+        type == 'CSATChat';
+  }
+
   @override
   Widget build(BuildContext context) {
     screenHeight = MediaQuery.of(context).size.height;
     screenWidth = MediaQuery.of(context).size.width;
     var smallestDimension = MediaQuery.of(context).size.shortestSide;
     final useMobileLayout = smallestDimension < 600;
+    if (!isInit.value) {
+      initializeWidget(domainName, targetToken);
+    }
 
-    return Obx(() => isSpotCheckOpen.value
-        ? Stack(
-            children: <Widget>[
-              isLoading.value
-                  ? Container(
-                      alignment: Alignment.center,
+    return Obx(() => Stack(
+          children: <Widget>[
+            ((isMounted.value || isFullScreenMode.value) && isInjected.value)
+                ? Container(
+                    color: const Color.fromARGB(85, 0, 0, 0),
+                    child: SizedBox(
                       height: MediaQuery.of(context).size.height,
                       width: MediaQuery.of(context).size.width,
-                      decoration: const BoxDecoration(
-                        color: Color.fromARGB(85, 0, 0, 0),
-                      ),
-                      child: const SizedBox(
-                          height: 40,
-                          width: 40,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                          )),
-                    )
-                  : Container(
-                      color: const Color.fromARGB(85, 0, 0, 0),
-                      child: SizedBox(
-                        height: MediaQuery.of(context).size.height,
-                        width: MediaQuery.of(context).size.width,
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            Positioned(
+              bottom: 0,
+              child: SizedBox(
+                height: screenHeight * 0.945,
+                child: Column(
+                  mainAxisAlignment: _getAlignment(),
+                  children: [
+                    SizedBox(
+                      height: (isSpotCheckOpen.value == true &&
+                              ((isMounted.value || isFullScreenMode.value) &&
+                                  isInjected.value) &&
+                              spotCheckType.value == "classic")
+                          ? isFullScreenMode.value
+                              ? screenHeight * 0.945
+                              : math.min(
+                                  screenHeight,
+                                  (math.min(
+                                          currentQuestionHeight.value
+                                              .toDouble(),
+                                          maxHeight.value * screenHeight)) +
+                                      (isBannerImageOn.value &&
+                                              currentQuestionHeight.value != 0
+                                          ? useMobileLayout
+                                              ? 100
+                                              : 0
+                                          : 0))
+                          : 1,
+                      width: (isSpotCheckOpen.value == true &&
+                              ((isMounted.value || isFullScreenMode.value) &&
+                                  isInjected.value) &&
+                              spotCheckType.value == "classic")
+                          ? MediaQuery.of(context).size.width
+                          : 1,
+                      child: Stack(
+                        children: [
+                          (!isClassicLoading.value)
+                              ? WebViewWidget(
+                                  controller: classicController.value!,
+                                )
+                              : const SizedBox(),
+                          (isCloseButtonEnabled.value &&
+                                  !isClassicLoading.value && isInjected.value)
+                              ? Positioned(
+                                  top: 6,
+                                  right: 8,
+                                  child: IconButton(
+                                    icon: Icon(
+                                      Icons.close,
+                                      size: 20,
+                                      color: Color(int.parse(isHex(
+                                              closeButtonStyle["ctaButton"]
+                                                  .toString())
+                                          ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
+                                          : "0xFF000000")),
+                                    ),
+                                    onPressed: () {
+                                      closeSpotCheck();
+                                      end();
+                                    },
+                                  ),
+                                )
+                              : const SizedBox.shrink()
+                        ],
                       ),
                     ),
-              Positioned(
-                bottom: 0,
-                child: SizedBox(
-                  height: screenHeight * 0.945,
-                  child: Column(
-                    mainAxisAlignment: _getAlignment(),
-                    children: [
-                      SizedBox(
-                        height: isFullScreenMode.value
-                            ? screenHeight * 0.945
-                            : math.min(
-                                screenHeight,
-                                (math.min(
-                                        currentQuestionHeight.value.toDouble(),
-                                        maxHeight.value * screenHeight)) +
-                                    (isBannerImageOn.value &&
-                                            currentQuestionHeight.value != 0
-                                        ? useMobileLayout
-                                            ? 100
-                                            : 0
-                                        : 0)),
-                        width: MediaQuery.of(context).size.width,
-                        child: Stack(
-                          children: [
-                            WebViewWidget(
-                              controller: controller,
-                            ),
-                            (isCloseButtonEnabled.value && !isLoading.value)
-                                ? Positioned(
-                                    top: 6,
-                                    right: 8,
-                                    child: IconButton(
-                                      icon: Icon(
-                                        Icons.close,
-                                        size: 20,
-                                        color: Color(int.parse(isHex(
-                                                closeButtonStyle["ctaButton"]
-                                                    .toString())
-                                            ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
-                                            : "0xFF000000")),
-                                      ),
-                                      onPressed: () {
-                                        closeSpotCheck();
-                                        spotcheckID.value = 0;
-                                        position.value = "";
-                                        currentQuestionHeight.value = 0;
-                                        isCloseButtonEnabled.value = false;
-                                        closeButtonStyle.value = {};
-                                        spotcheckContactID.value = 0;
-                                        spotcheckURL.value = "";
-                                        end();
-                                      },
-                                    ),
-                                  )
-                                : const SizedBox.shrink()
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
-            ],
-          )
-        : const SizedBox.shrink());
+            ),
+            Positioned(
+              bottom: 0,
+              child: SizedBox(
+                height: screenHeight * 0.945,
+                child: Column(
+                  mainAxisAlignment: _getAlignment(),
+                  children: [
+                    SizedBox(
+                      height: (isSpotCheckOpen.value == true &&
+                              ((isMounted.value || isFullScreenMode.value) &&
+                                  isInjected.value) &&
+                              spotCheckType.value == "chat")
+                          ? isFullScreenMode.value
+                              ? screenHeight * 0.945
+                              : math.min(
+                                  screenHeight,
+                                  (math.min(
+                                          currentQuestionHeight.value
+                                              .toDouble(),
+                                          maxHeight.value * screenHeight)) +
+                                      (isBannerImageOn.value &&
+                                              currentQuestionHeight.value != 0
+                                          ? useMobileLayout
+                                              ? 100
+                                              : 0
+                                          : 0))
+                          : 1,
+                      width: (isSpotCheckOpen.value == true &&
+                              ((isMounted.value || isFullScreenMode.value) &&
+                                  isInjected.value) &&
+                              spotCheckType.value == "chat")
+                          ? MediaQuery.of(context).size.width
+                          : 1,
+                      child: Stack(
+                        children: [
+                          (!isChatLoading.value)
+                              ? WebViewWidget(
+                                  controller: chatController.value!,
+                                )
+                              : const SizedBox(),
+                          (isCloseButtonEnabled.value && !isChatLoading.value && isInjected.value)
+                              ? Positioned(
+                                  top: 6,
+                                  right: 8,
+                                  child: IconButton(
+                                    icon: Icon(
+                                      Icons.close,
+                                      size: 20,
+                                      color: Color(int.parse(isHex(
+                                              closeButtonStyle["ctaButton"]
+                                                  .toString())
+                                          ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
+                                          : "0xFF000000")),
+                                    ),
+                                    onPressed: () {
+                                      closeSpotCheck();
+                                      end();
+                                    },
+                                  ),
+                                )
+                              : const SizedBox.shrink()
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ));
   }
 
   MainAxisAlignment _getAlignment() {
@@ -676,79 +700,137 @@ class SpotCheckState extends StatelessWidget {
     }
   }
 
-  void setAppearance(Map<String, dynamic> responseJson, String screen) {
-    if (responseJson.isNotEmpty) {
-      if (responseJson["appearance"] != null) {
-        String tposition = responseJson["appearance"]?["position"];
-        switch (tposition) {
-          case "top_full":
-            position.value = "top";
-            break;
-          case "center_center":
-            position.value = "center";
-            break;
-          case "bottom_full":
-            position.value = "bottom";
-            break;
-          default:
+  void setAppearance(Map<String, dynamic> responseJson, String screen) async {
+    if (responseJson.isEmpty) return;
+
+    bool chat = false;
+    final appearance = responseJson["appearance"] ?? {};
+
+    var currentSpotCheck = filteredSpotChecks.firstWhere(
+      (spotcheck) =>
+          spotcheck['id'] == responseJson['spotCheckId'] ||
+          spotcheck['id'] == responseJson['id'],
+      orElse: () => null,
+    );
+
+    chat = isChatSurvey(currentSpotCheck?['survey']?['surveyType']) &&
+        appearance["mode"] == "fullScreen";
+
+    spotCheckType.value = chat ? "chat" : "classic";
+
+    switch (appearance["position"]) {
+      case "top_full":
+        position.value = "top";
+        break;
+      case "center_center":
+        position.value = "center";
+        break;
+      case "bottom_full":
+        position.value = "bottom";
+        break;
+    }
+
+    isCloseButtonEnabled.value = appearance["closeButton"] ?? false;
+    closeButtonStyle.value = appearance["colors"]?["overrides"] ?? {};
+
+    Map<String, dynamic>? cardProp = appearance["cardProperties"];
+    if (cardProp != null) {
+      maxHeight.value =
+          double.tryParse(cardProp["maxHeight"].toString()) ?? 1.0 / 100;
+    }
+
+    isFullScreenMode.value = appearance["mode"] == "fullScreen";
+    isBannerImageOn.value = appearance["bannerImage"]?["enabled"] ?? false;
+
+    spotcheckID.value = responseJson["spotCheckId"] ?? responseJson["id"];
+    spotcheckContactID.value = responseJson["spotCheckContactId"] ??
+        responseJson["spotCheckContact"]?["id"];
+    triggerToken.value = responseJson["triggerToken"] ?? "";
+
+    final sb = StringBuffer(
+        "https://$domainName/n/spotcheck/${triggerToken.value}/${chat ? 'config' : 'bootstrap'}"
+        "?spotcheckContactId=${spotcheckContactID.value}"
+        "&traceId=${traceId.value}"
+        "&spotcheckUrl=$screen");
+
+    variables.forEach((key, value) => sb.write("&$key=$value"));
+    spotcheckURL.value = sb.toString();
+    log(spotcheckURL.value);
+
+    try {
+      final response = await http.get(Uri.parse(spotcheckURL.value));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final themeInfo = data["config"]["generatedCSS"];
+
+        final themePayload = {
+          "type": "THEME_UPDATE_SPOTCHECK",
+          "themeInfo": themeInfo
+        };
+
+        final WebViewController? webViewRef =
+            chat ? chatController.value : classicController.value;
+        final RxBool isLoading = chat ? isChatLoading : isClassicLoading;
+
+        final payload = {
+          "type": "RESET_STATE",
+          "state": {
+            ...(data ?? {}),
+            "skip": true,
+            "spotCheckAppearance": {
+              ...(appearance ?? {}),
+              "targetType": "MOBILE",
+            },
+            "spotcheckUrl": screen,
+            "traceId": traceId.value,
+            "elementBuilderParams": {
+              ...(variables ?? {}),
+            },
+          },
+        };
+
+        String injectedJavaScript = """
+        (function() {
+          window.dispatchEvent(new MessageEvent('message', { data: ${jsonEncode(payload)} }));
+          window.dispatchEvent(new MessageEvent('message', { data: ${jsonEncode(themePayload)} }));
+        })();
+      """;
+
+        if (!isLoading.value) {
+          _updateFileSelectionListener();
+          webViewRef?.runJavaScript(injectedJavaScript);
+          isInjected.value = true;
+        } else {
+          ever(isLoading, (bool loading) {
+            if (!loading) {
+              _updateFileSelectionListener();
+              webViewRef?.runJavaScript(injectedJavaScript);
+              isInjected.value = true;
+            }
+          });
         }
-        isCloseButtonEnabled.value = responseJson["appearance"]?["closeButton"];
-        closeButtonStyle.value =
-            responseJson["appearance"]?["colors"]?["overrides"] ?? {};
-        Map<String, dynamic> cardProp =
-            responseJson["appearance"]?["cardProperties"];
-        var mxHeight = double.parse(cardProp["maxHeight"].toString());
-        maxHeight.value = mxHeight / 100;
-        isFullScreenMode.value =
-            responseJson["appearance"]?["mode"] as String == "fullScreen"
-                ? true
-                : false;
-        isBannerImageOn.value =
-            responseJson["appearance"]?["bannerImage"]?["enabled"];
       }
-
-      spotcheckID.value = responseJson["spotCheckId"] ?? responseJson["id"];
-      spotcheckContactID.value = responseJson["spotCheckContactId"] ??
-          responseJson["spotCheckContact"]?["id"];
-      triggerToken.value = responseJson["triggerToken"] ?? "";
-      spotcheckURL.value =
-          "https://$domainName/n/spotcheck/${triggerToken.value}?spotcheckContactId=${spotcheckContactID.value}&traceId=${traceId.value}&spotcheckUrl=$screen";
-
-      variables.forEach((key, value) =>
-          spotcheckURL.value = "${spotcheckURL.value}&$key=$value");
-
-      if (sparrowLang.isNotEmpty) {
-        spotcheckURL.value = "${spotcheckURL.value}&sparrowLang=$sparrowLang";
-      }
-
-      log(spotcheckURL.value);
+    } catch (e) {
+      log("Error fetching spotcheck data: $e");
     }
   }
 
   void closeSpotCheck() async {
     try {
-      Map<String, dynamic> payload = {
-        "traceId": traceId.value,
-        "triggerToken": triggerToken.value
-      };
-
       final response = await http.put(
         Uri.parse(
             "https://$domainName/api/internal/spotcheck/dismiss/$spotcheckContactID"),
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(payload),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(
+            {"traceId": traceId.value, "triggerToken": triggerToken.value}),
       );
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
-        if (data["success"]) {
-          log("SpotCheck Closed");
-        }
+        if (data["success"]) log("SpotCheck Closed");
       }
     } catch (error) {
-      log("Error parsing JSON: $error");
+      log("Error closing SpotCheck: $error");
     }
   }
 }
