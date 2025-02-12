@@ -13,7 +13,6 @@ final SpotCheck spotCheck = SpotCheck(
   userDetails: {},
   variables: {},
   customProperties: {},
-  sparrowLang: "",
 );
 
 class MyApp extends StatelessWidget {
