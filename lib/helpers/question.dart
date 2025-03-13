@@ -14,12 +14,15 @@ parsedHeading(question, replacementVal) {
   String replacedString = "" ;
   if (question['rtxt'] != null &&
       question['rtxt']['blocks'] != null) {
-        question['rtxt']['blocks'].forEach((e) {
-          if(e['text'] != null && e['text'].toString().isNotEmpty ){
-            replacedString += """${e['text']}
-            """ ;
+        for (var i = 0; i < question['rtxt']['blocks'].length; i++) {
+          var e = question['rtxt']['blocks'][i];
+          if(e['text'] != null && e['text'].toString().isNotEmpty) {
+            replacedString += """${e['text']}""";
+            if (i < question['rtxt']['blocks'].length - 1) {
+              replacedString += "\n";
+            }
           }
-        });
+        }
   }else {
     replacedString = "";
   }
@@ -319,6 +322,7 @@ convertQuestionListToWidget(
                 isLastQuestion: question['id'] == lastQuestion['id'],
                 submitData: submitData,
                 euiTheme: euiTheme,
+                toggleNextButtonBlock: toggleNextButtonBlock,
               ),
             ),
           ),
@@ -558,4 +562,23 @@ getPrefilledAnswers(firstQuestionAnswer, createAnswerPayload, collectedAnswers,
     }
     throw Exception('prefilled Answers is not configured properly');
   }
+}
+
+isRegularChoice(choice) {
+  if( choice['properties']?['noneOfTheAbove'] == null ||
+      choice['properties']?['allOfTheAbove'] == null ||
+      choice['other'] == null ) {
+    return true;
+  } else {
+    return (
+      choice['properties']?['noneOfTheAbove'] == false &&
+      choice['properties']?['allOfTheAbove'] == false &&
+      choice['other'] == false
+    );
+  }
+}
+
+isRegularChoiceId(choiceId, List<dynamic> choices) {
+  var choice = choices.firstWhere((element) => element['id'] == choiceId);
+  return isRegularChoice(choice);
 }

@@ -1,7 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/questionColumn.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/skipAndNext.dart';
+import 'package:surveysparrow_flutter_sdk/helpers/question.dart';
+import 'package:surveysparrow_flutter_sdk/providers/navigation_provider.dart';
 
 class MultiChoice extends StatefulWidget {
   final Function func;
@@ -69,6 +72,8 @@ class _MultiChoiceState extends State<MultiChoice> {
     required this.currentQuestionNumber,
   });
 
+  int value = 0;
+
   @override
   initState() {
     super.initState();
@@ -104,12 +109,65 @@ class _MultiChoiceState extends State<MultiChoice> {
       _selectedOptions = answer[question['id']];
       checkIfSelectedOptionsValid();
     }
+    updateValue();
+  }
+
+  updateValue() {
+    var tempValue = 0;
+    var choices = question['choices'];
+    for (var element in _selectedOptions) {
+      if (isRegularChoiceId(element, choices)) {
+        tempValue++;
+      }
+    }
+    setState(() {
+      value = tempValue;
+    });
   }
 
   setSelectedOptions(options) {
     setState(() {
       _selectedOptions = options;
     });
+    updateValue();
+    int maxLimit = int.parse(question['properties']['data']['maxLimit']);
+    if (question['properties']['data']['type'] == 'UNLIMITED') {
+      maxLimit = question['choices'].length + 1;
+    }
+    if (maxLimit == value && !widget.isLastQuestion) {
+      onClickNext();
+    }
+
+    if (options.isNotEmpty) {
+      var noneChoice = question['choices'].firstWhere((element) => element['id'] == options[0]);
+      if( noneChoice['properties']?['noneOfTheAbove'] == true ) {
+        onClickNext();
+      }
+    }
+
+    int minLimit = int.parse(question['properties']['data']['minLimit']);
+    if (question['required'] == true && question["multipleAnswers"] == true) {      
+      if (question['properties']['data']['type'] == 'EXACT' && value == int.parse(question['properties']['data']['exactChoices'])) {
+        context.read<NavigationState>().toggleBlockNavigationDown(false);
+      } else {
+        context.read<NavigationState>().toggleBlockNavigationDown(true);
+      }
+      
+      if (question['properties']['data']['type'] == 'UNLIMITED' || question['properties']['data']['type'] == 'RANGE') { 
+        if (value > maxLimit || value < minLimit) {
+          context.read<NavigationState>().toggleBlockNavigationDown(true);
+        } else {
+          context.read<NavigationState>().toggleBlockNavigationDown(false);
+        }
+      }
+    } else {
+      if( value == 1 ) {
+        context.read<NavigationState>().toggleBlockNavigationDown(false);
+      } else {
+        context.read<NavigationState>().toggleBlockNavigationDown(true);
+      }
+    }
+
     checkIfSelectedOptionsValid();
   }
 
@@ -181,10 +239,90 @@ class _MultiChoiceState extends State<MultiChoice> {
     } else {
       widget.toggleNextButtonBlock(false);
     }
+
+    if (question['required'] == false) {
+      widget.toggleNextButtonBlock(false);
+    }
+  }
+
+  onClickNext() {
+    if (widget.isLastQuestion && !question['required']) {
+      widget.submitData();
+      return;
+    }
+    if (question['properties']['data']['type'] == 'EXACT') {
+      if (_selectedOptions.length ==
+          int.parse(question['properties']['data']['exactChoices'])) {
+        func(_selectedOptions, question['id'],
+            otherInput: _selectedOptions.contains(otherInputId),
+            otherInputId: otherInputId,
+            otherInputText: hasOtherInputText);
+        setChoiceError(false, "");
+      } else {
+        setChoiceError(true,
+            "Please select ${question['properties']['data']['exactChoices']} choices");
+      }
+    } else if (question['properties']['data']['type'] == 'RANGE') {
+      if (_selectedOptions.length >=
+              int.parse(question['properties']['data']['minLimit']) &&
+          _selectedOptions.length <=
+              int.parse(question['properties']['data']['maxLimit'])) {
+        func(_selectedOptions, question['id'],
+            otherInput: _selectedOptions.contains(otherInputId),
+            otherInputId: otherInputId,
+            otherInputText: hasOtherInputText);
+        setChoiceError(false, "");
+      } else {
+        setChoiceError(true,
+            "Please select choices between ${int.parse(question['properties']['data']['minLimit'])} and ${int.parse(question['properties']['data']['maxLimit'])} ");
+      }
+    } else {
+      if (_selectedOptions.isNotEmpty) {
+        func(_selectedOptions, question['id'],
+            otherInput: _selectedOptions.contains(otherInputId),
+            otherInputId: otherInputId,
+            otherInputText: hasOtherInputText);
+        setChoiceError(false, "");
+      } else {
+        setChoiceError(true, "This is a mandatory question");
+      }
+    }
+    if (inputError == false && widget.isLastQuestion) {
+      widget.submitData();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    String helperText = "";
+
+    if (question["multipleAnswers"] == true) {
+      String type = question['properties']['data']['type'];
+      if (type == 'EXACT') {
+        int exactChoices =
+            int.parse(question['properties']['data']['exactChoices']);
+        if (value == 0) {
+          helperText = 'Choose any $exactChoices';
+        } else if (value >= exactChoices) {
+          helperText = '';
+        } else {
+          helperText = 'Choose ${exactChoices - value} more';
+        }
+      } else if (type == 'RANGE') {
+        int maxLimit = int.parse(question['properties']['data']['maxLimit']);
+        if (value == 0) {
+          int minLimit = int.parse(question['properties']['data']['minLimit']);
+          helperText = 'Make between $minLimit and $maxLimit choices';
+        } else if (value >= maxLimit) {
+          helperText = '';
+        } else {
+          helperText = 'You can choose ${maxLimit - value} more';
+        }
+      } else if (type == 'UNLIMITED') {
+        helperText = 'Choose as many as you like';
+      }
+    }
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -200,6 +338,7 @@ class _MultiChoiceState extends State<MultiChoice> {
               theme: theme,
               euiTheme: widget.euiTheme,
             ),
+            HelperTextWidget(helperText: helperText, color: theme['questionColor']),
             MultipleChoiceRow(
               answer: answer,
               func: func,
@@ -234,55 +373,7 @@ class _MultiChoiceState extends State<MultiChoice> {
                   ? false
                   : true,
               showSubmit: widget.isLastQuestion,
-              onClickNext: () {
-                if (widget.isLastQuestion && !question['required']) {
-                  widget.submitData();
-                  return;
-                }
-                if (question['properties']['data']['type'] == 'EXACT') {
-                  if (_selectedOptions.length ==
-                      int.parse(
-                          question['properties']['data']['exactChoices'])) {
-                    func(_selectedOptions, question['id'],
-                        otherInput: _selectedOptions.contains(otherInputId),
-                        otherInputId: otherInputId,
-                        otherInputText: hasOtherInputText);
-                    setChoiceError(false, "");
-                  } else {
-                    setChoiceError(true,
-                        "Please select ${question['properties']['data']['exactChoices']} choices");
-                  }
-                } else if (question['properties']['data']['type'] == 'RANGE') {
-                  if (_selectedOptions.length >=
-                          int.parse(
-                              question['properties']['data']['minLimit']) &&
-                      _selectedOptions.length <=
-                          int.parse(
-                              question['properties']['data']['maxLimit'])) {
-                    func(_selectedOptions, question['id'],
-                        otherInput: _selectedOptions.contains(otherInputId),
-                        otherInputId: otherInputId,
-                        otherInputText: hasOtherInputText);
-                    setChoiceError(false, "");
-                  } else {
-                    setChoiceError(true,
-                        "Please select choices between ${int.parse(question['properties']['data']['minLimit'])} and ${int.parse(question['properties']['data']['maxLimit'])} ");
-                  }
-                } else {
-                  if (_selectedOptions.isNotEmpty) {
-                    func(_selectedOptions, question['id'],
-                        otherInput: _selectedOptions.contains(otherInputId),
-                        otherInputId: otherInputId,
-                        otherInputText: hasOtherInputText);
-                    setChoiceError(false, "");
-                  } else {
-                    setChoiceError(true, "Please select atleast 1 choice");
-                  }
-                }
-                if (inputError == false && widget.isLastQuestion) {
-                  widget.submitData();
-                }
-              },
+              onClickNext: onClickNext,
               onClickSkip: () {
                 widget.toggleNextButtonBlock(false);
                 func(null, question['id']);
@@ -292,6 +383,23 @@ class _MultiChoiceState extends State<MultiChoice> {
             ),
           ],
         ),
+      ],
+    );
+  }
+}
+
+class HelperTextWidget extends StatelessWidget {
+  final String helperText;
+  final Color color;
+  const HelperTextWidget({Key? key, required this.helperText, required this.color})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (helperText.isNotEmpty) Text(helperText, style: TextStyle(color: color)),
+        if (helperText.isNotEmpty) const SizedBox(height: 12)
       ],
     );
   }
@@ -358,8 +466,6 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
   var hasAllOfOptionJson = {};
   var hasOtherOptionJson = {};
 
-  var isNextButtonBlocked = false;
-
   _MultipleChoiceRowState({
     required this.func,
     required this.answer,
@@ -385,8 +491,6 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
   @override
   initState() {
     super.initState();
-
-    isNextButtonBlocked = false;
 
     if (question['randomized'] != null) {
       shuffle = question['randomized'];
@@ -474,6 +578,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
     if (answer[question['id']] != null) {
       setState(() {
         _selectedOption = answer[question['id']];
+        widget.toggleNextButtonBlock(false);
       });
     } else {
       setState(() {
@@ -570,6 +675,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
         });
         func(singleSelected, question['id']);
         widget.setSelectedOptions!(singleSelected);
+        widget.toggleNextButtonBlock(false);
       } else {
         var singleSelected = val;
         setState(() {

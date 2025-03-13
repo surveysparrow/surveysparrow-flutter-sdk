@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:surveysparrow_flutter_sdk/components/common/bottomNavigation.dart';
@@ -19,6 +17,7 @@ import 'package:surveysparrow_flutter_sdk/models/firstQuestionAnswer.dart';
 import 'package:surveysparrow_flutter_sdk/models/theme.dart';
 import 'dart:convert';
 import 'package:sizer/sizer.dart';
+import 'package:surveysparrow_flutter_sdk/providers/navigation_provider.dart';
 import 'package:surveysparrow_flutter_sdk/providers/survey_provider.dart';
 import 'helpers/answers.dart';
 import 'dart:async';
@@ -62,7 +61,8 @@ class SurveyModal extends StatelessWidget {
           return MultiProvider(
             providers: [
               ChangeNotifierProvider(create: (_) => WorkBench()),
-              ChangeNotifierProvider(create: (_) => SurveyProvider())
+              ChangeNotifierProvider(create: (_) => SurveyProvider()),
+              ChangeNotifierProvider(create: (_) => NavigationState())
             ],
             child: QuestionsPage(
               token: token,
@@ -115,7 +115,8 @@ class SurveyModal extends StatelessWidget {
                     return MultiProvider(
                       providers: [
                         ChangeNotifierProvider(create: (_) => WorkBench()),
-                        ChangeNotifierProvider(create: (_) => SurveyProvider())
+                        ChangeNotifierProvider(create: (_) => SurveyProvider()),
+                        ChangeNotifierProvider(create: (_) => NavigationState())
                       ],
                       child: QuestionsPage(
                         token: token,
@@ -297,7 +298,6 @@ class _QuestionsPageState extends State<QuestionsPage>
     }
     widget.onNext!(_collectedAnswers);
     if (isLastQuestionSubmission == true) {
-      log("MOVE LAST $isLastQuestionSubmission");
       Future.delayed(const Duration(milliseconds: 500), () {
         _handleNextQuestion(changePage: changePage);
       });
@@ -451,8 +451,8 @@ class _QuestionsPageState extends State<QuestionsPage>
         storePrefilledAnswers();
       }
 
-      setState(() {
-        if (mounted) {
+      if (mounted) {
+        setState(() {
           questionList = convertQuestionListToWidget(
               _allQuestionList,
               _currentQuestionToRender,
@@ -467,8 +467,8 @@ class _QuestionsPageState extends State<QuestionsPage>
               widget.euiTheme,
               toggleNextButtonBlock);
           _currentQuestionToRender = _allQuestionList[_pageNumber];
-        }
-      });
+        });
+      }
     }
 
     if (Survey['thankyou_json'].length > 0) {
@@ -552,6 +552,26 @@ class _QuestionsPageState extends State<QuestionsPage>
             });
           }
         }
+      }
+    }
+
+    if(! _workBench.containsKey(_currentQuestionToRender['id']) ) {
+      if( _currentQuestionToRender['required'] == true ) {
+        context.read<NavigationState>().toggleBlockNavigationDown(true);
+      } else {
+        context.read<NavigationState>().toggleBlockNavigationDown(false);
+      }
+    } else {
+      if( _currentQuestionToRender['required'] == false ) {
+        context.read<NavigationState>().toggleBlockNavigationDown(false);
+      }
+    }
+
+    if( _currentQuestionToRender['type'] == 'PhoneNumber' &&  _currentQuestionToRender['required'] == true ) {
+      if( _workBench.containsKey( _currentQuestionToRender['id'] ) ) { 
+        context.read<NavigationState>().toggleBlockNavigationDown(false);
+      } else {
+        context.read<NavigationState>().toggleBlockNavigationDown(true);
       }
     }
 
@@ -660,7 +680,6 @@ class _QuestionsPageState extends State<QuestionsPage>
   }
 
   _handlePreviousQuestion() {
-    toggleNextButtonBlock(false);
     generateQuestionList(false);
     if (_pageNumber != 0) {
       var updatedPageNumber = _pageNumber - 1;
@@ -708,6 +727,14 @@ class _QuestionsPageState extends State<QuestionsPage>
               toggleNextButtonBlock);
           _currentQuestionToRender = _allQuestionList[_pageNumber];
         });
+
+        if( _currentQuestionToRender['id'] == _allQuestionList[0]['id'] ) {
+          if( _currentQuestionToRender['required'] == true ) {
+            context.read<NavigationState>().toggleBlockNavigationDown(true);
+          } else {
+            context.read<NavigationState>().toggleBlockNavigationDown(false);
+          }
+        }
       }
     });
   }

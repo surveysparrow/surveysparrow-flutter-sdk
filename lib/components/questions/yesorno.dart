@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/questionColumn.dart';
+import 'package:surveysparrow_flutter_sdk/providers/navigation_provider.dart';
 
 import '../../helpers/svg.dart';
 import '../common/skipAndNext.dart';
@@ -303,6 +305,7 @@ class _YesOrNoQuestionState extends State<YesOrNoQuestion> {
     setState(() {
       _selectedOption = convertBoolToIndex(val);
     });
+    context.read<NavigationState>().toggleBlockNavigationDown(false);
     func(val, question['id']);
   }
 

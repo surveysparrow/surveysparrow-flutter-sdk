@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/questionColumn.dart';
+import 'package:surveysparrow_flutter_sdk/providers/navigation_provider.dart';
 import '../common/skipAndNext.dart';
 import 'package:sizer/sizer.dart';
 
@@ -170,6 +172,7 @@ class _OpnionScaleQuestionState extends State<OpnionScaleQuestion> {
     setState(() {
       _selectedOption = val;
     });
+    context.read<NavigationState>().toggleBlockNavigationDown(false);
     func(val, question['id']);
   }
 

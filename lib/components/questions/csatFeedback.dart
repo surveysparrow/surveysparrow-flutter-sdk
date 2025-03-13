@@ -251,96 +251,96 @@ class _CsatQuestionState extends State<CsatQuestion> {
         if (curIndex == 0) {
           var emoji = isSelected == true
               ? generateRatingSimilyOne(
-                  'rgb(255,255,255)', 'rgb(236,103,114)', 'rgb(236,103,114)', 1)
-              : generateRatingSimilyOne('rgb(236,103,114)', 'rgb(255,255,255)',
-                  'rgb(236,103,114)', 0.5);
+                  'rgb(255,255,255)', '#f65633', '#f65633', 1)
+              : generateRatingSimilyOne('#f65633', 'rgb(255,255,255)',
+                  '#f65633', 1);
           return emoji;
         }
         if (curIndex == 1) {
           var emoji = isSelected == true
               ? generateRatingSmilyTwo(
-                  'rgb(255,255,255)', '#d9864c', '#d9864c', 1)
+                  'rgb(255,255,255)', '#db8d06', '#db8d06', 1)
               : generateRatingSmilyTwo(
-                  '#d9864c', 'rgb(255,255,255)', '#d9864c', 0.5);
+                  '#db8d06', 'rgb(255,255,255)', '#db8d06', 1);
           return emoji;
         }
         if (curIndex == 2) {
           var emoji = isSelected == true
               ? generateRatingSmilyThree(
-                  'rgb(255,255,255)', '#b2a24b', '#b2a24b', 1)
+                  'rgb(255,255,255)', '#e6cf00', '#e6cf00', 1)
               : generateRatingSmilyThree(
-                  '#b2a24b', 'rgb(255,255,255)', '#b2a24b', 0.5);
+                  '#e6cf00', 'rgb(255,255,255)', '#e6cf00', 1);
           return emoji;
         }
         if (curIndex == 3) {
           var emoji = isSelected == true
               ? generateRatingSmilyFour(
-                  'rgb(255,255,255)', '#84b671', '#84b671', 1)
+                  'rgb(255,255,255)', '#22c55e', '#22c55e', 1)
               : generateRatingSmilyFour(
-                  '#84b671', 'rgb(255,255,255)', '#84b671', 0.5);
+                  '#22c55e', 'rgb(255,255,255)', '#22c55e', 1);
           return emoji;
         } else {
           var emoji = isSelected == true
               ? generateRatingSmilyFive(
-                  'rgb(255,255,255)', '#069858', '#069858', 1)
+                  'rgb(255,255,255)', '#5ea130', '#5ea130', 1)
               : generateRatingSmilyFive(
-                  '#069858', 'rgb(255,255,255)', '#069858', 0.5);
+                  '#5ea130', 'rgb(255,255,255)', '#5ea130', 1);
           return emoji;
         }
       case 4:
         if (curIndex == 0) {
           var emoji = isSelected == true
               ? generateRatingSimilyOne(
-                  'rgb(255,255,255)', 'rgb(236,103,114)', 'rgb(236,103,114)', 1)
-              : generateRatingSimilyOne('rgb(236,103,114)', 'rgb(255,255,255)',
-                  'rgb(236,103,114)', 0.5);
+                  'rgb(255,255,255)', '#f65633', '#f65633', 1)
+              : generateRatingSimilyOne('#f65633', 'rgb(255,255,255)',
+                  '#f65633', 1);
           return emoji;
         }
         if (curIndex == 1) {
           var emoji = isSelected == true
               ? generateRatingSmilyThree(
-                  'rgb(255,255,255)', '#b2a24b', '#b2a24b', 1)
+                  'rgb(255,255,255)', '#e6cf00', '#e6cf00', 1)
               : generateRatingSmilyThree(
-                  '#b2a24b', 'rgb(255,255,255)', '#b2a24b', 0.5);
+                  '#e6cf00', 'rgb(255,255,255)', '#e6cf00', 1);
           return emoji;
         }
         if (curIndex == 2) {
           var emoji = isSelected == true
               ? generateRatingSmilyFour(
-                  'rgb(255,255,255)', '#84b671', '#84b671', 1)
+                  'rgb(255,255,255)', '#22c55e', '#22c55e', 1)
               : generateRatingSmilyFour(
-                  '#84b671', 'rgb(255,255,255)', '#84b671', 0.5);
+                  '#22c55e', 'rgb(255,255,255)', '#22c55e', 1);
           return emoji;
         } else {
           var emoji = isSelected == true
               ? generateRatingSmilyFive(
-                  'rgb(255,255,255)', '#069858', '#069858', 1)
+                  'rgb(255,255,255)', '#5ea130', '#5ea130', 1)
               : generateRatingSmilyFive(
-                  '#069858', 'rgb(255,255,255)', '#069858', 0.5);
+                  '#5ea130', 'rgb(255,255,255)', '#5ea130', 1);
           return emoji;
         }
       case 3:
         if (curIndex == 0) {
           var emoji = isSelected == true
               ? generateRatingSimilyOne(
-                  'rgb(255,255,255)', 'rgb(236,103,114)', 'rgb(236,103,114)', 1)
-              : generateRatingSimilyOne('rgb(236,103,114)', 'rgb(255,255,255)',
-                  'rgb(236,103,114)', 0.5);
+                  'rgb(255,255,255)', '#f65633', '#f65633', 1)
+              : generateRatingSimilyOne('#f65633', 'rgb(255,255,255)',
+                  '#f65633', 1);
           return emoji;
         }
         if (curIndex == 1) {
           var emoji = isSelected == true
               ? generateRatingSmilyThree(
-                  'rgb(255,255,255)', '#b2a24b', '#b2a24b', 1)
+                  'rgb(255,255,255)', '#e6cf00', '#e6cf00', 1)
               : generateRatingSmilyThree(
-                  '#b2a24b', 'rgb(255,255,255)', '#b2a24b', 0.5);
+                  '#e6cf00', 'rgb(255,255,255)', '#e6cf00', 1);
           return emoji;
         } else {
           var emoji = isSelected == true
               ? generateRatingSmilyFive(
-                  'rgb(255,255,255)', '#069858', '#069858', 1)
+                  'rgb(255,255,255)', '#5ea130', '#5ea130', 1)
               : generateRatingSmilyFive(
-                  '#069858', 'rgb(255,255,255)', '#069858', 0.5);
+                  '#5ea130', 'rgb(255,255,255)', '#5ea130', 1);
           return emoji;
         }
     }
