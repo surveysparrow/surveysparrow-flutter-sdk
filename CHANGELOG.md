@@ -62,3 +62,7 @@
 ## 1.1.5
 
 * Bug Fixes & CodeClean Up
+
+## 1.1.6-beta.1
+
+* UI Enhancements
