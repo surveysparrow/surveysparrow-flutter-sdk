@@ -31,7 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   fluttertoast: ^8.2.2
-  surveysparrow_flutter_sdk: 1.1.5-beta.2
+  surveysparrow_flutter_sdk: 1.1.6-beta.1
 
 
   # The following adds the Cupertino Icons font to your application.
