@@ -12,6 +12,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:ui' as ui;
 
 class SpotCheckState extends StatelessWidget {
   SpotCheckState(
@@ -62,6 +65,9 @@ class SpotCheckState extends StatelessWidget {
   final RxString classicUrl = ''.obs;
   final RxBool isInit = false.obs;
   final RxBool isInjected = false.obs;
+  final RxString avatarUrl = ''.obs;
+  final RxString spotChecksMode = ''.obs;
+  final RxBool avatarEnabled = false.obs;
 
   void start() {
     Future.delayed(Duration(seconds: afterDelay.value), () {
@@ -71,17 +77,7 @@ class SpotCheckState extends StatelessWidget {
   }
 
   void end() {
-    isSpotCheckOpen.value = false;
-    isFullScreenMode.value = false;
-    spotcheckID.value = 0;
-    position.value = "";
-    currentQuestionHeight.value = 0;
-    isCloseButtonEnabled.value = false;
-    closeButtonStyle.value = {};
-    spotcheckContactID.value = 0;
-    spotcheckURL.value = "";
-    isMounted.value = false;
-    isInjected.value = false;
+
     WebViewController? webViewRef = spotCheckType.value == 'chat'
         ? chatController.value
         : classicController.value;
@@ -98,6 +94,22 @@ class SpotCheckState extends StatelessWidget {
       webViewRef.runJavaScript(injectedJavaScript);
       spotCheckType.value = "";
     }
+
+    isSpotCheckOpen.value = false;
+    isFullScreenMode.value = false;
+    spotcheckID.value = 0;
+    position.value = "";
+    currentQuestionHeight.value = 0;
+    isCloseButtonEnabled.value = false;
+    closeButtonStyle.value = {};
+    spotcheckContactID.value = 0;
+    spotcheckURL.value = "";
+    isMounted.value = false;
+    isInjected.value = false;
+    spotChecksMode.value = '';
+    avatarEnabled.value = false;
+    avatarUrl.value =  "";
+
   }
 
   Future<List<String>> _pickFiles({bool isImage = false}) async {
@@ -428,6 +440,45 @@ class SpotCheckState extends StatelessWidget {
     }
   }
 
+  Future<String> getUserAgent() async {
+    String userAgent = 'Mozilla/5.0 ';
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+
+    if (Platform.isAndroid) {
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+
+      bool isTablet;
+
+      final double devicePixelRatio = ui.window.devicePixelRatio;
+      final ui.Size size = ui.window.physicalSize;
+      final double width = size.width;
+      final double height = size.height;
+
+
+      if(devicePixelRatio < 2 && (width >= 1000 || height >= 1000)) {
+        isTablet = true;
+      }
+      else if(devicePixelRatio == 2 && (width >= 1920 || height >= 1920)) {
+        isTablet = true;
+      }
+      else {
+        isTablet = false;
+      }
+
+
+      userAgent += '(Linux; Android ${androidInfo.version.release}; ${isTablet ? 'Tablet' : 'Mobile'}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Mobile Safari/537.36';
+    } else if (Platform.isIOS) {
+      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+      String deviceName = iosInfo.name;
+      String model = iosInfo.model;
+      String iosVersion = iosInfo.systemVersion.replaceAll('.', '_');
+
+      userAgent += '($deviceName - $model CPU iOS $iosVersion like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/537.36';
+    }
+
+    return userAgent;
+  }
+
   Future<void> initializeWidget(String domainName, String targetToken) async {
     try {
       const String SDK = 'FLUTTER';
@@ -436,7 +487,7 @@ class SpotCheckState extends StatelessWidget {
 
       final response = await http.get(url);
       if (response.statusCode != 200) {
-        print('Error fetching widget data: ${response.statusCode}');
+        log('Error fetching widget data: ${response.statusCode}');
         return;
       }
 
@@ -453,7 +504,7 @@ class SpotCheckState extends StatelessWidget {
         final String? surveyType =
             spotcheck['survey']?['surveyType'] as String?;
 
-        if (mode == 'card' || mode == 'fullScreen') {
+        if (mode == 'card' || mode == 'fullScreen' || mode=='miniCard') {
           isClassicIframe = true;
           if (mode == 'fullScreen' && isChatSurvey(surveyType)) {
             isChatIframe = true;
@@ -478,10 +529,16 @@ class SpotCheckState extends StatelessWidget {
               onMessageReceived: (response) {
             try {
               var jsonResponse = json.decode(response.message);
-              log(jsonResponse.toString());
               if (jsonResponse['type'] == "spotCheckData") {
                 currentQuestionHeight.value =
                     jsonResponse['data']['currentQuestionSize']['height'];
+                if(spotChecksMode.value=='miniCard' && isCloseButtonEnabled.value){
+                  currentQuestionHeight.value += 8;
+                }
+
+                if(spotChecksMode.value=='miniCard' && avatarEnabled.value){
+                  currentQuestionHeight.value += 8;
+                }
               } else if (jsonResponse['type'] == "surveyCompleted") {
                 end();
               } else if (jsonResponse["type"] == 'slideInFrame') {
@@ -514,7 +571,7 @@ class SpotCheckState extends StatelessWidget {
         isInit.value = true;
       }
     } catch (error) {
-      print('Error initializing widget: $error');
+      log('Error initializing widget: $error');
     }
   }
 
@@ -548,67 +605,156 @@ class SpotCheckState extends StatelessWidget {
                 : const SizedBox.shrink(),
             Positioned(
               bottom: 0,
+              left:0,
+              right:0,
               child: SizedBox(
                 height: screenHeight * 0.945,
                 child: Column(
                   mainAxisAlignment: _getAlignment(),
                   children: [
-                    SizedBox(
-                      height: (isSpotCheckOpen.value == true &&
-                              ((isMounted.value || isFullScreenMode.value) &&
-                                  isInjected.value) &&
-                              spotCheckType.value == "classic")
-                          ? isFullScreenMode.value
-                              ? screenHeight * 0.945
-                              : math.min(
-                                  screenHeight,
-                                  (math.min(
-                                          currentQuestionHeight.value
-                                              .toDouble(),
-                                          maxHeight.value * screenHeight)) +
-                                      (isBannerImageOn.value &&
-                                              currentQuestionHeight.value != 0
-                                          ? useMobileLayout
-                                              ? 100
-                                              : 0
-                                          : 0))
-                          : 1,
-                      width: (isSpotCheckOpen.value == true &&
-                              ((isMounted.value || isFullScreenMode.value) &&
-                                  isInjected.value) &&
-                              spotCheckType.value == "classic")
-                          ? MediaQuery.of(context).size.width
-                          : 1,
-                      child: Stack(
-                        children: [
-                          (!isClassicLoading.value)
-                              ? WebViewWidget(
-                                  controller: classicController.value!,
-                                )
-                              : const SizedBox(),
-                          (isCloseButtonEnabled.value &&
-                                  !isClassicLoading.value && isInjected.value)
-                              ? Positioned(
-                                  top: 6,
-                                  right: 8,
-                                  child: IconButton(
-                                    icon: Icon(
-                                      Icons.close,
-                                      size: 20,
-                                      color: Color(int.parse(isHex(
-                                              closeButtonStyle["ctaButton"]
-                                                  .toString())
-                                          ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
-                                          : "0xFF000000")),
+                    Container(
+                      alignment: Alignment.center,
+                      margin: EdgeInsets.symmetric(horizontal: 12),
+                      child: SizedBox(
+
+                        height: (isSpotCheckOpen.value == true &&
+                                ((isMounted.value || isFullScreenMode.value) &&
+                                    isInjected.value) &&
+                                spotCheckType.value == "classic")
+                            ? isFullScreenMode.value
+                                ? screenHeight * 0.945
+                                : math.min(
+                                    screenHeight,
+                                    (math.min(
+                                            currentQuestionHeight.value
+                                                .toDouble(),
+                                            maxHeight.value * screenHeight)) +
+                                        (isBannerImageOn.value &&
+                                                currentQuestionHeight.value != 0
+                                            ? useMobileLayout
+                                                ? 100
+                                                : 0
+                                            : 0))+(currentQuestionHeight.value==0?150:0)
+                            : 0,
+                        width: (isSpotCheckOpen.value == true &&
+                                ((isMounted.value || isFullScreenMode.value) &&
+                                    isInjected.value) &&
+                                spotCheckType.value == "classic")
+                            ? MediaQuery.of(context).size.width
+                            : 0,
+                        child: Stack(
+                          children: [
+                            (!isClassicLoading.value)
+                                ? Column(
+                                  children: [
+                                    (spotChecksMode.value == "miniCard")
+                                        ? Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              closeSpotCheck();
+                                              end();
+                                            },
+                                            child: Container(
+                                              width: 32,
+                                              height: 32,
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                shape: BoxShape.circle,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black26,
+                                                    blurRadius: 4,
+                                                    spreadRadius: 1,
+                                                    offset: Offset(2, 2),
+                                                  ),
+                                                ],
+                                              ),
+
+                                              child: Center(
+                                                child: Icon(
+                                                  Icons.close,
+                                                  size: 20,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    )
+                                        : SizedBox.shrink(),
+
+
+                                    Expanded(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Container(
+                                          width: double.infinity,  // Ensure it stretches
+                                          height: double.infinity,
+                                          child: WebViewWidget(
+                                              key: ValueKey('classic'),
+                                              controller: classicController.value!,
+                                            ),
+                                        ),
+                                      ),
                                     ),
-                                    onPressed: () {
-                                      closeSpotCheck();
-                                      end();
-                                    },
-                                  ),
+
+                                    (avatarEnabled.value)?Row(
+
+                                      mainAxisAlignment: MainAxisAlignment.start,
+
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                          child: Card(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(24),
+                                            ),
+                                            elevation: 4,
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(24),
+                                              child: Image.network(
+                                                avatarUrl.value,
+                                                width: 48,
+                                                height: 48,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          )
+                                        )
+                                      ],
+                                    ):const SizedBox.shrink(),
+                                  ],
                                 )
-                              : const SizedBox.shrink()
-                        ],
+                                : const SizedBox(),
+                            (isCloseButtonEnabled.value &&
+                                    !isClassicLoading.value && isInjected.value && spotChecksMode.value!="miniCard")
+                                ? Positioned(
+                                    top: 6,
+                                    right: 8,
+                                    child: IconButton(
+                                      icon: Icon(
+                                        Icons.close,
+                                        size: 20,
+                                        color: Color(int.parse(isHex(
+                                                closeButtonStyle["ctaButton"]
+                                                    .toString())
+                                            ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
+                                            : "0xFF000000")),
+                                      ),
+                                      onPressed: () {
+                                        closeSpotCheck();
+                                        end();
+                                      },
+                                    ),
+                                  )
+                                : const SizedBox.shrink()
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -617,6 +763,8 @@ class SpotCheckState extends StatelessWidget {
             ),
             Positioned(
               bottom: 0,
+              right: 0,
+              left: 0,
               child: SizedBox(
                 height: screenHeight * 0.945,
                 child: Column(
@@ -652,10 +800,11 @@ class SpotCheckState extends StatelessWidget {
                         children: [
                           (!isChatLoading.value)
                               ? WebViewWidget(
+                            key: ValueKey('chat'),
                                   controller: chatController.value!,
                                 )
                               : const SizedBox(),
-                          (isCloseButtonEnabled.value && !isChatLoading.value && isInjected.value)
+                          (isCloseButtonEnabled.value && !isChatLoading.value && isInjected.value && spotChecksMode.value!="miniCard")
                               ? Positioned(
                                   top: 6,
                                   right: 8,
@@ -716,6 +865,10 @@ class SpotCheckState extends StatelessWidget {
     chat = isChatSurvey(currentSpotCheck?['survey']?['surveyType']) &&
         appearance["mode"] == "fullScreen";
 
+    spotChecksMode.value = appearance?["mode"];
+    avatarEnabled.value = appearance?["avatar"]?["enabled"] ?? false;
+    avatarUrl.value =  appearance?["avatar"]?["avatarUrl"] ?? '';
+
     spotCheckType.value = chat ? "chat" : "classic";
 
     switch (appearance["position"]) {
@@ -758,7 +911,11 @@ class SpotCheckState extends StatelessWidget {
     log(spotcheckURL.value);
 
     try {
-      final response = await http.get(Uri.parse(spotcheckURL.value));
+      String userAgent = await getUserAgent();
+      final response = await http.get(Uri.parse(spotcheckURL.value),
+        headers: {
+          'User-Agent': userAgent,
+        },);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final themeInfo = data["config"]["generatedCSS"];
