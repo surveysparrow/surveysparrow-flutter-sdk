@@ -131,7 +131,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
                         isVertical
                             ? getRightSvgArrow(widget.theme!['questionString'])
                             : getDownArrowSvg(widget.theme!['questionString'],
-                                opacity: !navState.blockNavigationDown),
+                                opacity: navState.blockNavigationDown),
                       ),
                     );
                   })),

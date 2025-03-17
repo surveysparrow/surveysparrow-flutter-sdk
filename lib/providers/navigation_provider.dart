@@ -4,7 +4,7 @@ class NavigationState extends ChangeNotifier {
   bool blockNavigationDown = true;
 
   void toggleBlockNavigationDown(bool value) {
-    blockNavigationDown = !value;
+    blockNavigationDown = value;
     notifyListeners();
   }
 }

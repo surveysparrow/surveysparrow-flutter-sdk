@@ -36,6 +36,7 @@ class SurveyModal extends StatelessWidget {
   final Function? onSubmit;
   final Map<dynamic, dynamic>? survey;
   final Function? onError;
+  var lastQuestion = {};
 
   SurveyModal({
     Key? key,
@@ -75,6 +76,7 @@ class SurveyModal extends StatelessWidget {
               euiTheme: customSurveyTheme?.toMap() ?? {},
               onError: onError,
               email: email,
+              lastQuestion: lastQuestion,
             ),
           );
         },
@@ -109,6 +111,12 @@ class SurveyModal extends StatelessWidget {
               }
               throw Exception('Un Supported Survey Type');
             } else {
+              if(snapshot.data['sections'].length > 0) {
+                var lastSection = snapshot.data['sections'][snapshot.data['sections'].length - 1];
+                if(lastSection['questions'].length > 0) {
+                  lastQuestion = lastSection['questions'][lastSection['questions'].length - 1];
+                }
+              }
               try {
                 var surveyWidgetToRender = Sizer(
                   builder: (context, orientation, deviceType) {
@@ -129,6 +137,7 @@ class SurveyModal extends StatelessWidget {
                         euiTheme: customSurveyTheme?.toMap() ?? {},
                         onError: onError,
                         email: email,
+                        lastQuestion: lastQuestion,
                       ),
                     );
                     // return QuestionsPage(
@@ -176,6 +185,7 @@ class QuestionsPage extends StatefulWidget {
   final Map<dynamic, dynamic>? euiTheme;
   final Function? onSubmitCloseModalFunction;
   final Function? onError;
+  final Map<dynamic, dynamic>? lastQuestion;
 
   const QuestionsPage(
       {Key? key,
@@ -189,7 +199,8 @@ class QuestionsPage extends StatefulWidget {
       this.onSubmitCloseModalFunction,
       this.euiTheme,
       this.email,
-      this.onError})
+      this.onError,
+      this.lastQuestion})
       : super(key: key);
 
   @override
@@ -571,6 +582,12 @@ class _QuestionsPageState extends State<QuestionsPage>
       if( _workBench.containsKey( _currentQuestionToRender['id'] ) ) { 
         context.read<NavigationState>().toggleBlockNavigationDown(false);
       } else {
+        context.read<NavigationState>().toggleBlockNavigationDown(true);
+      }
+    }
+
+    if(widget.lastQuestion != null) {
+      if(widget.lastQuestion?['id'] == _currentQuestionToRender['id']) {
         context.read<NavigationState>().toggleBlockNavigationDown(true);
       }
     }
