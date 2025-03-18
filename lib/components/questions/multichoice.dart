@@ -130,7 +130,10 @@ class _MultiChoiceState extends State<MultiChoice> {
       _selectedOptions = options;
     });
     updateValue();
-    int maxLimit = int.parse(question['properties']['data']['maxLimit']);
+    int maxLimit = -1;
+    if (question['properties']['data']['maxLimit'] != null && question['properties']['data']['maxLimit'] != "") {
+      maxLimit = int.parse(question['properties']['data']['maxLimit']);
+    }
     if (question['properties']['data']['type'] == 'UNLIMITED') {
       maxLimit = question['choices'].length + 1;
     }
@@ -145,7 +148,10 @@ class _MultiChoiceState extends State<MultiChoice> {
       }
     }
 
-    int minLimit = int.parse(question['properties']['data']['minLimit']);
+    int minLimit = -1;
+    if (question['properties']['data']['minLimit'] != null && question['properties']['data']['minLimit'] != "") {
+      minLimit = int.parse(question['properties']['data']['minLimit']);
+    }
     if (question['required'] == true && question["multipleAnswers"] == true) {      
       if (question['properties']['data']['type'] == 'EXACT' && value == int.parse(question['properties']['data']['exactChoices'])) {
         context.read<NavigationState>().toggleBlockNavigationDown(false);
@@ -713,7 +719,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
         _selectedOption = currentSelectedOptions;
       });
       widget.setSelectedOptions!(currentSelectedOptions);
-      if (isMultipleAnswer == false) {
+      if (isMultipleAnswer == false && currentSelectedOptions.isNotEmpty ) {
         func(currentSelectedOptions, question['id']);
       } else {
         func(currentSelectedOptions, question['id'], changePage: false);
@@ -726,7 +732,7 @@ class _MultipleChoiceRowState extends State<MultipleChoiceRow> {
         _selectedOption = currentSelectedOptions;
       });
       widget.setSelectedOptions!(currentSelectedOptions);
-      if (isMultipleAnswer == false) {
+      if (isMultipleAnswer == false && currentSelectedOptions.isNotEmpty) {
         func(currentSelectedOptions, question['id']);
       } else {
         func(currentSelectedOptions, question['id'], changePage: false);

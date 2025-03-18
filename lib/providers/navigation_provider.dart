@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class NavigationState extends ChangeNotifier {
-  bool blockNavigationDown = true;
+  bool? blockNavigationDown ;
 
   void toggleBlockNavigationDown(bool value) {
     blockNavigationDown = value;

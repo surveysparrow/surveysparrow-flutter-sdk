@@ -140,17 +140,7 @@ class SurveyModal extends StatelessWidget {
                         lastQuestion: lastQuestion,
                       ),
                     );
-                    // return QuestionsPage(
-                    //   token: this.token,
-                    //   domain: this.domain,
-                    //   Questions: snapshot.data,
-                    //   customParams: variables ?? {},
-                    //   firstQuestionAnswer: firstQuestionAnswer,
-                    //   onNext: onNext,
-                    //   onSubmit: onSubmit,
-                    //   euiTheme: customSurveyTheme?.toMap() ?? {},
-                    //   onError: this.onError,
-                    // );
+
                   },
                 );
                 return surveyWidgetToRender;
@@ -462,6 +452,9 @@ class _QuestionsPageState extends State<QuestionsPage>
         storePrefilledAnswers();
       }
 
+      var navigationState = context.read<NavigationState>();
+      navigationState.blockNavigationDown ??= _allQuestionList[0]['required'];
+
       if (mounted) {
         setState(() {
           questionList = convertQuestionListToWidget(
@@ -565,17 +558,14 @@ class _QuestionsPageState extends State<QuestionsPage>
         }
       }
     }
-
-    if(! _workBench.containsKey(_currentQuestionToRender['id']) ) {
+    if((!_workBench.containsKey(_currentQuestionToRender['id'])) || (_workBench[_currentQuestionToRender['id']].runtimeType != int && _workBench[_currentQuestionToRender['id']].runtimeType != double && _workBench[_currentQuestionToRender['id']].length == 0)) {
       if( _currentQuestionToRender['required'] == true ) {
         context.read<NavigationState>().toggleBlockNavigationDown(true);
       } else {
         context.read<NavigationState>().toggleBlockNavigationDown(false);
       }
     } else {
-      if( _currentQuestionToRender['required'] == false ) {
-        context.read<NavigationState>().toggleBlockNavigationDown(false);
-      }
+      context.read<NavigationState>().toggleBlockNavigationDown(false);
     }
 
     if( _currentQuestionToRender['type'] == 'PhoneNumber' &&  _currentQuestionToRender['required'] == true ) {
@@ -648,7 +638,7 @@ class _QuestionsPageState extends State<QuestionsPage>
           canUpdateQuestions = true;
         }
       } else {
-        if (_workBench[_currentQuestionToRender['id']] == null) {
+        if (_workBench[_currentQuestionToRender['id']] == null || (_workBench[_currentQuestionToRender['id']].runtimeType != int && _workBench[_currentQuestionToRender['id']].runtimeType != double && _workBench[_currentQuestionToRender['id']].length == 0)) {
           canUpdateQuestions = false;
         } else {
           canUpdateQuestions = true;
