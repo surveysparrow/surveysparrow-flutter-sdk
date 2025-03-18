@@ -70,3 +70,7 @@
 ## 1.1.6-beta.2
 
 * UI Enhancements
+  
+## 1.1.6
+
+* UI Enhancements
