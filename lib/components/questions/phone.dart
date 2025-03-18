@@ -17,7 +17,8 @@ class ColumnPhone extends StatefulWidget {
   final bool isLastQuestion;
   final Function submitData;
   final Map<dynamic, dynamic>? euiTheme;
-
+  final Function toggleNextButtonBlock;
+  
   const ColumnPhone({
     Key? key,
     required this.func,
@@ -29,6 +30,7 @@ class ColumnPhone extends StatefulWidget {
     required this.isLastQuestion,
     required this.submitData,
     this.euiTheme,
+    required this.toggleNextButtonBlock,
   }) : super(key: key);
 
   @override
@@ -81,6 +83,9 @@ class _ColumnPhoneState extends State<ColumnPhone> {
     setState(() {
       _phoneNumber = phoneNumber;
     });
+    if (answer[question['id']] != null) {
+      widget.toggleNextButtonBlock(true);
+    }
   }
 
   hanldePhoneNumberInital(phoneNumber) {
@@ -186,6 +191,7 @@ class _ColumnPhoneState extends State<ColumnPhone> {
               setState(() {
                 erroredInput = false;
               });
+              widget.toggleNextButtonBlock(false);
               func(_phoneNumber, question['id'],
                   isPhoneInput: true,
                   phoneValue: "+$_countryCode $_phoneNumber");

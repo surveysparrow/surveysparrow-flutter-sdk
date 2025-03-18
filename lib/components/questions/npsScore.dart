@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/questionColumn.dart';
 import 'package:surveysparrow_flutter_sdk/components/questions/npsFeedback.dart';
 import 'package:surveysparrow_flutter_sdk/helpers/cx.dart';
 import 'package:surveysparrow_flutter_sdk/helpers/theme.dart';
+import 'package:surveysparrow_flutter_sdk/providers/navigation_provider.dart';
 
 import '../common/skipAndNext.dart';
 import 'package:sizer/sizer.dart';
@@ -172,6 +174,7 @@ class _NpsScoreState extends State<NpsScore> {
           onClickNext: () {
             if (subQuestionData != null) {
               func(subQuestionData['value'], subQuestionData['questionId']);
+              context.read<NavigationState>().toggleBlockNavigationDown(false);
               FocusScope.of(context).requestFocus(FocusNode());
             }
             if (widget.isLastQuestion && _selectedOption != -1.0) {
@@ -247,6 +250,9 @@ class _NpsScoreQuestionState extends State<NpsScoreQuestion> {
       _selectedOption = val;
     });
     var hasfeedBackQuestion = checkIfTheQuestionHasAFeedBack(question);
+    if( hasfeedBackQuestion == false ) {
+      context.read<NavigationState>().toggleBlockNavigationDown(false);
+    }
     func(val, question['id'],
         changePage: !hasfeedBackQuestion,
         isLastQuestionSubmission: !hasfeedBackQuestion);

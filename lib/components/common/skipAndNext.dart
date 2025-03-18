@@ -101,7 +101,7 @@ class _SkipAndNextButtonsState extends State<SkipAndNextButtons> {
                 widget.disabled != null && widget.disabled! == true ? 0.4 : 1,
             child: ElevatedButton(
               onPressed: () async {
-                if (onClickNext != null) {
+                if (onClickNext != null && widget.disabled != null && widget.disabled! == false) {
                   onClickNext!();
                 }
               },

@@ -1,9 +1,10 @@
-import 'dart:developer';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import 'package:surveysparrow_flutter_sdk/helpers/svg.dart';
+import 'package:surveysparrow_flutter_sdk/providers/navigation_provider.dart';
 
 class BottomNavigation extends StatefulWidget {
   final Function? onClickNext;
@@ -63,7 +64,6 @@ class _BottomNavigationState extends State<BottomNavigation> {
   _BottomNavigationState({this.onClickNext, this.onClickPrevious});
   @override
   Widget build(BuildContext context) {
-    log(widget.theme!['questionString']);
     return SizedBox(
       width: double.infinity,
       child: Container(
@@ -122,16 +122,19 @@ class _BottomNavigationState extends State<BottomNavigation> {
                         onClickNext!();
                       }
                     },
-                    child: SizedBox(
+                    child: Consumer<NavigationState>(
+                      builder: (context, navState, child) {
+                    return SizedBox(
                       width: navigationButtonSize,
                       height: navigationButtonSize,
                       child: SvgPicture.string(
                         isVertical
                             ? getRightSvgArrow(widget.theme!['questionString'])
-                            : getDownArrowSvg(widget.theme!['questionString']),
+                            : getDownArrowSvg(widget.theme!['questionString'],
+                                opacity: navState.blockNavigationDown),
                       ),
-                    ),
-                  ),
+                    );
+                  })),
                 ],
               ),
             ),

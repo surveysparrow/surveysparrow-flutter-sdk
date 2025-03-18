@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:surveysparrow_flutter_sdk/components/common/questionColumn.dart';
+import 'package:surveysparrow_flutter_sdk/providers/navigation_provider.dart';
 
 import '../common/skipAndNext.dart';
 
@@ -119,6 +121,7 @@ class _TextRatingState extends State<TextRating> {
   checkIfEmailValid(value) {
     if (value == "") {
       widget.toggleNextButtonBlock(false);
+      context.read<NavigationState>().toggleBlockNavigationDown(true);
       setState(() {
         disabled = true;
       });
@@ -127,11 +130,13 @@ class _TextRatingState extends State<TextRating> {
     if (question['type'] == 'EmailInput') {
       if (!validateEmail(value)) {
         widget.toggleNextButtonBlock(true);
+        context.read<NavigationState>().toggleBlockNavigationDown(true);
         setState(() {
           disabled = true;
         });
       } else {
         widget.toggleNextButtonBlock(false);
+        context.read<NavigationState>().toggleBlockNavigationDown(false);
         setState(() {
           disabled = false;
         });
@@ -177,10 +182,18 @@ class _TextRatingState extends State<TextRating> {
                       setState(() {
                         disabled = true;
                       });
+                      if(question['required'] == true) {
+                        context.read<NavigationState>().toggleBlockNavigationDown(true);
+                      } else {
+                        context.read<NavigationState>().toggleBlockNavigationDown(false);
+                      }
                     } else {
                       setState(() {
                         disabled = false;
                       });
+                      if(question['required'] == true) {
+                        context.read<NavigationState>().toggleBlockNavigationDown(false);
+                      }
                     }
                   }
                   if (value == '') {

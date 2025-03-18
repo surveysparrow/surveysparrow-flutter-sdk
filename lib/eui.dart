@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:surveysparrow_flutter_sdk/components/common/bottomNavigation.dart';
@@ -19,6 +17,7 @@ import 'package:surveysparrow_flutter_sdk/models/firstQuestionAnswer.dart';
 import 'package:surveysparrow_flutter_sdk/models/theme.dart';
 import 'dart:convert';
 import 'package:sizer/sizer.dart';
+import 'package:surveysparrow_flutter_sdk/providers/navigation_provider.dart';
 import 'package:surveysparrow_flutter_sdk/providers/survey_provider.dart';
 import 'helpers/answers.dart';
 import 'dart:async';
@@ -37,6 +36,7 @@ class SurveyModal extends StatelessWidget {
   final Function? onSubmit;
   final Map<dynamic, dynamic>? survey;
   final Function? onError;
+  var lastQuestion = {};
 
   SurveyModal({
     Key? key,
@@ -62,7 +62,8 @@ class SurveyModal extends StatelessWidget {
           return MultiProvider(
             providers: [
               ChangeNotifierProvider(create: (_) => WorkBench()),
-              ChangeNotifierProvider(create: (_) => SurveyProvider())
+              ChangeNotifierProvider(create: (_) => SurveyProvider()),
+              ChangeNotifierProvider(create: (_) => NavigationState())
             ],
             child: QuestionsPage(
               token: token,
@@ -75,6 +76,7 @@ class SurveyModal extends StatelessWidget {
               euiTheme: customSurveyTheme?.toMap() ?? {},
               onError: onError,
               email: email,
+              lastQuestion: lastQuestion,
             ),
           );
         },
@@ -109,13 +111,20 @@ class SurveyModal extends StatelessWidget {
               }
               throw Exception('Un Supported Survey Type');
             } else {
+              if(snapshot.data['sections'].length > 0) {
+                var lastSection = snapshot.data['sections'][snapshot.data['sections'].length - 1];
+                if(lastSection['questions'].length > 0) {
+                  lastQuestion = lastSection['questions'][lastSection['questions'].length - 1];
+                }
+              }
               try {
                 var surveyWidgetToRender = Sizer(
                   builder: (context, orientation, deviceType) {
                     return MultiProvider(
                       providers: [
                         ChangeNotifierProvider(create: (_) => WorkBench()),
-                        ChangeNotifierProvider(create: (_) => SurveyProvider())
+                        ChangeNotifierProvider(create: (_) => SurveyProvider()),
+                        ChangeNotifierProvider(create: (_) => NavigationState())
                       ],
                       child: QuestionsPage(
                         token: token,
@@ -128,19 +137,10 @@ class SurveyModal extends StatelessWidget {
                         euiTheme: customSurveyTheme?.toMap() ?? {},
                         onError: onError,
                         email: email,
+                        lastQuestion: lastQuestion,
                       ),
                     );
-                    // return QuestionsPage(
-                    //   token: this.token,
-                    //   domain: this.domain,
-                    //   Questions: snapshot.data,
-                    //   customParams: variables ?? {},
-                    //   firstQuestionAnswer: firstQuestionAnswer,
-                    //   onNext: onNext,
-                    //   onSubmit: onSubmit,
-                    //   euiTheme: customSurveyTheme?.toMap() ?? {},
-                    //   onError: this.onError,
-                    // );
+
                   },
                 );
                 return surveyWidgetToRender;
@@ -175,6 +175,7 @@ class QuestionsPage extends StatefulWidget {
   final Map<dynamic, dynamic>? euiTheme;
   final Function? onSubmitCloseModalFunction;
   final Function? onError;
+  final Map<dynamic, dynamic>? lastQuestion;
 
   const QuestionsPage(
       {Key? key,
@@ -188,7 +189,8 @@ class QuestionsPage extends StatefulWidget {
       this.onSubmitCloseModalFunction,
       this.euiTheme,
       this.email,
-      this.onError})
+      this.onError,
+      this.lastQuestion})
       : super(key: key);
 
   @override
@@ -297,7 +299,6 @@ class _QuestionsPageState extends State<QuestionsPage>
     }
     widget.onNext!(_collectedAnswers);
     if (isLastQuestionSubmission == true) {
-      log("MOVE LAST $isLastQuestionSubmission");
       Future.delayed(const Duration(milliseconds: 500), () {
         _handleNextQuestion(changePage: changePage);
       });
@@ -451,8 +452,11 @@ class _QuestionsPageState extends State<QuestionsPage>
         storePrefilledAnswers();
       }
 
-      setState(() {
-        if (mounted) {
+      var navigationState = context.read<NavigationState>();
+      navigationState.blockNavigationDown ??= _allQuestionList[0]['required'];
+
+      if (mounted) {
+        setState(() {
           questionList = convertQuestionListToWidget(
               _allQuestionList,
               _currentQuestionToRender,
@@ -467,8 +471,8 @@ class _QuestionsPageState extends State<QuestionsPage>
               widget.euiTheme,
               toggleNextButtonBlock);
           _currentQuestionToRender = _allQuestionList[_pageNumber];
-        }
-      });
+        });
+      }
     }
 
     if (Survey['thankyou_json'].length > 0) {
@@ -554,6 +558,29 @@ class _QuestionsPageState extends State<QuestionsPage>
         }
       }
     }
+    if((!_workBench.containsKey(_currentQuestionToRender['id'])) || (_workBench[_currentQuestionToRender['id']].runtimeType != int && _workBench[_currentQuestionToRender['id']].runtimeType != double && _workBench[_currentQuestionToRender['id']].length == 0)) {
+      if( _currentQuestionToRender['required'] == true ) {
+        context.read<NavigationState>().toggleBlockNavigationDown(true);
+      } else {
+        context.read<NavigationState>().toggleBlockNavigationDown(false);
+      }
+    } else {
+      context.read<NavigationState>().toggleBlockNavigationDown(false);
+    }
+
+    if( _currentQuestionToRender['type'] == 'PhoneNumber' &&  _currentQuestionToRender['required'] == true ) {
+      if( _workBench.containsKey( _currentQuestionToRender['id'] ) ) { 
+        context.read<NavigationState>().toggleBlockNavigationDown(false);
+      } else {
+        context.read<NavigationState>().toggleBlockNavigationDown(true);
+      }
+    }
+
+    if(widget.lastQuestion != null) {
+      if(widget.lastQuestion?['id'] == _currentQuestionToRender['id']) {
+        context.read<NavigationState>().toggleBlockNavigationDown(true);
+      }
+    }
 
     if (mounted) {
       setState(() {
@@ -611,7 +638,7 @@ class _QuestionsPageState extends State<QuestionsPage>
           canUpdateQuestions = true;
         }
       } else {
-        if (_workBench[_currentQuestionToRender['id']] == null) {
+        if (_workBench[_currentQuestionToRender['id']] == null || (_workBench[_currentQuestionToRender['id']].runtimeType != int && _workBench[_currentQuestionToRender['id']].runtimeType != double && _workBench[_currentQuestionToRender['id']].length == 0)) {
           canUpdateQuestions = false;
         } else {
           canUpdateQuestions = true;
@@ -660,7 +687,6 @@ class _QuestionsPageState extends State<QuestionsPage>
   }
 
   _handlePreviousQuestion() {
-    toggleNextButtonBlock(false);
     generateQuestionList(false);
     if (_pageNumber != 0) {
       var updatedPageNumber = _pageNumber - 1;
@@ -708,6 +734,14 @@ class _QuestionsPageState extends State<QuestionsPage>
               toggleNextButtonBlock);
           _currentQuestionToRender = _allQuestionList[_pageNumber];
         });
+
+        if( _currentQuestionToRender['id'] == _allQuestionList[0]['id'] ) {
+          if( _currentQuestionToRender['required'] == true ) {
+            context.read<NavigationState>().toggleBlockNavigationDown(true);
+          } else {
+            context.read<NavigationState>().toggleBlockNavigationDown(false);
+          }
+        }
       }
     });
   }
