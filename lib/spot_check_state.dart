@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -15,6 +16,7 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:ui' as ui;
+import 'package:keyboard_height_plugin/keyboard_height_plugin.dart';
 
 class SpotCheckState extends StatelessWidget {
   SpotCheckState(
@@ -68,6 +70,11 @@ class SpotCheckState extends StatelessWidget {
   final RxString avatarUrl = ''.obs;
   final RxString spotChecksMode = ''.obs;
   final RxBool avatarEnabled = false.obs;
+  final RxDouble textPosition = 0.0.obs;
+  var currentKeyboardHeight = 0.0.obs;
+  final KeyboardHeightPlugin _keyboardHeightPlugin = KeyboardHeightPlugin();
+  final ScrollController _scrollController = ScrollController();
+  final ScrollController _chatscrollController = ScrollController();
 
   void start() {
     Future.delayed(Duration(seconds: afterDelay.value), () {
@@ -523,31 +530,75 @@ class SpotCheckState extends StatelessWidget {
           ..setJavaScriptMode(JavaScriptMode.unrestricted)
           ..loadRequest(Uri.parse(url))
           ..setNavigationDelegate(NavigationDelegate(
-            onPageFinished: (_) => loadingState.value = false,
+            onPageFinished: (_) {
+              loadingState.value = false;
+              controller.runJavaScript(
+                  """
+          document.addEventListener('focusin', function(event) {
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+              var rect = event.target.getBoundingClientRect();
+              var yPosition = rect.y + window.scrollY;
+              var webViewHeight = window.innerHeight;
+              var scaledY = (yPosition / webViewHeight) * ${screenHeight};
+
+              flutterSpotCheckData.postMessage(JSON.stringify({
+                type: 'position',
+                y: scaledY
+              }));
+            }
+          });
+          """
+              );
+            },
           ))
           ..addJavaScriptChannel("flutterSpotCheckData",
               onMessageReceived: (response) {
-            try {
-              var jsonResponse = json.decode(response.message);
-              if (jsonResponse['type'] == "spotCheckData") {
-                currentQuestionHeight.value =
+                try {
+                  var jsonResponse = json.decode(response.message);
+                  if (jsonResponse['type'] == "spotCheckData") {
+                    currentQuestionHeight.value =
                     jsonResponse['data']['currentQuestionSize']['height'];
-                if(spotChecksMode.value=='miniCard' && isCloseButtonEnabled.value){
-                  currentQuestionHeight.value += 8;
-                }
+                    if (spotChecksMode.value == 'miniCard' && isCloseButtonEnabled.value) {
+                      currentQuestionHeight.value += 8;
+                    }
 
-                if(spotChecksMode.value=='miniCard' && avatarEnabled.value){
-                  currentQuestionHeight.value += 8;
+                    if (spotChecksMode.value == 'miniCard' && avatarEnabled.value) {
+                      currentQuestionHeight.value += 8;
+                    }
+
+                  } else if (jsonResponse['type'] == "surveyCompleted") {
+                    end();
+                  } else if (jsonResponse["type"] == 'slideInFrame') {
+                    isMounted.value = true;
+                  } else if (jsonResponse["type"] == 'position') {
+                    if(Platform.isAndroid) {
+                      textPosition.value = jsonResponse["y"];
+                      ever(currentKeyboardHeight, (
+                          double currentKeyboardHeight) {
+                        if (currentKeyboardHeight > 0) {
+                          if(spotCheckType.value=="chat"){
+                            _chatscrollController.animateTo(
+                              currentKeyboardHeight,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+
+                          else if (textPosition.value - currentKeyboardHeight - 175 >
+                              0)
+                            _scrollController.animateTo(
+                              textPosition.value - currentKeyboardHeight - 175,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                        }
+                      });
+                    }
+                  }
+                } catch (e) {
+                  log("Error decoding JSON: $e");
                 }
-              } else if (jsonResponse['type'] == "surveyCompleted") {
-                end();
-              } else if (jsonResponse["type"] == 'slideInFrame') {
-                isMounted.value = true;
-              }
-            } catch (e) {
-              log("Error decoding JSON: $e");
-            }
-          })
+              })
           ..addJavaScriptChannel("SsFlutterSdk", onMessageReceived: (response) {
             if (response.message == 'captureImage') {
               _captureImage();
@@ -584,268 +635,296 @@ class SpotCheckState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    screenHeight = MediaQuery.of(context).size.height;
+    _keyboardHeightPlugin.onKeyboardHeightChanged((double height) {
+        if(currentKeyboardHeight.value!=height){
+        currentKeyboardHeight.value = height;}
+    });
     screenWidth = MediaQuery.of(context).size.width;
+    final mediaQuery = MediaQuery.of(context);
+    screenHeight = mediaQuery.size.height;
+    screenHeight = screenHeight - mediaQuery.padding.top;
     var smallestDimension = MediaQuery.of(context).size.shortestSide;
     final useMobileLayout = smallestDimension < 600;
     if (!isInit.value) {
       initializeWidget(domainName, targetToken);
     }
 
-    return Obx(() => Stack(
-          children: <Widget>[
-            ((isMounted.value || isFullScreenMode.value) && isInjected.value)
-                ? Container(
-                    color: const Color.fromARGB(85, 0, 0, 0),
-                    child: SizedBox(
-                      height: MediaQuery.of(context).size.height,
-                      width: MediaQuery.of(context).size.width,
-                    ),
-                  )
-                : const SizedBox.shrink(),
-            Positioned(
-              bottom: 0,
-              left:0,
-              right:0,
-              child: SizedBox(
-                height: screenHeight * 0.945,
-                child: Column(
-                  mainAxisAlignment: _getAlignment(),
-                  children: [
-                    Container(
-                      alignment: Alignment.center,
-                      margin: EdgeInsets.symmetric(horizontal: 12),
-                      child: SizedBox(
+    return Obx(() => SafeArea(
+      child: Stack(
+              children: <Widget>[
+                ((isMounted.value || isFullScreenMode.value) && isInjected.value)
+                    ? Container(
+                        color: const Color.fromARGB(85, 0, 0, 0),
+                        child: SizedBox(
+                          height: MediaQuery.of(context).size.height,
+                          width: MediaQuery.of(context).size.width,
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+                Positioned(
+                  top: 0,
+                  bottom: 0,
+                  right: 0,
+                  left: 0,
+                  child: Column(
 
-                        height: (isSpotCheckOpen.value == true &&
-                                ((isMounted.value || isFullScreenMode.value) &&
-                                    isInjected.value) &&
-                                spotCheckType.value == "classic")
-                            ? isFullScreenMode.value
-                                ? screenHeight * 0.945
-                                : math.min(
-                                    screenHeight,
-                                    (math.min(
-                                            currentQuestionHeight.value
-                                                .toDouble(),
-                                            maxHeight.value * screenHeight)) +
-                                        (isBannerImageOn.value &&
-                                                currentQuestionHeight.value != 0
-                                            ? useMobileLayout
-                                                ? 100
-                                                : 0
-                                            : 0))+(currentQuestionHeight.value==0?150:0)
-                            : 0,
-                        width: (isSpotCheckOpen.value == true &&
-                                ((isMounted.value || isFullScreenMode.value) &&
-                                    isInjected.value) &&
-                                spotCheckType.value == "classic")
-                            ? MediaQuery.of(context).size.width
-                            : 0,
-                        child: Stack(
-                          children: [
-                            (!isClassicLoading.value)
-                                ? Column(
-                                  children: [
-                                    (spotChecksMode.value == "miniCard")
-                                        ? Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              closeSpotCheck();
-                                              end();
-                                            },
-                                            child: Container(
-                                              width: 32,
-                                              height: 32,
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                shape: BoxShape.circle,
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black26,
-                                                    blurRadius: 4,
-                                                    spreadRadius: 1,
-                                                    offset: Offset(2, 2),
+                    children: [
+                      Expanded(
+                        child: Align(
+                          alignment: _getAlignment(),
+                          child: ListView(
+                            physics: (Platform.isIOS)?const BouncingScrollPhysics():(currentKeyboardHeight.value>0)? const BouncingScrollPhysics():const ClampingScrollPhysics(),
+                            controller: _scrollController,
+                            shrinkWrap: true, // Ensure ListView only takes necessary height
+                            children: [
+                              Container(
+                                margin: EdgeInsets.symmetric(horizontal: (spotChecksMode.value == "miniCard") ? 12 : 0),
+                                child: SizedBox(
+                                  height: (isSpotCheckOpen.value == true &&
+                                      ((isMounted.value || isFullScreenMode.value) &&
+                                          isInjected.value) &&
+                                      spotCheckType.value == "classic")
+                                      ? isFullScreenMode.value
+                                      ? (!Platform.isIOS)?screenHeight:screenHeight*0.945
+                                      : math.min(
+                                      screenHeight * 0.945,
+                                      (math.min(
+                                        currentQuestionHeight.value.toDouble(),
+                                        maxHeight.value * screenHeight * 0.945,
+                                      )) +
+                                          (isBannerImageOn.value &&
+                                              currentQuestionHeight.value != 0
+                                              ? useMobileLayout
+                                              ? 100
+                                              : 0
+                                              : 0)) +
+                                      (currentQuestionHeight.value == 0 ? 150 : 0)
+                                      : 1,
+                                  width: (isSpotCheckOpen.value == true &&
+                                      ((isMounted.value || isFullScreenMode.value) &&
+                                          isInjected.value) &&
+                                      spotCheckType.value == "classic")
+                                      ? MediaQuery.of(context).size.width
+                                      : 0,
+                                  child: Stack(
+                                    children: [
+                                      (!isClassicLoading.value)
+                                          ? Column(
+                                        children: [
+                                          (spotChecksMode.value == "miniCard")
+                                              ? Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    closeSpotCheck();
+                                                    end();
+                                                  },
+                                                  child: Container(
+                                                    width: 32,
+                                                    height: 32,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      shape: BoxShape.circle,
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.black26,
+                                                          blurRadius: 4,
+                                                          spreadRadius: 1,
+                                                          offset: Offset(2, 2),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Center(
+                                                      child: Icon(
+                                                        Icons.close,
+                                                        size: 20,
+                                                        color: Colors.black,
+                                                      ),
+                                                    ),
                                                   ),
-                                                ],
-                                              ),
-
-                                              child: Center(
-                                                child: Icon(
-                                                  Icons.close,
-                                                  size: 20,
-                                                  color: Colors.black,
                                                 ),
+                                              )
+                                            ],
+                                          )
+                                              : SizedBox.shrink(),
+                                          Expanded(
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular((spotChecksMode.value == "miniCard") ? 12 : 0),
+                                              child: WebViewWidget(
+                                                gestureRecognizers: Set()
+                                                  ..add(
+                                                    Factory<VerticalDragGestureRecognizer>(
+                                                          () => VerticalDragGestureRecognizer(),
+                                                    ), // or null
+                                                  ),
+                                                key: ValueKey('classic'),
+                                                controller: classicController.value!,
                                               ),
                                             ),
                                           ),
-                                        )
-                                      ],
-                                    )
-                                        : SizedBox.shrink(),
-
-
-                                    Expanded(
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Container(
-                                          width: double.infinity,  // Ensure it stretches
-                                          height: double.infinity,
-                                          child: WebViewWidget(
-                                              key: ValueKey('classic'),
-                                              controller: classicController.value!,
-                                            ),
-                                        ),
-                                      ),
-                                    ),
-
-                                    (avatarEnabled.value)?Row(
-
-                                      mainAxisAlignment: MainAxisAlignment.start,
-
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                          child: Card(
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(24),
-                                            ),
-                                            elevation: 4,
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(24),
-                                              child: Image.network(
-                                                avatarUrl.value,
-                                                width: 48,
-                                                height: 48,
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
+                                          (avatarEnabled.value && spotChecksMode.value == "miniCard")
+                                              ? Row(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                                child: Card(
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(24),
+                                                  ),
+                                                  elevation: 4,
+                                                  child: ClipRRect(
+                                                    borderRadius: BorderRadius.circular(24),
+                                                    child: Image.network(
+                                                      avatarUrl.value,
+                                                      width: 48,
+                                                      height: 48,
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                            ],
                                           )
-                                        )
-                                      ],
-                                    ):const SizedBox.shrink(),
-                                  ],
-                                )
-                                : const SizedBox(),
-                            (isCloseButtonEnabled.value &&
-                                    !isClassicLoading.value && isInjected.value && spotChecksMode.value!="miniCard")
-                                ? Positioned(
-                                    top: 6,
-                                    right: 8,
-                                    child: IconButton(
-                                      icon: Icon(
-                                        Icons.close,
-                                        size: 20,
-                                        color: Color(int.parse(isHex(
-                                                closeButtonStyle["ctaButton"]
-                                                    .toString())
-                                            ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
-                                            : "0xFF000000")),
-                                      ),
-                                      onPressed: () {
-                                        closeSpotCheck();
-                                        end();
-                                      },
-                                    ),
-                                  )
-                                : const SizedBox.shrink()
-                          ],
+                                              : const SizedBox.shrink(),
+                                        ],
+                                      )
+                                          : const SizedBox(),
+                                      (isCloseButtonEnabled.value &&
+                                          !isClassicLoading.value &&
+                                          isInjected.value &&
+                                          spotChecksMode.value != "miniCard")
+                                          ? Positioned(
+                                        top: 6,
+                                        right: 8,
+                                        child: IconButton(
+                                          icon: Icon(
+                                            Icons.close,
+                                            size: 20,
+                                            color: Color(int.parse(isHex(closeButtonStyle["ctaButton"].toString())
+                                                ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
+                                                : "0xFF000000")),
+                                          ),
+                                          onPressed: () {
+                                            closeSpotCheck();
+                                            end();
+                                          },
+                                        ),
+                                      )
+                                          : const SizedBox.shrink(),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              left: 0,
-              child: SizedBox(
-                height: screenHeight * 0.945,
-                child: Column(
-                  mainAxisAlignment: _getAlignment(),
-                  children: [
-                    SizedBox(
-                      height: (isSpotCheckOpen.value == true &&
-                              ((isMounted.value || isFullScreenMode.value) &&
-                                  isInjected.value) &&
-                              spotCheckType.value == "chat")
-                          ? isFullScreenMode.value
-                              ? screenHeight * 0.945
-                              : math.min(
-                                  screenHeight,
-                                  (math.min(
-                                          currentQuestionHeight.value
-                                              .toDouble(),
-                                          maxHeight.value * screenHeight)) +
-                                      (isBannerImageOn.value &&
-                                              currentQuestionHeight.value != 0
-                                          ? useMobileLayout
-                                              ? 100
-                                              : 0
-                                          : 0))
-                          : 1,
-                      width: (isSpotCheckOpen.value == true &&
-                              ((isMounted.value || isFullScreenMode.value) &&
-                                  isInjected.value) &&
-                              spotCheckType.value == "chat")
-                          ? MediaQuery.of(context).size.width
-                          : 1,
-                      child: Stack(
-                        children: [
-                          (!isChatLoading.value)
-                              ? WebViewWidget(
-                            key: ValueKey('chat'),
-                                  controller: chatController.value!,
-                                )
-                              : const SizedBox(),
-                          (isCloseButtonEnabled.value && !isChatLoading.value && isInjected.value && spotChecksMode.value!="miniCard")
-                              ? Positioned(
-                                  top: 6,
-                                  right: 8,
-                                  child: IconButton(
-                                    icon: Icon(
-                                      Icons.close,
-                                      size: 20,
-                                      color: Color(int.parse(isHex(
-                                              closeButtonStyle["ctaButton"]
-                                                  .toString())
-                                          ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
-                                          : "0xFF000000")),
-                                    ),
-                                    onPressed: () {
-                                      closeSpotCheck();
-                                      end();
-                                    },
+
+                Positioned(
+                  top:0,
+                  bottom: 0,
+                  right: 0,
+                  left: 0,
+                  child:
+
+                  Column(
+
+                    children: [
+                      Expanded(
+                        child: Align(
+                          alignment: _getAlignment(),
+                          child: ListView(
+                            physics: (Platform.isIOS)?const BouncingScrollPhysics():(currentKeyboardHeight.value>0)? const BouncingScrollPhysics():const ClampingScrollPhysics(),
+                            controller: _chatscrollController,
+                            shrinkWrap: true, // Ensure ListView only takes necessary height
+                            children: [
+                              Container(
+
+                                alignment: Alignment.center,
+                                child: SizedBox(
+                                  height: (isSpotCheckOpen.value == true &&
+                                      ((isMounted.value || isFullScreenMode.value) &&
+                                          isInjected.value) &&
+                                      spotCheckType.value == "chat")
+                                      ? isFullScreenMode.value
+                                      ? (!Platform.isIOS)?screenHeight:screenHeight*0.945
+                                      :0
+                                      : 1,
+                                  width: (isSpotCheckOpen.value == true &&
+                                      ((isMounted.value || isFullScreenMode.value) &&
+                                          isInjected.value) &&
+                                      spotCheckType.value == "chat")
+                                      ? MediaQuery.of(context).size.width
+                                      : 1,
+                                  child: Stack(
+                                    children: [
+                                      (!isChatLoading.value)
+                                          ? WebViewWidget(
+                                      gestureRecognizers: Set()
+                                        ..add(
+                                          Factory<VerticalDragGestureRecognizer>(
+                                                () => VerticalDragGestureRecognizer(),
+                                          ), // or null
+                                        ),
+                                        key: ValueKey('chat'),
+                                        controller: chatController.value!,
+                                      )
+                                          : const SizedBox(),
+                                      (isCloseButtonEnabled.value && !isChatLoading.value && isInjected.value && spotChecksMode.value!="miniCard")
+                                          ? Positioned(
+                                        top: 6,
+                                        right: 8,
+                                        child: IconButton(
+                                          icon: Icon(
+                                            Icons.close,
+                                            size: 20,
+                                            color: Color(int.parse(isHex(
+                                                closeButtonStyle["ctaButton"]
+                                                    .toString())
+                                                ? "0xFF${closeButtonStyle["ctaButton"].toString().replaceAll("#", "")}"
+                                                : "0xFF000000")),
+                                          ),
+                                          onPressed: () {
+                                            closeSpotCheck();
+                                            end();
+                                          },
+                                        ),
+                                      )
+                                          : const SizedBox.shrink()
+                                    ],
                                   ),
-                                )
-                              : const SizedBox.shrink()
-                        ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ));
+    ),
+    );
   }
 
-  MainAxisAlignment _getAlignment() {
+  Alignment _getAlignment() {
     switch (position.value) {
       case "top":
-        return MainAxisAlignment.start;
+        return Alignment.topCenter;
       case "center":
-        return MainAxisAlignment.center;
+        return Alignment.center;
       case "bottom":
-        return MainAxisAlignment.end;
+        return Alignment.bottomCenter;
       default:
-        return MainAxisAlignment.end;
+        return Alignment.bottomCenter;
     }
   }
 
