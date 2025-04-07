@@ -18,6 +18,8 @@ dependencies:
   shared_preferences: ^2.2.3
   file_picker: ^8.1.2
   image_picker: ^1.1.2
+  device_info_plus: ^11.2.0
+  keyboard_height_plugin: ^0.1.5
 
 dev_dependencies:
   flutter_test:

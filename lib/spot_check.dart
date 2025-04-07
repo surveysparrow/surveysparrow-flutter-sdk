@@ -9,8 +9,7 @@ class SpotCheck extends StatelessWidget {
       required this.domainName,
       required this.userDetails,
       this.variables = const {},
-      this.customProperties = const {},
-      this.sparrowLang = ""})
+      this.customProperties = const {}})
       : super(key: key) {
     spotCheckState = SpotCheckState(
       targetToken: targetToken,
@@ -18,7 +17,6 @@ class SpotCheck extends StatelessWidget {
       userDetails: userDetails,
       variables: variables,
       customProperties: customProperties,
-      sparrowLang: sparrowLang,
     );
   }
 
@@ -27,7 +25,7 @@ class SpotCheck extends StatelessWidget {
   final Map<String, dynamic> userDetails;
   final Map<String, dynamic> variables;
   final Map<String, dynamic> customProperties;
-  final String sparrowLang;
+
 
   late final SpotCheckState spotCheckState;
 
@@ -35,7 +33,6 @@ class SpotCheck extends StatelessWidget {
     Map<String, dynamic> response =
         await spotCheckState.sendTrackScreenRequest(screen);
     if (response["valid"]) {
-      spotCheckState.addFileSelectionListener();
       spotCheckState.start();
     } else {
       log("TrackScreen Failed");
@@ -46,7 +43,6 @@ class SpotCheck extends StatelessWidget {
     Map<String, dynamic> response =
         await spotCheckState.sendTrackEventRequest(screen, event);
     if (response["valid"]) {
-      spotCheckState.addFileSelectionListener();
       spotCheckState.start();
     } else {
       log("TrackEvent Failed");
