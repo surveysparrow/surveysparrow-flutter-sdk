@@ -28,7 +28,6 @@ class SpotCheckScreen extends StatelessWidget {
             ),
           ),
 
-          spotCheck,
         
         ],
       ),

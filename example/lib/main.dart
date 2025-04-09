@@ -28,6 +28,14 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: SurveyScreen(),
+      builder: (context, child) {
+        return Stack(
+          children: [
+            child ?? const SizedBox(),
+            spotCheck,
+          ],
+        );
+      },
     );
   }
 }
