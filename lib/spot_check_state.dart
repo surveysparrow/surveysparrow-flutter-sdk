@@ -556,6 +556,8 @@ class SpotCheckState extends StatelessWidget {
                 try {
                   var jsonResponse = json.decode(response.message);
                   if (jsonResponse['type'] == "spotCheckData") {
+
+                    if(jsonResponse['data']['currentQuestionSize']){
                     currentQuestionHeight.value =
                     jsonResponse['data']['currentQuestionSize']['height'];
                     if (spotChecksMode.value == 'miniCard' && isCloseButtonEnabled.value) {
@@ -564,6 +566,11 @@ class SpotCheckState extends StatelessWidget {
 
                     if (spotChecksMode.value == 'miniCard' && avatarEnabled.value) {
                       currentQuestionHeight.value += 8;
+                    }
+                    }
+
+                    else if(jsonResponse['data']['isCloseButtonEnabled']){
+                      isCloseButtonEnabled.value = jsonResponse['data']['isCloseButtonEnabled'];
                     }
 
                   } else if (jsonResponse['type'] == "surveyCompleted") {
