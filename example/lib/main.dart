@@ -30,10 +30,10 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return Scaffold(
           body: Stack(
-              children: [
-                child ?? const SizedBox(),
-                spotCheck,
-              ],
+            children: [
+              child ?? const SizedBox(),
+              spotCheck,
+            ],
           ),
         );
       },
@@ -51,28 +51,27 @@ class SurveyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text("SurveySparrow"),
       ),
       body: Builder(
         builder: ((context) => Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const SpotCheckScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text("SpotCheck"))
-                ],
-              ),
-            )),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const SpotCheckScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text("SpotCheck"))
+            ],
+          ),
+        )),
       ),
     );
   }
