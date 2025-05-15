@@ -27,6 +27,16 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: SurveyScreen(),
+      builder: (context, child) {
+        return Scaffold(
+          body: Stack(
+              children: [
+                child ?? const SizedBox(),
+                spotCheck,
+              ],
+          ),
+        );
+      },
     );
   }
 }
@@ -41,6 +51,7 @@ class SurveyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text("SurveySparrow"),
       ),
