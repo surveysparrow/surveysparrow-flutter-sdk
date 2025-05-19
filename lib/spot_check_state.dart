@@ -204,7 +204,9 @@ class SpotCheckState extends StatelessWidget {
 
     final Uri url = Uri.parse(
             'https://$domainName/api/internal/spotcheck/widget/$targetToken/properties')
-        .replace(queryParameters: {"isSpotCheck": "true"});
+        .replace(queryParameters: {"isSpotCheck": "true",
+        "sdk":"FLUTTER"
+    });
 
     try {
       final http.Response response = await http.post(
@@ -488,9 +490,8 @@ class SpotCheckState extends StatelessWidget {
 
   Future<void> initializeWidget(String domainName, String targetToken) async {
     try {
-      const String SDK = 'FLUTTER';
       final Uri url = Uri.parse(
-          'https://$domainName/api/internal/spotcheck/widget/$targetToken/init?sdk=$SDK');
+          'https://$domainName/api/internal/spotcheck/widget/$targetToken/init');
 
       final response = await http.get(url);
       if (response.statusCode != 200) {
