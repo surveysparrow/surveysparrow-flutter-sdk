@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -615,13 +616,17 @@ class SpotCheckState extends StatelessWidget {
       }
 
       if (isChatIframe) {
-        chatController.value = WebViewController();
+        chatController.value = WebViewController(
+          onPermissionRequest: (WebViewPermissionRequest request) => request.grant(),
+        );
         setupWebViewController(
             chatController.value!, chatUrl.value, isChatLoading);
       }
 
       if (isClassicIframe) {
-        classicController.value = WebViewController();
+        classicController.value = WebViewController(
+          onPermissionRequest: (WebViewPermissionRequest request) => request.grant(),
+        );
         setupWebViewController(
             classicController.value!, classicUrl.value, isClassicLoading);
       }
@@ -629,6 +634,10 @@ class SpotCheckState extends StatelessWidget {
       if (isChatIframe || isClassicIframe) {
         isInit.value = true;
       }
+
+      await Permission.camera.request();
+      await Permission.microphone.request();
+
     } catch (error) {
       log('Error initializing widget: $error');
     }
