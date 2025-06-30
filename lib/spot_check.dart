@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:surveysparrow_flutter_sdk/spot_check_state.dart';
+import 'package:surveysparrow_flutter_sdk/ss_spotcheck_listener.dart';
 
 class SpotCheck extends StatelessWidget {
   SpotCheck(
@@ -10,7 +11,8 @@ class SpotCheck extends StatelessWidget {
       required this.userDetails,
       this.variables = const {},
       this.customProperties = const {},
-      this.sparrowLang = ""})
+      this.sparrowLang = "",
+        this.spotCheckListener})
       : super(key: key) {
     spotCheckState = SpotCheckState(
       targetToken: targetToken,
@@ -19,6 +21,7 @@ class SpotCheck extends StatelessWidget {
       variables: variables,
       customProperties: customProperties,
       sparrowLang: sparrowLang,
+        spotCheckListener: spotCheckListener
     );
   }
 
@@ -28,7 +31,7 @@ class SpotCheck extends StatelessWidget {
   final Map<String, dynamic> variables;
   final Map<String, dynamic> customProperties;
   final String sparrowLang;
-
+  final SsSpotcheckListener? spotCheckListener;
   late final SpotCheckState spotCheckState;
 
   void trackScreen(String screen) async {

@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:surveysparrow_flutter_sdk/ss_spotcheck_listener.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
@@ -20,7 +21,8 @@ class SpotCheckState extends StatelessWidget {
       required this.userDetails,
       required this.variables,
       required this.customProperties,
-      required this.sparrowLang})
+      required this.sparrowLang,
+      required this.spotCheckListener})
       : super(key: key);
 
   final String targetToken;
@@ -52,7 +54,7 @@ class SpotCheckState extends StatelessWidget {
   final RxBool _isSpotPassed = false.obs;
   final RxBool _isChecksPassed = false.obs;
   final RxList<dynamic> customEventsSpotChecks = [].obs;
-
+  final SsSpotcheckListener? spotCheckListener;
   late WebViewController controller;
   final RxBool isLoading = true.obs;
 
@@ -191,21 +193,29 @@ class SpotCheckState extends StatelessWidget {
                 },
               ))
               ..addJavaScriptChannel("flutterSpotCheckData",
-                  onMessageReceived: (JavaScriptMessage response) {
-                try {
-                  var jsonResponse = json.decode(response.message);
-                  log(jsonResponse.toString());
-                  if (jsonResponse['type'] == "spotCheckData") {
-                    var height =
+                  onMessageReceived: (JavaScriptMessage response) async {
+
+                    try {
+                      var jsonResponse = json.decode(response.message);
+
+                      if (jsonResponse['type'] == "spotCheckData") {
+                        var height =
                         jsonResponse['data']['currentQuestionSize']['height'];
-                    currentQuestionHeight.value = height;
-                  } else if (jsonResponse['type'] == "surveyCompleted") {
-                    end();
-                  }
-                } catch (e) {
-                  log("Error decoding JSON: $e");
-                }
-              })
+                        currentQuestionHeight.value = height;
+                      } else if (jsonResponse['type'] == "surveyCompleted") {
+                        await spotCheckListener?.onSurveyResponse(jsonResponse);
+                        end();
+                      }
+                      if(jsonResponse['type'] == 'surveyLoadStarted'){
+                        await spotCheckListener?.onSurveyLoaded(jsonResponse);
+                      }
+                      if(jsonResponse['type'] == 'partialSubmission'){
+                        await spotCheckListener?.onPartialSubmission(jsonResponse);
+                      }
+                    } catch (e) {
+                      log("Error decoding JSON: $e");
+                    }
+                  })
               ..addJavaScriptChannel(
                 "SsFlutterSdk",
                 onMessageReceived: (JavaScriptMessage response) {
@@ -253,21 +263,29 @@ class SpotCheckState extends StatelessWidget {
                   },
                 ))
                 ..addJavaScriptChannel("flutterSpotCheckData",
-                    onMessageReceived: (JavaScriptMessage response) {
-                  try {
-                    var jsonResponse = json.decode(response.message);
-                    log(jsonResponse.toString());
-                    if (jsonResponse['type'] == "spotCheckData") {
-                      var height =
+                    onMessageReceived: (JavaScriptMessage response) async {
+
+                      try {
+                        var jsonResponse = json.decode(response.message);
+                        log(jsonResponse.toString());
+                        if (jsonResponse['type'] == "spotCheckData") {
+                          var height =
                           jsonResponse['data']['currentQuestionSize']['height'];
-                      currentQuestionHeight.value = height;
-                    } else if (jsonResponse['type'] == "surveyCompleted") {
-                      end();
-                    }
-                  } catch (e) {
-                    log("Error decoding JSON: $e");
-                  }
-                })
+                          currentQuestionHeight.value = height;
+                        } else if (jsonResponse['type'] == "surveyCompleted") {
+                          await spotCheckListener?.onSurveyResponse(jsonResponse);
+                          end();
+                        }
+                        if(jsonResponse['type'] == 'surveyLoadStarted'){
+                          await spotCheckListener?.onSurveyLoaded(jsonResponse['data']);
+                        }
+                        if(jsonResponse['type'] == 'partialSubmission'){
+                          await spotCheckListener?.onPartialSubmission(jsonResponse['data']);
+                        }
+                      } catch (e) {
+                        log("Error decoding JSON: $e");
+                      }
+                    })
                 ..addJavaScriptChannel(
                   "SsFlutterSdk",
                   onMessageReceived: (JavaScriptMessage response) {
@@ -331,21 +349,29 @@ class SpotCheckState extends StatelessWidget {
                     },
                   ))
                   ..addJavaScriptChannel("flutterSpotCheckData",
-                      onMessageReceived: (JavaScriptMessage response) {
-                    try {
-                      var jsonResponse = json.decode(response.message);
-                      log(jsonResponse.toString());
-                      if (jsonResponse['type'] == "spotCheckData") {
-                        var height = jsonResponse['data']['currentQuestionSize']
-                            ['height'];
-                        currentQuestionHeight.value = height;
-                      } else if (jsonResponse['type'] == "surveyCompleted") {
-                        end();
-                      }
-                    } catch (e) {
-                      log("Error decoding JSON: $e");
-                    }
-                  })
+                      onMessageReceived: (JavaScriptMessage response) async {
+
+                        try {
+                          var jsonResponse = json.decode(response.message);
+                          log(jsonResponse.toString());
+                          if (jsonResponse['type'] == "spotCheckData") {
+                            var height =
+                            jsonResponse['data']['currentQuestionSize']['height'];
+                            currentQuestionHeight.value = height;
+                          } else if (jsonResponse['type'] == "surveyCompleted") {
+                            await spotCheckListener?.onSurveyResponse(jsonResponse);
+                            end();
+                          }
+                          if(jsonResponse['type'] == 'surveyLoadStarted'){
+                            await spotCheckListener?.onSurveyLoaded(jsonResponse['data']);
+                          }
+                          if(jsonResponse['type'] == 'partialSubmission'){
+                            await spotCheckListener?.onPartialSubmission(jsonResponse['data']);
+                          }
+                        } catch (e) {
+                          log("Error decoding JSON: $e");
+                        }
+                      })
                   ..addJavaScriptChannel(
                     "SsFlutterSdk",
                     onMessageReceived: (JavaScriptMessage response) {
@@ -456,22 +482,28 @@ class SpotCheckState extends StatelessWidget {
                         },
                       ))
                       ..addJavaScriptChannel("flutterSpotCheckData",
-                          onMessageReceived: (JavaScriptMessage response) {
-                        try {
-                          var jsonResponse = json.decode(response.message);
-                          log(jsonResponse.toString());
-                          if (jsonResponse['type'] == "spotCheckData") {
-                            var height = jsonResponse['data']
-                                ['currentQuestionSize']['height'];
-                            currentQuestionHeight.value = height;
-                          } else if (jsonResponse['type'] ==
-                              "surveyCompleted") {
-                            end();
-                          }
-                        } catch (e) {
-                          log("Error decoding JSON: $e");
-                        }
-                      })
+                          onMessageReceived: (JavaScriptMessage response) async {
+                            try {
+                              var jsonResponse = json.decode(response.message);
+                              log(jsonResponse.toString());
+                              if (jsonResponse['type'] == "spotCheckData") {
+                                var height =
+                                jsonResponse['data']['currentQuestionSize']['height'];
+                                currentQuestionHeight.value = height;
+                              } else if (jsonResponse['type'] == "surveyCompleted") {
+                                await spotCheckListener?.onSurveyResponse(jsonResponse);
+                                end();
+                              }
+                              if(jsonResponse['type'] == 'surveyLoadStarted'){
+                                await spotCheckListener?.onSurveyLoaded(jsonResponse['data']);
+                              }
+                              if(jsonResponse['type'] == 'partialSubmission'){
+                                await spotCheckListener?.onPartialSubmission(jsonResponse['data']);
+                              }
+                            } catch (e) {
+                              log("Error decoding JSON: $e");
+                            }
+                          })
                       ..addJavaScriptChannel(
                         "SsFlutterSdk",
                         onMessageReceived: (JavaScriptMessage response) {
@@ -517,22 +549,28 @@ class SpotCheckState extends StatelessWidget {
                           },
                         ))
                         ..addJavaScriptChannel("flutterSpotCheckData",
-                            onMessageReceived: (JavaScriptMessage response) {
-                          try {
-                            var jsonResponse = json.decode(response.message);
-                            log(jsonResponse.toString());
-                            if (jsonResponse['type'] == "spotCheckData") {
-                              var height = jsonResponse['data']
-                                  ['currentQuestionSize']['height'];
-                              currentQuestionHeight.value = height;
-                            } else if (jsonResponse['type'] ==
-                                "surveyCompleted") {
-                              end();
-                            }
-                          } catch (e) {
-                            log("Error decoding JSON: $e");
-                          }
-                        })
+                            onMessageReceived: (JavaScriptMessage response) async {
+                              try {
+                                var jsonResponse = json.decode(response.message);
+                                log(jsonResponse.toString());
+                                if (jsonResponse['type'] == "spotCheckData") {
+                                  var height =
+                                  jsonResponse['data']['currentQuestionSize']['height'];
+                                  currentQuestionHeight.value = height;
+                                } else if (jsonResponse['type'] == "surveyCompleted") {
+                                  await spotCheckListener?.onSurveyResponse(jsonResponse);
+                                  end();
+                                }
+                                if(jsonResponse['type'] == 'surveyLoadStarted'){
+                                  await spotCheckListener?.onSurveyLoaded(jsonResponse['data']);
+                                }
+                                if(jsonResponse['type'] == 'partialSubmission'){
+                                  await spotCheckListener?.onPartialSubmission(jsonResponse['data']);
+                                }
+                              } catch (e) {
+                                log("Error decoding JSON: $e");
+                              }
+                            })
                         ..addJavaScriptChannel(
                           "SsFlutterSdk",
                           onMessageReceived: (JavaScriptMessage response) {
@@ -712,7 +750,7 @@ class SpotCheckState extends StatelessWidget {
           responseJson["spotCheckContact"]?["id"];
       triggerToken.value = responseJson["triggerToken"] ?? "";
       spotcheckURL.value =
-          "https://$domainName/n/spotcheck/${triggerToken.value}?spotcheckContactId=${spotcheckContactID.value}&traceId=${traceId.value}&spotcheckUrl=$screen";
+          "https://$domainName/n/spotcheck/${triggerToken.value}?spotcheckContactId=${spotcheckContactID.value}&traceId=${traceId.value}&spotcheckUrl=$screen&isSpotCheck=true";
 
       variables.forEach((key, value) =>
           spotcheckURL.value = "${spotcheckURL.value}&$key=$value");
