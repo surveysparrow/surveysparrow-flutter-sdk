@@ -1,22 +1,25 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:surveysparrow_flutter_sdk/spot_check_state.dart';
+import 'package:surveysparrow_flutter_sdk/ss_spotcheck_listener.dart';
 
 class SpotCheck extends StatelessWidget {
-  SpotCheck(
-      {Key? key,
-      required this.targetToken,
-      required this.domainName,
-      required this.userDetails,
-      this.variables = const {},
-      this.customProperties = const {}})
-      : super(key: key) {
+  SpotCheck({
+    Key? key,
+    required this.targetToken,
+    required this.domainName,
+    required this.userDetails,
+    this.variables = const {},
+    this.customProperties = const {},
+    this.spotCheckListener,
+  }) : super(key: key) {
     spotCheckState = SpotCheckState(
       targetToken: targetToken,
       domainName: domainName,
       userDetails: userDetails,
       variables: variables,
       customProperties: customProperties,
+      spotCheckListener: spotCheckListener,
     );
   }
 
@@ -25,7 +28,7 @@ class SpotCheck extends StatelessWidget {
   final Map<String, dynamic> userDetails;
   final Map<String, dynamic> variables;
   final Map<String, dynamic> customProperties;
-
+  final SsSpotcheckListener? spotCheckListener;
 
   late final SpotCheckState spotCheckState;
 

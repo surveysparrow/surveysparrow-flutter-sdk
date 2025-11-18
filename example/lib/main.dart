@@ -1,5 +1,6 @@
 import 'package:example/SpotCheckScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:surveysparrow_flutter_sdk/ss_spotcheck_listener.dart';
 import 'package:surveysparrow_flutter_sdk/surveysparrow.dart';
 
 void main() {
@@ -13,7 +14,30 @@ final SpotCheck spotCheck = SpotCheck(
   userDetails: {},
   variables: {},
   customProperties: {},
+    spotCheckListener:MySpotcheckListener()
 );
+
+class MySpotcheckListener extends SsSpotcheckListener {
+  @override
+  Future<void> onSurveyLoaded(Map<String, dynamic> response) async {
+    print("SurveyLoaded: $response");
+  }
+
+  @override
+  Future<void> onSurveyResponse(Map<String, dynamic> response) async {
+    print("Submission Response: $response");
+  }
+
+  @override
+  Future<void> onCloseButtonTap() async {
+    print("Close Button tapped");
+  }
+
+  @override
+  Future<void> onPartialSubmission(Map<String, dynamic> response) async {
+    print("Partial Submission Response: $response");
+  }
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);

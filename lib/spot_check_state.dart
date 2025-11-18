@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:surveysparrow_flutter_sdk/ss_spotcheck_listener.dart';
 import 'package:uuid/uuid.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
@@ -18,6 +19,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:ui' as ui;
 import 'package:keyboard_height_plugin/keyboard_height_plugin.dart';
+import 'spot_check_button.dart';
 
 class SpotCheckState extends StatelessWidget {
   SpotCheckState(
@@ -26,7 +28,9 @@ class SpotCheckState extends StatelessWidget {
       required this.domainName,
       required this.userDetails,
       required this.variables,
-      required this.customProperties})
+      required this.customProperties,
+      required this.spotCheckListener
+      })
       : super(key: key);
 
   final String targetToken;
@@ -36,7 +40,7 @@ class SpotCheckState extends StatelessWidget {
   double screenHeight = 0;
   double screenWidth = 0;
   final Map<String, dynamic> userDetails;
-
+  final SsSpotcheckListener? spotCheckListener;
   final RxBool isValid = false.obs;
   final RxBool isFullScreenMode = false.obs;
   final RxBool isBannerImageOn = false.obs;
@@ -48,19 +52,18 @@ class SpotCheckState extends StatelessWidget {
   final RxInt spotcheckID = 0.obs;
   final RxInt spotcheckContactID = 0.obs;
   final RxInt afterDelay = 0.obs;
-  final RxInt currentQuestionHeight = 0.obs;
+  final RxInt currentQuestionHeight = 200.obs;
   final RxString triggerToken = "".obs;
   final RxString traceId = "".obs;
   final RxBool _isImageCaptureActive = false.obs;
   final RxDouble maxHeight = 0.0.obs;
-  final RxBool _isAnimated = false.obs;
   final RxBool _isSpotPassed = false.obs;
   final RxBool _isChecksPassed = false.obs;
   final RxList<dynamic> customEventsSpotChecks = [].obs;
   final RxString spotCheckType = ''.obs;
   final Rx<WebViewController?> chatController = Rx<WebViewController?>(null);
   final Rx<WebViewController?> classicController = Rx<WebViewController?>(null);
-  final RxBool isMounted = false.obs;
+  final RxBool isMounted = true.obs;
   final RxBool isChatLoading = true.obs;
   final RxBool isClassicLoading = true.obs;
   final RxList<dynamic> filteredSpotChecks = <dynamic>[].obs;
@@ -76,15 +79,18 @@ class SpotCheckState extends StatelessWidget {
   final KeyboardHeightPlugin _keyboardHeightPlugin = KeyboardHeightPlugin();
   final ScrollController _scrollController = ScrollController();
   final ScrollController _chatscrollController = ScrollController();
-
+  final RxBool isSpotCheckButton = false.obs;
+  final RxMap<String, dynamic> spotCheckButtonConfig = <String, dynamic>{}.obs;
+  final RxBool showSurveyContent = true.obs;
+  final RxBool isThankyouPageSubmission = false.obs;
+  final RxString screenName = ''.obs;
+  final RxMap<String, dynamic> appearance = <String, dynamic>{}.obs;
+  final RxBool isChat  = false.obs;
   void start() {
-    Future.delayed(Duration(seconds: afterDelay.value), () {
-      _isAnimated.value = true;
       isSpotCheckOpen.value = true;
-    });
   }
 
-  void end() {
+  void end({isNavigation = false}) {
 
     WebViewController? webViewRef = spotCheckType.value == 'chat'
         ? chatController.value
@@ -100,24 +106,40 @@ class SpotCheckState extends StatelessWidget {
     """;
 
       webViewRef.runJavaScript(injectedJavaScript);
-      spotCheckType.value = "";
     }
 
-    isSpotCheckOpen.value = false;
-    isFullScreenMode.value = false;
-    spotcheckID.value = 0;
-    position.value = "";
-    currentQuestionHeight.value = 0;
-    isCloseButtonEnabled.value = false;
-    closeButtonStyle.value = {};
-    spotcheckContactID.value = 0;
-    spotcheckURL.value = "";
-    isMounted.value = false;
-    isInjected.value = false;
-    spotChecksMode.value = '';
-    avatarEnabled.value = false;
-    avatarUrl.value =  "";
-
+    if(!isSpotCheckButton.value || isNavigation) {
+      isSpotCheckOpen.value = false;
+      isFullScreenMode.value = false;
+      spotcheckID.value = 0;
+      position.value = "";
+      currentQuestionHeight.value = 0;
+      isCloseButtonEnabled.value = false;
+      closeButtonStyle.value = {};
+      spotcheckContactID.value = 0;
+      spotcheckURL.value = "";
+      isMounted.value = false;
+      isInjected.value = false;
+      spotChecksMode.value = '';
+      avatarEnabled.value = false;
+      avatarUrl.value = "";
+      isSpotCheckButton.value = false;
+      spotCheckButtonConfig.value = {};
+      showSurveyContent.value = true;
+      isThankyouPageSubmission.value = false;
+      spotCheckType.value = "";
+      appearance.value = {};
+      screenName.value = "";
+      isChat.value = false;
+    }
+    else{
+      isMounted.value = false;
+      isInjected.value = false;
+      isSpotCheckOpen.value = false;
+      showSurveyContent.value = false;
+      isThankyouPageSubmission.value = false;
+      currentQuestionHeight.value = 0;
+    }
   }
 
   Future<List<String>> _pickFiles({bool isImage = false}) async {
@@ -522,9 +544,9 @@ class SpotCheckState extends StatelessWidget {
       }
 
       chatUrl.value =
-          isChatIframe ? 'https://$domainName/eui-template/chat' : '';
+          isChatIframe ? 'https://$domainName/eui-template/chat?isSpotCheck=true' : '';
       classicUrl.value =
-          isClassicIframe ? 'https://$domainName/eui-template/classic' : '';
+          isClassicIframe ? 'https://$domainName/eui-template/classic?isSpotCheck=true' : '';
 
       void setupWebViewController(
           WebViewController controller, String url, RxBool loadingState) {
@@ -554,11 +576,10 @@ class SpotCheckState extends StatelessWidget {
             },
           ))
           ..addJavaScriptChannel("flutterSpotCheckData",
-              onMessageReceived: (response) {
+              onMessageReceived: (response) async {
                 try {
                   var jsonResponse = json.decode(response.message);
                   if (jsonResponse['type'] == "spotCheckData") {
-
                     if(jsonResponse['data']['currentQuestionSize']!=null){
                     currentQuestionHeight.value =
                     jsonResponse['data']['currentQuestionSize']['height'] ?? 0.0;
@@ -575,9 +596,30 @@ class SpotCheckState extends StatelessWidget {
                       isCloseButtonEnabled.value = jsonResponse['data']['isCloseButtonEnabled'];
                     }
 
-                  } else if (jsonResponse['type'] == "surveyCompleted") {
+                  }  else if (jsonResponse['type'] == "surveyCompleted") {
+                    await spotCheckListener?.onSurveyResponse(jsonResponse);
                     end();
-                  } else if (jsonResponse["type"] == 'slideInFrame') {
+                }
+                else if(jsonResponse['type'] == 'surveyLoadStarted'){
+                    await spotCheckListener?.onSurveyLoaded(jsonResponse);
+                }
+                else if(jsonResponse['type'] == 'partialSubmission'){
+                    await spotCheckListener?.onPartialSubmission(jsonResponse);
+                }
+                else if(jsonResponse['type'] == 'thankYouPageSubmission'){
+                    isThankyouPageSubmission.value = true;
+                    await spotCheckListener?.onSurveyResponse(jsonResponse);
+
+                    if (spotChecksMode.value == 'miniCard' && !isCloseButtonEnabled.value) {
+                      Timer(const Duration(seconds: 4), () {
+                        end();
+                      });
+                    }
+                    else{
+                      isCloseButtonEnabled.value = true;
+                    }
+                }
+                else if (jsonResponse["type"] == 'slideInFrame') {
                     isMounted.value = true;
                   } else if (jsonResponse["type"] == 'position') {
                     if(Platform.isAndroid) {
@@ -669,7 +711,7 @@ class SpotCheckState extends StatelessWidget {
     return Obx(() => SafeArea(
       child: Stack(
               children: <Widget>[
-                ((isMounted.value || isFullScreenMode.value) && isInjected.value)
+                ((isMounted.value || isFullScreenMode.value) && isInjected.value && showSurveyContent.value )
                     ? Container(
                         color: const Color.fromARGB(85, 0, 0, 0),
                         child: SizedBox(
@@ -679,10 +721,10 @@ class SpotCheckState extends StatelessWidget {
                       )
                     : const SizedBox.shrink(),
                 Positioned(
-                  top: 0,
+                  top: (currentQuestionHeight.value==0 && !isFullScreenMode.value && isSpotCheckOpen.value) ? -200 : 0,
                   bottom: 0,
                   right: 0,
-                  left: 0,
+                  left: (currentQuestionHeight.value==0 && !isFullScreenMode.value && isSpotCheckOpen.value) ? -200 : 0,
                   child: Column(
 
                     children: [
@@ -692,14 +734,14 @@ class SpotCheckState extends StatelessWidget {
                           child: ListView(
                             physics: (Platform.isIOS)?const BouncingScrollPhysics():(currentKeyboardHeight.value>0)? const BouncingScrollPhysics():const ClampingScrollPhysics(),
                             controller: _scrollController,
-                            shrinkWrap: true, // Ensure ListView only takes necessary height
+                            shrinkWrap: true,
                             children: [
                               Container(
                                 margin: EdgeInsets.symmetric(horizontal: (spotChecksMode.value == "miniCard") ? 12 : 0),
                                 child: SizedBox(
                                   height: (isSpotCheckOpen.value == true &&
                                       ((isMounted.value || isFullScreenMode.value) &&
-                                          isInjected.value) &&
+                                          isInjected.value) &&  showSurveyContent.value &&
                                       spotCheckType.value == "classic")
                                       ? isFullScreenMode.value
                                       ? (!Platform.isIOS)?screenHeight:screenHeight*0.945
@@ -715,11 +757,11 @@ class SpotCheckState extends StatelessWidget {
                                               ? 100
                                               : 0
                                               : 0)) +
-                                      (currentQuestionHeight.value == 0 ? 150 : 0)
-                                      : 1,
+                                      (currentQuestionHeight.value == 0 ? 10 : 0)
+                                      : 0,
                                   width: (isSpotCheckOpen.value == true &&
                                       ((isMounted.value || isFullScreenMode.value) &&
-                                          isInjected.value) &&
+                                          isInjected.value) && showSurveyContent.value &&
                                       spotCheckType.value == "classic")
                                       ? MediaQuery.of(context).size.width
                                       : 0,
@@ -736,8 +778,8 @@ class SpotCheckState extends StatelessWidget {
                                                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                                                 child: GestureDetector(
                                                   onTap: () {
-                                                    closeSpotCheck();
-                                                    end();
+                                                      closeSpotCheck();
+                                                      end();
                                                   },
                                                   child: Container(
                                                     width: 32,
@@ -826,8 +868,8 @@ class SpotCheckState extends StatelessWidget {
                                                 : "0xFF000000")),
                                           ),
                                           onPressed: () {
-                                            closeSpotCheck();
-                                            end();
+                                              closeSpotCheck();
+                                              end();
                                           },
                                         ),
                                       )
@@ -873,13 +915,13 @@ class SpotCheckState extends StatelessWidget {
                                       ? isFullScreenMode.value
                                       ? (!Platform.isIOS)?screenHeight:screenHeight*0.945
                                       :0
-                                      : 1,
+                                      : 0,
                                   width: (isSpotCheckOpen.value == true &&
                                       ((isMounted.value || isFullScreenMode.value) &&
                                           isInjected.value) &&
                                       spotCheckType.value == "chat")
                                       ? MediaQuery.of(context).size.width
-                                      : 1,
+                                      : 0,
                                   child: Stack(
                                     children: [
                                       (!isChatLoading.value)
@@ -909,8 +951,8 @@ class SpotCheckState extends StatelessWidget {
                                                 : "0xFF000000")),
                                           ),
                                           onPressed: () {
-                                            closeSpotCheck();
-                                            end();
+                                              closeSpotCheck();
+                                              end();
                                           },
                                         ),
                                       )
@@ -926,6 +968,48 @@ class SpotCheckState extends StatelessWidget {
                     ],
                   ),
                 ),
+
+                if (isSpotCheckButton.value && !showSurveyContent.value)
+                  Builder(
+                    builder: (context) {
+                      final buttonConfigMap = spotCheckButtonConfig;
+
+                      if (buttonConfigMap.isNotEmpty) {
+                        final buttonConfig = SpotCheckButtonConfig(
+                          type: buttonConfigMap["type"] ?? "floatingButton",
+                          position: buttonConfigMap["position"] ?? "bottom_right",
+                          buttonSize: buttonConfigMap["buttonSize"] ?? "medium",
+                          backgroundColor: buttonConfigMap["backgroundColor"] ?? "#4A9CA6",
+                          textColor: buttonConfigMap["textColor"] ?? "#FFFFFF",
+                          buttonText: buttonConfigMap["buttonText"] ?? "",
+                          icon: buttonConfigMap["icon"] ?? "",
+                          generatedIcon: buttonConfigMap["generatedIcon"] ?? "",
+                          cornerRadius: buttonConfigMap["cornerRadius"] ?? "sharp",
+                        );
+
+                        return Align(
+                          alignment: buttonConfig.position == "bottom_left"
+                              ? Alignment.bottomLeft
+                              : buttonConfig.position == "bottom_right"
+                              ? Alignment.bottomRight
+                              : Alignment.bottomCenter,
+                          child: Padding(
+                            padding: EdgeInsets.only(left: buttonConfigMap["type"] != "sideTab" ? 16 : 0, right: buttonConfigMap["type"] != "sideTab" ? 16 : 0, top: 0, bottom: 16),
+                            child: SpotCheckButton(
+                              config: buttonConfig,
+                              onPressed: () {
+                                performSpotcheckBootstrap();
+                                showSurveyContent.value = true;
+                                start();
+                              },
+                            ),
+                          ),
+                        );
+                      } else {
+                        return const SizedBox.shrink();
+                      }
+                    },
+                  ),
               ],
             ),
     ),
@@ -952,8 +1036,8 @@ class SpotCheckState extends StatelessWidget {
     final appearance = responseJson["appearance"] ?? {};
 
     var currentSpotCheck = filteredSpotChecks.firstWhere(
-      (spotcheck) =>
-          spotcheck['id'] == responseJson['spotCheckId'] ||
+          (spotcheck) =>
+      spotcheck['id'] == responseJson['spotCheckId'] ||
           spotcheck['id'] == responseJson['id'],
       orElse: () => null,
     );
@@ -961,11 +1045,15 @@ class SpotCheckState extends StatelessWidget {
     chat = isChatSurvey(currentSpotCheck?['survey']?['surveyType']) &&
         appearance["mode"] == "fullScreen";
 
+    var isSpotCheckButton = (appearance?["type"] == 'spotcheckButton');
+    spotCheckButtonConfig.value =
+    isSpotCheckButton? currentSpotCheck?["appearance"]?["buttonConfig"] ?? {} : {};
+    showSurveyContent.value = !isSpotCheckButton;
     spotChecksMode.value = appearance?["mode"];
     avatarEnabled.value = appearance?["avatar"]?["enabled"] ?? false;
-    avatarUrl.value =  appearance?["avatar"]?["avatarUrl"] ?? '';
-
+    avatarUrl.value = appearance?["avatar"]?["avatarUrl"] ?? '';
     spotCheckType.value = chat ? "chat" : "classic";
+    this.appearance.value = appearance;
 
     switch (appearance["position"]) {
       case "top_full":
@@ -998,75 +1086,86 @@ class SpotCheckState extends StatelessWidget {
 
     final sb = StringBuffer(
         "https://$domainName/n/spotcheck/${triggerToken.value}/${chat ? 'config' : 'bootstrap'}"
-        "?spotcheckContactId=${spotcheckContactID.value}"
-        "&traceId=${traceId.value}"
-        "&spotcheckUrl=$screen");
+            "?spotcheckContactId=${spotcheckContactID.value}"
+            "&traceId=${traceId.value}"
+            "&spotcheckUrl=$screen&isSpotCheck=true");
+
+
 
     variables.forEach((key, value) => sb.write("&$key=$value"));
     spotcheckURL.value = sb.toString();
-    log(spotcheckURL.value);
+    screenName.value = screen;
+    Future.delayed(Duration(seconds: afterDelay.value), () {
+      this.isSpotCheckButton.value = isSpotCheckButton;
+      if(!this.isSpotCheckButton.value)
+         performSpotcheckBootstrap();
+    });
 
+  }
+
+  Future<void> performSpotcheckBootstrap() async {
     try {
       String userAgent = await getUserAgent();
-      final response = await http.get(Uri.parse(spotcheckURL.value),
+      final response = await http.get(
+        Uri.parse(spotcheckURL.value),
         headers: {
           'User-Agent': userAgent,
-        },);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final themeInfo = data["config"]["generatedCSS"];
+        },
+      );
 
-        final themePayload = {
-          "type": "THEME_UPDATE_SPOTCHECK",
-          "themeInfo": themeInfo
-        };
+      if (response.statusCode != 200) return;
 
-        final WebViewController? webViewRef =
-            chat ? chatController.value : classicController.value;
-        final RxBool isLoading = chat ? isChatLoading : isClassicLoading;
+      final data = jsonDecode(response.body);
+      final themeInfo = data["config"]["generatedCSS"];
+      final themePayload = {
+        "type": "THEME_UPDATE_SPOTCHECK",
+        "themeInfo": themeInfo
+      };
 
-        final payload = {
-          "type": "RESET_STATE",
-          "state": {
-            ...(data ?? {}),
-            "skip": true,
-            "spotCheckAppearance": {
-              ...(appearance ?? {}),
-              "targetType": "MOBILE",
-            },
-            "spotcheckUrl": screen,
-            "traceId": traceId.value,
-            "elementBuilderParams": {
-              ...(variables ?? {}),
-            },
+      final bool chat = spotCheckType.value == "chat";
+      final WebViewController? webViewRef =
+      chat ? chatController.value : classicController.value;
+      final RxBool isLoading = chat ? isChatLoading : isClassicLoading;
+
+      final payload = {
+        "type": "RESET_STATE",
+        "state": {
+          ...data,
+          "skip": true,
+          "spotCheckAppearance": {
+            ...(appearance.value),
+            "targetType": "MOBILE",
           },
-        };
+          "spotcheckUrl": screenName.value,
+          "traceId": traceId.value,
+          "elementBuilderParams": {...variables},
+        },
+      };
 
-        String injectedJavaScript = """
-        (function() {
-          window.dispatchEvent(new MessageEvent('message', { data: ${jsonEncode(payload)} }));
-          window.dispatchEvent(new MessageEvent('message', { data: ${jsonEncode(themePayload)} }));
-        })();
-      """;
-
-        if (!isLoading.value) {
-          _updateFileSelectionListener();
-          webViewRef?.runJavaScript(injectedJavaScript);
-          isInjected.value = true;
-        } else {
-          ever(isLoading, (bool loading) {
-            if (!loading) {
-              _updateFileSelectionListener();
-              webViewRef?.runJavaScript(injectedJavaScript);
-              isInjected.value = true;
-            }
-          });
-        }
+      String injectedJavaScript = """
+      (function() {
+        window.dispatchEvent(new MessageEvent('message', { data: ${jsonEncode(payload)} }));
+        window.dispatchEvent(new MessageEvent('message', { data: ${jsonEncode(themePayload)} }));
+      })();
+    """;
+      if (!isLoading.value) {
+        _updateFileSelectionListener();
+        webViewRef?.runJavaScript(injectedJavaScript);
+        isInjected.value = true;
+      } else {
+        ever(isLoading, (bool loading) {
+          if (!loading) {
+            _updateFileSelectionListener();
+            webViewRef?.runJavaScript(injectedJavaScript);
+            isInjected.value = true;
+          }
+        });
       }
     } catch (e) {
       log("Error fetching spotcheck data: $e");
     }
   }
+
 
   void closeSpotCheck() async {
     try {
@@ -1080,7 +1179,10 @@ class SpotCheckState extends StatelessWidget {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
-        if (data["success"]) log("SpotCheck Closed");
+        if (data["success"]){
+          await spotCheckListener?.onCloseButtonTap();
+          log("SpotCheck Closed");
+        }
       }
     } catch (error) {
       log("Error closing SpotCheck: $error");
@@ -1099,3 +1201,4 @@ bool isHex(String input) {
   bool isHex = input.length == 7 && input.contains("#");
   return isHex;
 }
+
