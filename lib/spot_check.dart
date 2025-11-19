@@ -57,3 +57,26 @@ class SpotCheck extends StatelessWidget {
     return spotCheckState;
   }
 }
+
+class SsNavigationListener extends NavigatorObserver {
+  final SpotCheckState state;
+
+  SsNavigationListener(this.state);
+
+  @override
+  void didPush(Route route, Route? previousRoute) {
+    _handle();
+  }
+
+  @override
+  void didPop(Route route, Route? previousRoute) {
+    _handle();
+  }
+
+  void _handle() {
+    if (state.isSpotCheckOpen.value || state.isSpotCheckOpen.value) {
+      state.closeSpotCheck();
+      state.end();
+    }
+  }
+}

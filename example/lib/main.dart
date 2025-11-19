@@ -61,6 +61,9 @@ class MyApp extends StatelessWidget {
           ),
         );
       },
+      navigatorObservers: [
+        SsNavigationListener(spotCheck.spotCheckState)
+      ],
     );
   }
 }

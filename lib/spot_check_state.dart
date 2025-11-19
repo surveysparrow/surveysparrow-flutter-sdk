@@ -52,7 +52,7 @@ class SpotCheckState extends StatelessWidget {
   final RxInt spotcheckID = 0.obs;
   final RxInt spotcheckContactID = 0.obs;
   final RxInt afterDelay = 0.obs;
-  final RxInt currentQuestionHeight = 200.obs;
+  final RxInt currentQuestionHeight = 0.obs;
   final RxString triggerToken = "".obs;
   final RxString traceId = "".obs;
   final RxBool _isImageCaptureActive = false.obs;
@@ -63,7 +63,7 @@ class SpotCheckState extends StatelessWidget {
   final RxString spotCheckType = ''.obs;
   final Rx<WebViewController?> chatController = Rx<WebViewController?>(null);
   final Rx<WebViewController?> classicController = Rx<WebViewController?>(null);
-  final RxBool isMounted = true.obs;
+  final RxBool isMounted = false.obs;
   final RxBool isChatLoading = true.obs;
   final RxBool isClassicLoading = true.obs;
   final RxList<dynamic> filteredSpotChecks = <dynamic>[].obs;
@@ -75,7 +75,7 @@ class SpotCheckState extends StatelessWidget {
   final RxString spotChecksMode = ''.obs;
   final RxBool avatarEnabled = false.obs;
   final RxDouble textPosition = 0.0.obs;
-  var currentKeyboardHeight = 0.0.obs;
+  final RxDouble  currentKeyboardHeight = 0.0.obs;
   final KeyboardHeightPlugin _keyboardHeightPlugin = KeyboardHeightPlugin();
   final ScrollController _scrollController = ScrollController();
   final ScrollController _chatscrollController = ScrollController();
@@ -757,7 +757,7 @@ class SpotCheckState extends StatelessWidget {
                                               ? 100
                                               : 0
                                               : 0)) +
-                                      (currentQuestionHeight.value == 0 ? 10 : 0)
+                                      (currentQuestionHeight.value == 0 ? 100 : 0)
                                       : 0,
                                   width: (isSpotCheckOpen.value == true &&
                                       ((isMounted.value || isFullScreenMode.value) &&
@@ -770,7 +770,7 @@ class SpotCheckState extends StatelessWidget {
                                       (!isClassicLoading.value)
                                           ? Column(
                                         children: [
-                                          (spotChecksMode.value == "miniCard")
+                                          (spotChecksMode.value == "miniCard" && isCloseButtonEnabled.value)
                                               ? Row(
                                             mainAxisAlignment: MainAxisAlignment.end,
                                             children: [
@@ -848,7 +848,7 @@ class SpotCheckState extends StatelessWidget {
                                               )
                                             ],
                                           )
-                                              : const SizedBox.shrink(),
+                                              : Padding(padding: EdgeInsets.only(bottom: spotChecksMode.value == "miniCard" ?8.0 : 0)),
                                         ],
                                       )
                                           : const SizedBox(),
