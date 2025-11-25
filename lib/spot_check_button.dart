@@ -376,7 +376,7 @@ class _SpotCheckSideTabButtonState extends State<SpotCheckSideTabButton> {
         left = 0;
         rotationAngle = math.pi / 2;
         break;
-      case "middle_left":
+      case "center_left":
         top = (mediaQuery.size.height -
             mediaQuery.padding.top -
             mediaQuery.padding.bottom -
@@ -395,7 +395,7 @@ class _SpotCheckSideTabButtonState extends State<SpotCheckSideTabButton> {
         right = 0;
         rotationAngle = -math.pi / 2;
         break;
-      case "middle_right":
+      case "center_right":
         top = (mediaQuery.size.height -
             mediaQuery.padding.top -
             mediaQuery.padding.bottom -

@@ -76,7 +76,7 @@ class SsNavigationListener extends NavigatorObserver {
   void _handle() {
     if (state.isSpotCheckOpen.value || state.isSpotCheckOpen.value) {
       state.closeSpotCheck();
-      state.end();
+      state.end(isNavigation: true);
     }
   }
 }
