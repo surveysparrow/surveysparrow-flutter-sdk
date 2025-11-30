@@ -555,7 +555,6 @@ class SpotCheckState extends StatelessWidget {
           ..loadRequest(Uri.parse(url))
           ..setNavigationDelegate(NavigationDelegate(
             onPageFinished: (_) {
-              loadingState.value = false;
               controller.runJavaScript(
                   """
           document.addEventListener('focusin', function(event) {
@@ -596,16 +595,23 @@ class SpotCheckState extends StatelessWidget {
                       isCloseButtonEnabled.value = jsonResponse['data']['isCloseButtonEnabled'];
                     }
 
-                  }  else if (jsonResponse['type'] == "surveyCompleted") {
+                  }
+                  else if (jsonResponse['type'] == "classicLoadEvent") {
+                    isClassicLoading.value = false;
+                  }
+                  else if (jsonResponse['type'] == "chatLoadEvent") {
+                    isChatLoading.value = false;
+                  }
+                  else if (jsonResponse['type'] == "surveyCompleted") {
                     await spotCheckListener?.onSurveyResponse(jsonResponse);
                     end();
-                }
+                  }
                 else if(jsonResponse['type'] == 'surveyLoadStarted'){
                     await spotCheckListener?.onSurveyLoaded(jsonResponse);
-                }
+                  }
                 else if(jsonResponse['type'] == 'partialSubmission'){
                     await spotCheckListener?.onPartialSubmission(jsonResponse);
-                }
+                  }
                 else if(jsonResponse['type'] == 'thankYouPageSubmission'){
                     isThankyouPageSubmission.value = true;
                     await spotCheckListener?.onSurveyResponse(jsonResponse);
