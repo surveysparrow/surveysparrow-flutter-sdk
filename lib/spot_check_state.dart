@@ -84,6 +84,8 @@ class SpotCheckState extends StatelessWidget {
   final RxBool showSurveyContent = true.obs;
   final RxBool isThankyouPageSubmission = false.obs;
   final RxString screenName = ''.obs;
+  final RxBool isFirstQuestion = true.obs;
+  final RxBool isSurveyLoaded = false.obs;
   final RxMap<String, dynamic> appearance = <String, dynamic>{}.obs;
   final RxBool isChat  = false.obs;
   void start() {
@@ -131,6 +133,8 @@ class SpotCheckState extends StatelessWidget {
       appearance.value = {};
       screenName.value = "";
       isChat.value = false;
+      isFirstQuestion.value = true;
+      isSurveyLoaded.value = false;
     }
     else{
       isMounted.value = false;
@@ -139,6 +143,8 @@ class SpotCheckState extends StatelessWidget {
       showSurveyContent.value = false;
       isThankyouPageSubmission.value = false;
       currentQuestionHeight.value = 0;
+      isFirstQuestion.value = true;
+      isSurveyLoaded.value = false;
     }
   }
 
@@ -580,15 +586,21 @@ class SpotCheckState extends StatelessWidget {
                   var jsonResponse = json.decode(response.message);
                   if (jsonResponse['type'] == "spotCheckData") {
                     if(jsonResponse['data']['currentQuestionSize']!=null){
-                    currentQuestionHeight.value =
-                    jsonResponse['data']['currentQuestionSize']['height'] ?? 0.0;
-                    if (spotChecksMode.value == 'miniCard' && isCloseButtonEnabled.value) {
-                      currentQuestionHeight.value += 8;
-                    }
+                      if(isFirstQuestion.value && isSurveyLoaded.value && spotChecksMode.value == 'miniCard'){
+                        isFirstQuestion.value = false;
+                      }
+                      else {
+                        var currentQuestionHeight = jsonResponse['data']['currentQuestionSize']['height'] ?? 0.0;
+                        if (spotChecksMode.value == 'miniCard' && isCloseButtonEnabled.value) {
+                          currentQuestionHeight += 8;
+                        }
 
-                    if (spotChecksMode.value == 'miniCard' && avatarEnabled.value) {
-                      currentQuestionHeight.value += 8;
-                    }
+                        if (spotChecksMode.value == 'miniCard' && avatarEnabled.value) {
+                          currentQuestionHeight += 8;
+                        }
+
+                        this.currentQuestionHeight.value = currentQuestionHeight;
+                      }
                     }
 
                     else if(jsonResponse['data']['isCloseButtonEnabled']!=null){
@@ -606,7 +618,8 @@ class SpotCheckState extends StatelessWidget {
                     await spotCheckListener?.onSurveyResponse(jsonResponse);
                     end();
                   }
-                else if(jsonResponse['type'] == 'surveyLoadStarted'){
+                  else if(jsonResponse['type'] == 'surveyLoadStarted'){
+                    isSurveyLoaded.value = true;
                     await spotCheckListener?.onSurveyLoaded(jsonResponse);
                   }
                 else if(jsonResponse['type'] == 'partialSubmission'){
