@@ -728,8 +728,8 @@ class SpotCheckState extends StatelessWidget {
                     : const SizedBox.shrink(),
                 Positioned(
                   top: (currentQuestionHeight.value==0 && !isFullScreenMode.value && isSpotCheckOpen.value) ? -200 : 0,
-                  bottom: 0,
-                  right: 0,
+                  bottom: (currentQuestionHeight.value==0 && !isFullScreenMode.value && isSpotCheckOpen.value) ? -200 : 0,
+                  right: (currentQuestionHeight.value==0 && !isFullScreenMode.value && isSpotCheckOpen.value) ? -200 : 0,
                   left: (currentQuestionHeight.value==0 && !isFullScreenMode.value && isSpotCheckOpen.value) ? -200 : 0,
                   child: Column(
 
@@ -763,7 +763,7 @@ class SpotCheckState extends StatelessWidget {
                                               ? 100
                                               : 0
                                               : 0)) +
-                                      (currentQuestionHeight.value == 0 ? 100 : 0)
+                                      (currentQuestionHeight.value == 0 ? 500 : 0)
                                       : 0,
                                   width: (isSpotCheckOpen.value == true &&
                                       ((isMounted.value || isFullScreenMode.value) &&
