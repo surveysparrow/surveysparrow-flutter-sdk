@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:surveysparrow_flutter_sdk/ss_spotcheck_listener.dart';
 import 'package:uuid/uuid.dart';
@@ -695,9 +694,6 @@ class SpotCheckState extends StatelessWidget {
       if (isChatIframe || isClassicIframe) {
         isInit.value = true;
       }
-
-      await Permission.camera.request();
-      await Permission.microphone.request();
 
     } catch (error) {
       log('Error initializing widget: $error');
