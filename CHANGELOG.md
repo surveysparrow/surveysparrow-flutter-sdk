@@ -98,3 +98,7 @@
 ## 1.2.2
 
 * Media Question Support for Android OS on Spotchecks
+
+## 1.2.3
+
+* SpotChecks enhancements and Mini Cards

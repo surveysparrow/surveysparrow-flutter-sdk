@@ -6,25 +6,55 @@ class SpotCheckScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    spotCheck.trackScreen("SpotCheckScreen");
+
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
 
         children: [
-          IconButton(
-            padding: const EdgeInsets.only(top: 60, left: 30),
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pop(context);
-            },
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 30),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+
+                  icon: const Icon(Icons.arrow_back, color: Colors.black,),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                Text("Payment page", style: TextStyle(color: Colors.black, fontSize: 25),),
+
+                IconButton(
+
+                  icon: const Icon(Icons.arrow_back, color: Colors.white,),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
           ),
           Center(
-            child: ElevatedButton(
-              onPressed: () {
-                spotCheck.trackEvent("SpotCheckScreen", {"MobileClick": {}});
-              },
-              child: const Text("SpotCheckScreen"),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+
+                border: Border.all(color: Colors.black),
+                borderRadius: BorderRadius.circular(12)
+
+              ),
+
+              child: TextButton(
+
+                onPressed: () {
+                  // spotCheck.trackEvent("SpotCheckScreen", {"MobileClick": {}});
+                  spotCheck.trackScreen("SpotCheckScreen");
+                },
+                child: const Text("pay the Amount", style: TextStyle(color: Colors.black),),
+              ),
             ),
           ),
 

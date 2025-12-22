@@ -1,24 +1,25 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:surveysparrow_flutter_sdk/spot_check_state.dart';
+import 'package:surveysparrow_flutter_sdk/ss_spotcheck_listener.dart';
 
 class SpotCheck extends StatelessWidget {
-  SpotCheck(
-      {Key? key,
-      required this.targetToken,
-      required this.domainName,
-      required this.userDetails,
-      this.variables = const {},
-      this.customProperties = const {},
-      this.sparrowLang = ""})
-      : super(key: key) {
+  SpotCheck({
+    Key? key,
+    required this.targetToken,
+    required this.domainName,
+    required this.userDetails,
+    this.variables = const {},
+    this.customProperties = const {},
+    this.spotCheckListener,
+  }) : super(key: key) {
     spotCheckState = SpotCheckState(
       targetToken: targetToken,
       domainName: domainName,
       userDetails: userDetails,
       variables: variables,
       customProperties: customProperties,
-      sparrowLang: sparrowLang,
+      spotCheckListener: spotCheckListener,
     );
   }
 
@@ -27,7 +28,7 @@ class SpotCheck extends StatelessWidget {
   final Map<String, dynamic> userDetails;
   final Map<String, dynamic> variables;
   final Map<String, dynamic> customProperties;
-  final String sparrowLang;
+  final SsSpotcheckListener? spotCheckListener;
 
   late final SpotCheckState spotCheckState;
 
@@ -35,7 +36,6 @@ class SpotCheck extends StatelessWidget {
     Map<String, dynamic> response =
         await spotCheckState.sendTrackScreenRequest(screen);
     if (response["valid"]) {
-      spotCheckState.addFileSelectionListener();
       spotCheckState.start();
     } else {
       log("TrackScreen Failed");
@@ -46,7 +46,6 @@ class SpotCheck extends StatelessWidget {
     Map<String, dynamic> response =
         await spotCheckState.sendTrackEventRequest(screen, event);
     if (response["valid"]) {
-      spotCheckState.addFileSelectionListener();
       spotCheckState.start();
     } else {
       log("TrackEvent Failed");
@@ -56,5 +55,28 @@ class SpotCheck extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return spotCheckState;
+  }
+}
+
+class SsNavigationListener extends NavigatorObserver {
+  final SpotCheckState state;
+
+  SsNavigationListener(this.state);
+
+  @override
+  void didPush(Route route, Route? previousRoute) {
+    _handle();
+  }
+
+  @override
+  void didPop(Route route, Route? previousRoute) {
+    _handle();
+  }
+
+  void _handle() {
+    if (state.isSpotCheckOpen.value || state.isSpotCheckButton.value) {
+      state.closeSpotCheck();
+      state.end(isNavigation: true);
+    }
   }
 }
