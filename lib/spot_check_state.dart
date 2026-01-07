@@ -560,6 +560,36 @@ class SpotCheckState extends StatelessWidget {
           ..loadRequest(Uri.parse(url))
           ..setNavigationDelegate(NavigationDelegate(
             onPageFinished: (_) {
+              controller.runJavaScript("""
+               window.addEventListener(
+                  'scroll',
+                 function () {
+                    if (
+                      document.querySelector(
+                        '.surveysparrow-chat__wrapper'
+                      )
+                    ) {
+                      window.scrollTo(0, 0);
+                    }
+                  },
+                  { passive: false }
+                );
+      
+                (function() {
+                  var styleTag = document.createElement("style");
+                  styleTag.innerHTML = `
+                      .surveysparrow-chat__wrapper .ss-language-selector--wrapper {
+                          margin-right: 45px;
+                      }
+                      .close-btn-chat--spotchecks {
+                          display: none !important;
+                      }
+                  `;
+                  document.head.appendChild(styleTag);
+                })();
+            """);
+
+
               controller.runJavaScript(
                   """
           document.addEventListener('focusin', function(event) {
