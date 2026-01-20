@@ -6,8 +6,7 @@ class SpotCheckScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-
+    spotCheck.trackScreen("SpotCheckScreen");
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -50,8 +49,7 @@ class SpotCheckScreen extends StatelessWidget {
               child: TextButton(
 
                 onPressed: () {
-                  // spotCheck.trackEvent("SpotCheckScreen", {"MobileClick": {}});
-                  spotCheck.trackScreen("SpotCheckScreen");
+                  spotCheck.trackEvent("SpotCheckScreen", {"MobileClick": {}});
                 },
                 child: const Text("pay the Amount", style: TextStyle(color: Colors.black),),
               ),
