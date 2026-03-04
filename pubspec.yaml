@@ -1,6 +1,6 @@
 name: surveysparrow_flutter_sdk
 description: SurveySparrow's flutter SDK lets you collect feedback at various touchpoints from your mobile app users. You can easily embed surveys in your mobile app with a few lines of code.
-version: "1.2.3"
+version: "1.2.4"
 homepage: https://github.com/surveysparrow/surveysparrow-flutter-sdk/tree/master
 
 environment:
@@ -10,13 +10,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  webview_flutter: ^4.10.0
+  webview_flutter: ^4.13.1
   webview_flutter_android: ^4.3.1
   http: ^1.2.1
   get: ^4.6.6
   uuid: ^4.4.2
   shared_preferences: ^2.2.3
-  file_picker: ^8.1.2
+  file_picker: ^10.3.1
   image_picker: ^1.1.2
   device_info_plus: ^11.2.0
   keyboard_height_plugin: ^0.1.5
