@@ -1,8 +1,11 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:surveysparrow_flutter_sdk/spot_check_state.dart';
 import 'package:surveysparrow_flutter_sdk/ss_spotcheck_listener.dart';
+import 'src/spotcheck_sdk.dart';
 
+/// The main SpotCheck widget — place in your widget tree as an overlay.
+///
+/// **Public API preserved**: constructor, trackScreen, trackEvent,
+/// spotCheckState (for SsNavigationListener), and SsNavigationListener.
 class SpotCheck extends StatelessWidget {
   SpotCheck({
     Key? key,
@@ -13,14 +16,7 @@ class SpotCheck extends StatelessWidget {
     this.customProperties = const {},
     this.spotCheckListener,
   }) : super(key: key) {
-    spotCheckState = SpotCheckState(
-      targetToken: targetToken,
-      domainName: domainName,
-      userDetails: userDetails,
-      variables: variables,
-      customProperties: customProperties,
-      spotCheckListener: spotCheckListener,
-    );
+    spotCheckState = SpotCheckState._internal(this);
   }
 
   final String targetToken;
@@ -33,23 +29,11 @@ class SpotCheck extends StatelessWidget {
   late final SpotCheckState spotCheckState;
 
   void trackScreen(String screen) async {
-    Map<String, dynamic> response =
-        await spotCheckState.sendTrackScreenRequest(screen);
-    if (response["valid"]) {
-      spotCheckState.start();
-    } else {
-      log("TrackScreen Failed");
-    }
+    await SpotCheckSDK.instance.trackScreen(screen);
   }
 
   void trackEvent(String screen, Map<String, dynamic> event) async {
-    Map<String, dynamic> response =
-        await spotCheckState.sendTrackEventRequest(screen, event);
-    if (response["valid"]) {
-      spotCheckState.start();
-    } else {
-      log("TrackEvent Failed");
-    }
+    await SpotCheckSDK.instance.trackEvent(screen, event);
   }
 
   @override
@@ -58,6 +42,115 @@ class SpotCheck extends StatelessWidget {
   }
 }
 
+/// Legacy-compatible state widget that wraps the new architecture.
+/// Used directly by [SsNavigationListener] and rendered by [SpotCheck.build].
+class SpotCheckState extends StatefulWidget {
+  final SpotCheck _spotCheck;
+
+  // Compatibility fields used by SsNavigationListener
+  final ValueNotifier<bool> isSpotCheckOpen = ValueNotifier(false);
+  final ValueNotifier<bool> isSpotCheckButton = ValueNotifier(false);
+
+  SpotCheckState._internal(this._spotCheck);
+
+  void closeSpotCheck() {
+    SpotCheckSDK.instance.injectUnmountApp();
+    SpotCheckSDK.instance.executables.execute('closeButton.handleCloseButton');
+  }
+
+  void end({bool isNavigation = false}) {
+    SpotCheckSDK.instance.handleNavigationChange();
+  }
+
+  @override
+  State<SpotCheckState> createState() => _SpotCheckStateState();
+}
+
+class _SpotCheckStateState extends State<SpotCheckState> {
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initSDK();
+    SpotCheckSDK.instance.spotcheckStore.addListener(_syncState);
+  }
+
+  Future<void> _initSDK() async {
+    await SpotCheckSDK.instance.initialize(
+      domainName: widget._spotCheck.domainName,
+      targetToken: widget._spotCheck.targetToken,
+      userDetails: widget._spotCheck.userDetails,
+      variables: widget._spotCheck.variables,
+      customProperties: widget._spotCheck.customProperties,
+      spotCheckListener: widget._spotCheck.spotCheckListener,
+    );
+    if (mounted) setState(() => _initialized = true);
+  }
+
+  void _syncState() {
+    final details = SpotCheckSDK.instance.spotcheckStore.state.spotCheckDetails;
+    widget.isSpotCheckOpen.value = (details['isVisible'] as bool?) ?? false;
+    widget.isSpotCheckButton.value =
+        (details['isSpotCheckButton'] as bool?) ?? false;
+  }
+
+  @override
+  void dispose() {
+    SpotCheckSDK.instance.spotcheckStore.removeListener(_syncState);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_initialized) return const SizedBox.shrink();
+
+    final sdk = SpotCheckSDK.instance;
+    return _SpotCheckContent(sdk: sdk);
+  }
+}
+
+class _SpotCheckContent extends StatefulWidget {
+  final SpotCheckSDK sdk;
+  const _SpotCheckContent({required this.sdk});
+
+  @override
+  State<_SpotCheckContent> createState() => _SpotCheckContentState();
+}
+
+class _SpotCheckContentState extends State<_SpotCheckContent> {
+  late final Widget _wrapper;
+  late final Widget _button;
+
+  @override
+  void initState() {
+    super.initState();
+    _wrapper = widget.sdk.buildWrapperWidget();
+    _button = widget.sdk.buildButtonWidget();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: widget.sdk.spotcheckStore,
+      builder: (context, _) {
+        final details = widget.sdk.spotcheckStore.state.spotCheckDetails;
+        final isActive = (details['isVisible'] == true) ||
+            (details['isSpotCheckButton'] == true);
+
+        return IgnorePointer(
+          ignoring: !isActive,
+          child: SizedBox.expand(
+            child: Stack(children: [_wrapper, _button]),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Navigation observer that dismisses spotchecks on route changes.
+/// API-compatible with old implementation.
 class SsNavigationListener extends NavigatorObserver {
   final SpotCheckState state;
 
