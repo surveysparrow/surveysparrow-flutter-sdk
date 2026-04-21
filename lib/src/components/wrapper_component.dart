@@ -16,12 +16,9 @@ dynamic _deepCopyValue(dynamic v) {
   return v;
 }
 
-/// Sync with `ss-eui-backend/.../mobile/avatarDefaults.js` (builder + wrapper merge).
 const String kSpotcheckDefaultAvatarUrl =
     'https://static.surveysparrow.com/application/images/profile.png';
 
-/// Builder `$path` reads [spotCheckDetails] only — merge init API appearance so
-/// mode/position/isFullScreenMode match getWrapperStyles (DEC-013 / P-017).
 Map<String, dynamic> _effectiveSpotCheckStateForBuilder(SpotcheckStore store) {
   final top = store.getState()['SpotCheckState'];
   if (top is! Map) return <String, dynamic>{};
@@ -93,8 +90,6 @@ Map<String, dynamic> _effectiveSpotCheckStateForBuilder(SpotcheckStore store) {
   return state;
 }
 
-/// Builder `$expr` / ListView physics read [keyBoardHeight] — inject live
-/// [MediaQuery] inset without dispatching to the store (avoids keyboard jank).
 Map<String, dynamic> _stateWithKeyboardInset(
   SpotcheckStore store,
   double keyboardInset,

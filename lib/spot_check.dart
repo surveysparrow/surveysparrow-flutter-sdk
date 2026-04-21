@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:surveysparrow_flutter_sdk/ss_spotcheck_listener.dart';
 import 'src/spotcheck_sdk.dart';
 
-/// The main SpotCheck widget — place in your widget tree as an overlay.
-///
-/// **Public API preserved**: constructor, trackScreen, trackEvent,
-/// spotCheckState (for SsNavigationListener), and SsNavigationListener.
 class SpotCheck extends StatelessWidget {
   SpotCheck({
     Key? key,
@@ -42,12 +38,9 @@ class SpotCheck extends StatelessWidget {
   }
 }
 
-/// Legacy-compatible state widget that wraps the new architecture.
-/// Used directly by [SsNavigationListener] and rendered by [SpotCheck.build].
 class SpotCheckState extends StatefulWidget {
   final SpotCheck _spotCheck;
 
-  // Compatibility fields used by SsNavigationListener
   final ValueNotifier<bool> isSpotCheckOpen = ValueNotifier(false);
   final ValueNotifier<bool> isSpotCheckButton = ValueNotifier(false);
 
@@ -149,8 +142,6 @@ class _SpotCheckContentState extends State<_SpotCheckContent> {
   }
 }
 
-/// Navigation observer that dismisses spotchecks on route changes.
-/// API-compatible with old implementation.
 class SsNavigationListener extends NavigatorObserver {
   final SpotCheckState state;
 

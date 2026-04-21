@@ -1,7 +1,5 @@
 import 'package:flutter/widgets.dart';
 
-/// Lets schema [ListView] attach to the SDK-owned scroll controller without
-/// threading [BuildContext] through [ComponentRegistry].
 class SpotcheckScrollBinding {
   static ScrollController? _wrapperList;
 

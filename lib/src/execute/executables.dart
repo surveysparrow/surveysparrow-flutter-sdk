@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_js/flutter_js.dart';
 import 'package:http/http.dart' as http;
@@ -8,8 +9,6 @@ import '../adapters/storage_adapter.dart';
 import '../adapters/sentry_adapter.dart';
 import '../adapters/keyboard_adapter.dart';
 import '../adapters/listener_adapter.dart';
-
-const String sdkVersion = '2.0.0-beta.1';
 
 dynamic _deepCastMap(dynamic value) {
   if (value is Map) {
@@ -31,10 +30,8 @@ class Executables {
   final KeyboardAdapter keyboard;
   final ListenerAdapter listener;
 
-  /// Called after [batchDispatch] applies JS [dispatchWrapper] updates (e.g. flush WebView injection).
   void Function()? onAfterBatchDispatch;
 
-  /// After [initializeSpotcheckComponent] has run; before this, only [trackScreen] / [trackEvent] are queued.
   bool _widgetInitializationComplete = false;
 
   final List<({String functionName, Map<String, dynamic>? params})>
@@ -42,6 +39,8 @@ class Executables {
 
   JavascriptRuntime? _jsRuntime;
   bool _runtimeReady = false;
+
+  Future<void>? _jsExecutionChain;
 
   Executables({
     required this.spotcheckStore,
@@ -218,21 +217,15 @@ URLSearchParams.prototype.append = function(name, value) {
     }
   }
 
-  /// Resets the widget-init gate (start of each [SpotCheckSDK.initialize]).
-  ///
-  /// Does **not** clear [_pendingExecutes]: a second [initialize] while the first
-  /// is still loading must not drop queued [trackScreen] / [trackEvent] from navigation.
   void resetInitializationGate() {
     _widgetInitializationComplete = false;
   }
 
-  /// If [initialize] fails after bundles loaded, release the gate so [execute] does not queue forever.
   void abandonPendingInitialization() {
     _widgetInitializationComplete = true;
     _pendingExecutes.clear();
   }
 
-  /// Run calls queued before bundles or widget `/init` state were ready.
   Future<void> flushPendingExecutes() async {
     _widgetInitializationComplete = true;
     while (_pendingExecutes.isNotEmpty) {
@@ -269,12 +262,29 @@ URLSearchParams.prototype.append = function(name, value) {
       }
 
       final payload = _buildPayload(params);
-      return await _runFunction(functionName, functionString, payload);
+      return await _enqueueJsExecution(
+        () => _runFunction(functionName, functionString, payload),
+      );
     } catch (e) {
       sentry.captureP1Error(e, 'GENERAL',
           {'action': 'execute:setup', 'functionName': functionName});
       return null;
     }
+  }
+
+  /// Runs [run] after any prior JS execution completes (success or failure).
+  Future<T> _enqueueJsExecution<T>(Future<T> Function() run) {
+    final previous = _jsExecutionChain ?? Future<void>.value();
+    final completer = Completer<T>();
+    _jsExecutionChain = previous.catchError((_) {}).then((_) async {
+      try {
+        final result = await run();
+        completer.complete(result);
+      } catch (e, st) {
+        completer.completeError(e, st);
+      }
+    });
+    return completer.future;
   }
 
   Map<String, dynamic> _buildPayload(Map<String, dynamic>? params) {
@@ -381,19 +391,33 @@ URLSearchParams.prototype.append = function(name, value) {
     onCloseButtonTap: function() { return Promise.resolve(); },
   };
 
+  async function flushPendingTimers() {
+    if (pendingTimers.length === 0) return;
+    var flushOne = function(t) {
+      return new Promise(function(resolve) {
+        var ms = Math.max(0, Number(t.delay) || 0);
+        var run = function() {
+          try { t.fn(); } catch (te) {}
+          resolve();
+        };
+        if (_origSetTimeout) {
+          _origSetTimeout(run, ms);
+        } else {
+          run();
+        }
+      });
+    };
+    await Promise.all(pendingTimers.map(flushOne));
+  }
+
   try {
     var result = await func(payload);
-
-    for (var i = 0; i < pendingTimers.length; i++) {
-      try { pendingTimers[i].fn(); } catch(te) {}
-    }
+    await flushPendingTimers();
 
     if (_origSetTimeout) setTimeout = _origSetTimeout;
     return JSON.stringify({ __result: result || null, __dispatches: dispatchUpdates, __storageSaves: storageSaves, __sentryReports: sentryReports });
   } catch(e) {
-    for (var i = 0; i < pendingTimers.length; i++) {
-      try { pendingTimers[i].fn(); } catch(te) {}
-    }
+    await flushPendingTimers();
 
     if (_origSetTimeout) setTimeout = _origSetTimeout;
     return JSON.stringify({ __error: e.message || String(e), __dispatches: dispatchUpdates, __storageSaves: storageSaves, __sentryReports: sentryReports });
@@ -406,11 +430,31 @@ URLSearchParams.prototype.append = function(name, value) {
       final asyncResult = await runtime.handlePromise(evalResult);
 
       if (asyncResult.isError) {
+        sentry.captureP1Error(
+          asyncResult.stringResult.isNotEmpty
+              ? asyncResult.stringResult
+              : 'JS runtime evaluate failed',
+          'GENERAL',
+          {
+            'action': 'execute:evaluate',
+            'functionName': functionName,
+          },
+        );
         return null;
       }
 
       final stringVal = asyncResult.stringResult;
-      if (stringVal.isEmpty) return null;
+      if (stringVal.isEmpty) {
+        sentry.captureP1Error(
+          'Empty JS result',
+          'GENERAL',
+          {
+            'action': 'execute:emptyResult',
+            'functionName': functionName,
+          },
+        );
+        return null;
+      }
 
       final parsed = _deepCastMap(jsonDecode(stringVal));
 
@@ -439,6 +483,15 @@ URLSearchParams.prototype.append = function(name, value) {
         await _flushJsSentryReports(parsed['__sentryReports']);
 
         if (parsed.containsKey('__error')) {
+          final errMsg = parsed['__error']?.toString() ?? 'Unknown';
+          sentry.captureP1Error(
+            errMsg,
+            'GENERAL',
+            {
+              'action': 'execute:runtime',
+              'functionName': functionName,
+            },
+          );
           return null;
         }
         return parsed['__result'];
@@ -446,6 +499,14 @@ URLSearchParams.prototype.append = function(name, value) {
 
       return parsed;
     } catch (e) {
+      sentry.captureP1Error(
+        e,
+        'GENERAL',
+        {
+          'action': 'execute:runtime',
+          'functionName': functionName,
+        },
+      );
       return null;
     }
   }

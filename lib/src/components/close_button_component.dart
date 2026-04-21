@@ -5,7 +5,6 @@ import '../state/component_state.dart';
 import '../execute/executables.dart';
 import '../spotcheck_sdk.dart';
 
-/// Default until `getCloseButtonStyles` returns (matches backend `closeButtonMinimumTapTarget`).
 const double _kDefaultMinTap = 44;
 
 Color _parseHexColor(String? hex) {
@@ -33,7 +32,6 @@ class CloseButtonComponent extends StatefulWidget {
 }
 
 class _CloseButtonComponentState extends State<CloseButtonComponent> {
-  /// From backend `closeButtonMinimumTapTarget` (logical px).
   double _minTapW = _kDefaultMinTap;
   double _minTapH = _kDefaultMinTap;
 

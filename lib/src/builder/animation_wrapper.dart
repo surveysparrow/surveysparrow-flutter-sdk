@@ -12,6 +12,46 @@ Map<String, dynamic>? _safeMapOrNull(dynamic value) {
   return null;
 }
 
+class _ExitTargetSnapshot {
+  final double toOpacity;
+  final double toTX;
+  final double toTY;
+  final double toScale;
+  final Alignment alignment;
+
+  const _ExitTargetSnapshot({
+    required this.toOpacity,
+    required this.toTX,
+    required this.toTY,
+    required this.toScale,
+    required this.alignment,
+  });
+}
+
+class _EnterEndpointSnapshot {
+  final double fromOpacity;
+  final double fromTX;
+  final double fromTY;
+  final double fromScale;
+  final double toOpacity;
+  final double toTX;
+  final double toTY;
+  final double toScale;
+  final Alignment alignment;
+
+  const _EnterEndpointSnapshot({
+    required this.fromOpacity,
+    required this.fromTX,
+    required this.fromTY,
+    required this.fromScale,
+    required this.toOpacity,
+    required this.toTX,
+    required this.toTY,
+    required this.toScale,
+    required this.alignment,
+  });
+}
+
 class AnimationWrapper extends StatefulWidget {
   final Map<String, dynamic> animation;
   final BuilderContext context;
@@ -35,14 +75,28 @@ class _AnimationWrapperState extends State<AnimationWrapper>
   bool _prevExitTrigger = false;
   bool _hasTriggeredEnter = false;
 
-  double _opacity = 1.0;
-  double _translateX = 0.0;
-  double _translateY = 0.0;
-  double _scale = 1.0;
+  _ExitTargetSnapshot? _exitSnapshot;
+  _EnterEndpointSnapshot? _enterSnapshot;
 
-  /// RN `transformOrigin` → [Transform.scale] alignment (Expo parity: center card uses `100% 100%`).
+  final ValueNotifier<int> _manualTick = ValueNotifier<int>(0);
+
   Alignment _alignEnter = Alignment.center;
   Alignment _alignExit = Alignment.center;
+
+  Listenable get _animationListenable {
+    final e = _enterController;
+    final x = _exitController;
+    if (e != null && x != null) {
+      return Listenable.merge(<Listenable>[e, x, _manualTick]);
+    }
+    if (e != null) {
+      return Listenable.merge(<Listenable>[e, _manualTick]);
+    }
+    if (x != null) {
+      return Listenable.merge(<Listenable>[x, _manualTick]);
+    }
+    return _manualTick;
+  }
 
   @override
   void initState() {
@@ -84,49 +138,6 @@ class _AnimationWrapperState extends State<AnimationWrapper>
       vsync: this,
     );
 
-    final trigger = enterConfig['trigger'];
-    final shouldAnimate =
-        trigger != null ? evaluateCondition(trigger, widget.context) : true;
-
-    if (shouldAnimate) {
-      final from = _safeMapOrNull(enterConfig['from']);
-      if (from != null) {
-        _opacity = _resolveNum(from['opacity'], widget.context) ?? 0.0;
-        _translateY = _resolveNum(from['translateY'], widget.context) ?? 0.0;
-        _translateX = _resolveNum(from['translateX'], widget.context) ?? 0.0;
-        _scale = _resolveNum(from['scale'], widget.context) ?? 1.0;
-      }
-    }
-
-    _enterController!.addListener(() {
-      if (!mounted) return;
-      final to = _safeMapOrNull(enterConfig['to']);
-      final fromMap = _safeMapOrNull(enterConfig['from']);
-      final t =
-          _getCurve(enterConfig['easing']).transform(_enterController!.value);
-
-      setState(() {
-        final fromOpacity =
-            _resolveNum(fromMap?['opacity'], widget.context) ?? 0.0;
-        final toOpacity = (to?['opacity'] as num?)?.toDouble() ?? 1.0;
-        _opacity = fromOpacity + (toOpacity - fromOpacity) * t;
-
-        final fromTY =
-            _resolveNum(fromMap?['translateY'], widget.context) ?? 0.0;
-        final toTY = (to?['translateY'] as num?)?.toDouble() ?? 0.0;
-        _translateY = fromTY + (toTY - fromTY) * t;
-
-        final fromTX =
-            _resolveNum(fromMap?['translateX'], widget.context) ?? 0.0;
-        final toTX = (to?['translateX'] as num?)?.toDouble() ?? 0.0;
-        _translateX = fromTX + (toTX - fromTX) * t;
-
-        final fromScale = _resolveNum(fromMap?['scale'], widget.context) ?? 1.0;
-        final toScale = (to?['scale'] as num?)?.toDouble() ?? 1.0;
-        _scale = fromScale + (toScale - fromScale) * t;
-      });
-    });
-
     _checkEnterTrigger();
   }
 
@@ -139,21 +150,36 @@ class _AnimationWrapperState extends State<AnimationWrapper>
         trigger != null ? evaluateCondition(trigger, widget.context) : true;
 
     if (shouldAnimate && !_hasTriggeredEnter) {
+      _enterSnapshot = _buildEnterSnapshot(enterConfig);
       _hasTriggeredEnter = true;
-
-      final from = _safeMapOrNull(enterConfig['from']);
-      if (from != null) {
-        _opacity = _resolveNum(from['opacity'], widget.context) ?? 0.0;
-        _translateY = _resolveNum(from['translateY'], widget.context) ?? 0.0;
-        _translateX = _resolveNum(from['translateX'], widget.context) ?? 0.0;
-        _scale = _resolveNum(from['scale'], widget.context) ?? 1.0;
-      }
 
       _enterController!.reset();
       _enterController!.forward();
     } else if (!shouldAnimate) {
       _hasTriggeredEnter = false;
+      _enterSnapshot = null;
     }
+  }
+
+  _EnterEndpointSnapshot _buildEnterSnapshot(Map<String, dynamic> enterConfig) {
+    final to = _safeMapOrNull(enterConfig['to']);
+    final fromMap = _safeMapOrNull(enterConfig['from']);
+    final align = _resolveTransformOrigin(
+          enterConfig['transformOrigin'],
+          widget.context,
+        ) ??
+        _alignEnter;
+    return _EnterEndpointSnapshot(
+      fromOpacity: _resolveNum(fromMap?['opacity'], widget.context) ?? 0.0,
+      fromTX: _resolveNum(fromMap?['translateX'], widget.context) ?? 0.0,
+      fromTY: _resolveNum(fromMap?['translateY'], widget.context) ?? 0.0,
+      fromScale: _resolveNum(fromMap?['scale'], widget.context) ?? 1.0,
+      toOpacity: _resolveNum(to?['opacity'], widget.context) ?? 1.0,
+      toTX: _resolveNum(to?['translateX'], widget.context) ?? 0.0,
+      toTY: _resolveNum(to?['translateY'], widget.context) ?? 0.0,
+      toScale: _resolveNum(to?['scale'], widget.context) ?? 1.0,
+      alignment: align,
+    );
   }
 
   void _setupExitAnimation() {
@@ -165,27 +191,6 @@ class _AnimationWrapperState extends State<AnimationWrapper>
       duration: Duration(milliseconds: duration),
       vsync: this,
     );
-
-    _exitController!.addListener(() {
-      if (!mounted) return;
-      final to = _safeMapOrNull(exitConfig['to']);
-      final t =
-          _getCurve(exitConfig['easing']).transform(_exitController!.value);
-
-      setState(() {
-        final toOpacity = _resolveNum(to?['opacity'], widget.context) ?? 0.0;
-        _opacity = 1.0 + (toOpacity - 1.0) * t;
-
-        final toTY = _resolveNum(to?['translateY'], widget.context) ?? 0.0;
-        _translateY = toTY * t;
-
-        final toTX = _resolveNum(to?['translateX'], widget.context) ?? 0.0;
-        _translateX = toTX * t;
-
-        final toScale = _resolveNum(to?['scale'], widget.context) ?? 1.0;
-        _scale = 1.0 + (toScale - 1.0) * t;
-      });
-    });
 
     _exitController!.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -202,20 +207,45 @@ class _AnimationWrapperState extends State<AnimationWrapper>
     _checkExitTrigger();
   }
 
-  /// When exit is cancelled (e.g. [spotCheckDetails.isExiting] cleared by trackScreen)
-  /// mid-animation, snap back so the next show does not flash exit frames.
+  _ExitTargetSnapshot _buildExitSnapshot(Map<String, dynamic> exitConfig) {
+    final to = _safeMapOrNull(exitConfig['to']);
+    final align = _resolveTransformOrigin(
+          exitConfig['transformOrigin'],
+          widget.context,
+        ) ??
+        _alignExit;
+    return _ExitTargetSnapshot(
+      toOpacity: _resolveNum(to?['opacity'], widget.context) ?? 0.0,
+      toTX: _resolveNum(to?['translateX'], widget.context) ?? 0.0,
+      toTY: _resolveNum(to?['translateY'], widget.context) ?? 0.0,
+      toScale: _resolveNum(to?['scale'], widget.context) ?? 1.0,
+      alignment: align,
+    );
+  }
+
   void _snapExitIfInterrupted() {
     final c = _exitController;
     if (c == null) return;
     final v = c.value;
     if (v <= 0 || v >= 1.0) return;
     c.reset();
-    setState(() {
-      _opacity = 1.0;
-      _translateX = 0.0;
-      _translateY = 0.0;
-      _scale = 1.0;
-    });
+    _exitSnapshot = null;
+    _manualTick.value++;
+  }
+
+  bool _shouldHoldExitPoseDuringTeardown() {
+    final exitC = _exitController;
+    if (exitC == null || _exitSnapshot == null) return false;
+    if (_shouldExitTrigger()) return false;
+    final show = widget.context.state?['showSpotCheck'];
+    if (show == true) return false;
+    final v = exitC.value;
+    final completed =
+        exitC.status == AnimationStatus.completed && v >= 1.0;
+    final midFlight = v > 0.0 && v < 1.0;
+    final running =
+        exitC.isAnimating || exitC.status == AnimationStatus.forward;
+    return completed || midFlight || running;
   }
 
   void _checkExitTrigger() {
@@ -227,12 +257,22 @@ class _AnimationWrapperState extends State<AnimationWrapper>
         trigger != null ? evaluateCondition(trigger, widget.context) : false;
 
     if (_prevExitTrigger && !shouldExit) {
-      _snapExitIfInterrupted();
+      final show = widget.context.state?['showSpotCheck'];
+      if (show == true) {
+        _snapExitIfInterrupted();
+      }
     }
 
     if (shouldExit && !_prevExitTrigger) {
+      _exitSnapshot = _buildExitSnapshot(exitConfig);
       _exitController!.reset();
       _exitController!.forward();
+    }
+
+    if (!shouldExit) {
+      if (!_shouldHoldExitPoseDuringTeardown()) {
+        _exitSnapshot = null;
+      }
     }
 
     _prevExitTrigger = shouldExit;
@@ -251,7 +291,128 @@ class _AnimationWrapperState extends State<AnimationWrapper>
     return null;
   }
 
-  /// Parses CSS-style origins e.g. `100% 100%` (maps to [Alignment.bottomRight]).
+  bool _shouldExitTrigger() {
+    final exitConfig = _safeMapOrNull(widget.animation['exit']);
+    if (exitConfig == null) return false;
+    final trigger = exitConfig['trigger'];
+    if (trigger == null) return false;
+    return evaluateCondition(trigger, widget.context);
+  }
+
+  bool _shouldEnterTrigger() {
+    final enterConfig = _safeMapOrNull(widget.animation['enter']);
+    if (enterConfig == null) return false;
+    final trigger = enterConfig['trigger'];
+    if (trigger == null) return true;
+    return evaluateCondition(trigger, widget.context);
+  }
+
+  _AnimValues _computeAnimatedValues() {
+    final enterConfig = _safeMapOrNull(widget.animation['enter']);
+    final exitConfig = _safeMapOrNull(widget.animation['exit']);
+    final enterC = _enterController;
+    final exitC = _exitController;
+
+    final shouldExit = _shouldExitTrigger();
+    final shouldEnter = _shouldEnterTrigger();
+
+    final holdExitFinalFrame = _shouldHoldExitPoseDuringTeardown();
+
+    final exitMotionActive = shouldExit &&
+        exitC != null &&
+        (exitC.isAnimating ||
+            exitC.status == AnimationStatus.forward ||
+            (exitC.status == AnimationStatus.completed && exitC.value >= 1.0));
+
+    final enterMotionActive = shouldEnter &&
+        enterC != null &&
+        (enterC.isAnimating ||
+            enterC.status == AnimationStatus.forward ||
+            (enterC.status == AnimationStatus.completed &&
+                enterC.value >= 1.0 &&
+                _hasTriggeredEnter));
+
+    if (exitConfig != null &&
+        exitC != null &&
+        (exitMotionActive || holdExitFinalFrame)) {
+      final snap = _exitSnapshot;
+      final t = holdExitFinalFrame && !shouldExit
+          ? 1.0
+          : _getCurve(exitConfig['easing'])
+              .transform(exitC.value.clamp(0.0, 1.0));
+      if (snap != null) {
+        return _AnimValues(
+          opacity: 1.0 + (snap.toOpacity - 1.0) * t,
+          translateX: snap.toTX * t,
+          translateY: snap.toTY * t,
+          scale: 1.0 + (snap.toScale - 1.0) * t,
+          alignment: snap.alignment,
+        );
+      }
+      final to = _safeMapOrNull(exitConfig['to']);
+      final toOpacity = _resolveNum(to?['opacity'], widget.context) ?? 0.0;
+      final toTY = _resolveNum(to?['translateY'], widget.context) ?? 0.0;
+      final toTX = _resolveNum(to?['translateX'], widget.context) ?? 0.0;
+      final toScale = _resolveNum(to?['scale'], widget.context) ?? 1.0;
+      return _AnimValues(
+        opacity: 1.0 + (toOpacity - 1.0) * t,
+        translateX: toTX * t,
+        translateY: toTY * t,
+        scale: 1.0 + (toScale - 1.0) * t,
+        alignment: _alignExit,
+      );
+    }
+
+    if (enterConfig != null && enterC != null && enterMotionActive) {
+      final snap = _enterSnapshot;
+      final t = _getCurve(enterConfig['easing'])
+          .transform(enterC.value.clamp(0.0, 1.0));
+      if (snap != null) {
+        return _AnimValues(
+          opacity: snap.fromOpacity + (snap.toOpacity - snap.fromOpacity) * t,
+          translateY: snap.fromTY + (snap.toTY - snap.fromTY) * t,
+          translateX: snap.fromTX + (snap.toTX - snap.fromTX) * t,
+          scale: snap.fromScale + (snap.toScale - snap.fromScale) * t,
+          alignment: snap.alignment,
+        );
+      }
+      final to = _safeMapOrNull(enterConfig['to']);
+      final fromMap = _safeMapOrNull(enterConfig['from']);
+      final fromOpacity =
+          _resolveNum(fromMap?['opacity'], widget.context) ?? 0.0;
+      final toOpacity = _resolveNum(to?['opacity'], widget.context) ?? 1.0;
+      final fromTY = _resolveNum(fromMap?['translateY'], widget.context) ?? 0.0;
+      final toTY = _resolveNum(to?['translateY'], widget.context) ?? 0.0;
+      final fromTX = _resolveNum(fromMap?['translateX'], widget.context) ?? 0.0;
+      final toTX = _resolveNum(to?['translateX'], widget.context) ?? 0.0;
+      final fromScale = _resolveNum(fromMap?['scale'], widget.context) ?? 1.0;
+      final toScale = _resolveNum(to?['scale'], widget.context) ?? 1.0;
+      return _AnimValues(
+        opacity: fromOpacity + (toOpacity - fromOpacity) * t,
+        translateY: fromTY + (toTY - fromTY) * t,
+        translateX: fromTX + (toTX - fromTX) * t,
+        scale: fromScale + (toScale - fromScale) * t,
+        alignment: _alignEnter,
+      );
+    }
+
+    final enterCfg = _safeMapOrNull(widget.animation['enter']);
+    if (enterCfg != null) {
+      final from = _safeMapOrNull(enterCfg['from']);
+      if (from != null && !_hasTriggeredEnter) {
+        return _AnimValues(
+          opacity: _resolveNum(from['opacity'], widget.context) ?? 1.0,
+          translateY: _resolveNum(from['translateY'], widget.context) ?? 0.0,
+          translateX: _resolveNum(from['translateX'], widget.context) ?? 0.0,
+          scale: _resolveNum(from['scale'], widget.context) ?? 1.0,
+          alignment: _alignEnter,
+        );
+      }
+    }
+
+    return _AnimValues.identity(alignment: _alignEnter);
+  }
+
   Alignment? _resolveTransformOrigin(dynamic raw, BuilderContext ctx) {
     if (raw == null) return null;
     if (raw is String) return _parseTransformOriginString(raw);
@@ -295,29 +456,55 @@ class _AnimationWrapperState extends State<AnimationWrapper>
   void dispose() {
     _enterController?.dispose();
     _exitController?.dispose();
+    _manualTick.dispose();
     super.dispose();
-  }
-
-  Alignment get _activeScaleAlignment {
-    final exitAnim = _exitController?.isAnimating ?? false;
-    final enterAnim = _enterController?.isAnimating ?? false;
-    if (exitAnim) return _alignExit;
-    if (enterAnim) return _alignEnter;
-    return _alignEnter;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Transform.translate(
-      offset: Offset(_translateX, _translateY),
-      child: Transform.scale(
-        alignment: _activeScaleAlignment,
-        scale: _scale.clamp(0.01, 10.0),
-        child: Opacity(
-          opacity: _opacity.clamp(0.0, 1.0),
-          child: widget.child,
-        ),
-      ),
+    return AnimatedBuilder(
+      animation: _animationListenable,
+      builder: (context, child) {
+        final v = _computeAnimatedValues();
+        final o = v.opacity.clamp(0.0, 1.0);
+        final content = child ?? const SizedBox.shrink();
+        final scaled = Transform.scale(
+          alignment: v.alignment,
+          scale: v.scale.clamp(0.01, 10.0),
+          child: o >= 0.999 ? content : Opacity(opacity: o, child: content),
+        );
+        return Transform.translate(
+          offset: Offset(v.translateX, v.translateY),
+          child: scaled,
+        );
+      },
+      child: RepaintBoundary(child: widget.child),
+    );
+  }
+}
+
+class _AnimValues {
+  final double opacity;
+  final double translateX;
+  final double translateY;
+  final double scale;
+  final Alignment alignment;
+
+  const _AnimValues({
+    required this.opacity,
+    required this.translateX,
+    required this.translateY,
+    required this.scale,
+    required this.alignment,
+  });
+
+  factory _AnimValues.identity({Alignment alignment = Alignment.center}) {
+    return _AnimValues(
+      opacity: 1.0,
+      translateX: 0.0,
+      translateY: 0.0,
+      scale: 1.0,
+      alignment: alignment,
     );
   }
 }

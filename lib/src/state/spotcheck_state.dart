@@ -145,7 +145,6 @@ class SpotcheckStore extends ChangeNotifier {
 
   SpotCheckStateData _state = SpotCheckStateData();
 
-  /// Wrapper schema [ListView]: legacy Android `animateTo` when keyboard + WebView `position`.
   final ScrollController wrapperListScrollController;
 
   SpotCheckStateData get state => _state;
@@ -170,10 +169,12 @@ class SpotcheckStore extends ChangeNotifier {
       final val = update[key];
       switch (key) {
         case 'allSpotChecksInToken':
-          if (val is List) _state.allSpotChecksInToken = List<dynamic>.from(val);
+          if (val is List)
+            _state.allSpotChecksInToken = List<dynamic>.from(val);
           break;
         case 'customEventsSpotChecks':
-          if (val is List) _state.customEventsSpotChecks = List<dynamic>.from(val);
+          if (val is List)
+            _state.customEventsSpotChecks = List<dynamic>.from(val);
           break;
         case 'filteredSpotChecks':
           if (val is List) _state.filteredSpotChecks = List<dynamic>.from(val);

@@ -5,13 +5,6 @@ import 'package:flutter/material.dart';
 
 import '../state/spotcheck_state.dart';
 
-/// Legacy Android: after WebView posts `position` (`textPosition`), scroll the
-/// wrapper [ListView] once — same *trigger* as old `SpotCheckState` (handler
-/// reacted to `position`, not to every keyboard frame).
-///
-/// Keyboard height is read from the **window** ([MediaQueryData.fromView]) at
-/// scroll time — **not** from [SpotcheckStore], so we do not fight per-frame
-/// Redux-style updates.
 class WrapperScrollCoordinator extends StatefulWidget {
   const WrapperScrollCoordinator({
     super.key,

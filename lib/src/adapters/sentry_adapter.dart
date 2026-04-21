@@ -2,10 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-/// Keep in sync with [sdkVersion] in `execute/executables.dart`.
-const String _spotcheckSdkVersion = '2.0.0-beta.1';
+/// Keep in sync with `version` in pubspec.yaml.
+const String sdkVersion = '1.2.5';
 
-/// Expo/Android parity: prefer bundled `sentry.processSentryError`, then direct `POST …/sdkErrors`.
 class SentryAdapter {
   String? _domainName;
   String? _targetToken;
@@ -19,7 +18,6 @@ class SentryAdapter {
     _targetToken = targetToken;
   }
 
-  /// Wire after [Executables] exists; avoids circular imports by using callbacks.
   void wireExecute({
     required Future<dynamic> Function(String, Map<String, dynamic>?) execute,
     required bool Function() functionsLoaded,
@@ -42,7 +40,6 @@ class SentryAdapter {
         () => _reportError(msg, source, 'P1', context));
   }
 
-  /// Flushes reports collected from bundled JS (`payload.sentry.captureP0/P1`).
   Future<void> reportFromJsBridge({
     required String priority,
     required String errorMessage,
@@ -81,7 +78,7 @@ class SentryAdapter {
         final r = await exec('sentry.processSentryError', <String, dynamic>{
           'event': normalizedEvent,
           'sdkType': 'flutter',
-          'sdkVersion': _spotcheckSdkVersion,
+          'sdkVersion': sdkVersion,
         });
         if (_isProcessSentrySuccess(r)) return;
       } catch (_) {}
@@ -107,7 +104,7 @@ class SentryAdapter {
       final body = <String, dynamic>{
         'errorMessage': errorMessage,
         'sdkType': 'flutter',
-        'sdkVersion': _spotcheckSdkVersion,
+        'sdkVersion': sdkVersion,
         'level': level,
         'tags': <String, dynamic>{
           'error_priority': priority,

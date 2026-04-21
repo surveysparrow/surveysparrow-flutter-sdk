@@ -15,9 +15,6 @@ Map<String, dynamic> _safeMap(dynamic value) {
   return {};
 }
 
-/// A [Container] with non-null [alignment] expands to the parent's max
-/// constraints when both [width] and [height] are unspecified (null). That
-/// breaks shrink-wrapped controls (e.g. side-tab) under [Align]/[Positioned.fill].
 Alignment? _alignmentWhenSized(
     Alignment? alignment, double? width, double? height) {
   if (alignment == null) return null;
@@ -32,21 +29,11 @@ void registerDefaultComponents() {
   registry.register('SafeArea', _buildSafeArea);
   registry.register('GestureDetector', _buildGestureDetector);
   registry.register('Text', _buildText);
-  registry.register('SizedBox', _buildSizedBox);
   registry.register('Image', _buildImage);
   registry.register('SvgPicture', _buildSvgPicture);
-  registry.register('Opacity', _buildOpacity);
   registry.register('ListView', _buildListView);
-  registry.register('Column', _buildColumn);
-  registry.register('Row', _buildRow);
-  registry.register('Stack', _buildStack);
-  registry.register('Positioned', _buildPositioned);
-  registry.register('Transform', _buildTransform);
-  registry.register('AnimatedContainer', _buildContainer);
 }
 
-/// Legacy Spotcheck: iOS → [BouncingScrollPhysics]; Android → bouncing if keyboard else clamping
-/// (matches old `SpotCheckState` ListView `physics` / `currentKeyboardHeight`).
 Widget _buildListView(Map<String, dynamic> props, List<Widget>? children,
     {String? content}) {
   final shrinkWrap = props['shrinkWrap'] as bool? ?? true;
@@ -74,8 +61,6 @@ bool _isPositionedLike(Widget w) {
   return false;
 }
 
-/// Wraps child and reports its size after layout. Used for onLayout (sideTab).
-/// Only reports when size changes to avoid dispatch→rebuild→report loop (P-028).
 class _MeasureSize extends StatefulWidget {
   final Widget child;
   final void Function(dynamic event)? onLayout;
@@ -545,16 +530,6 @@ Widget _buildText(Map<String, dynamic> props, List<Widget>? children,
   );
 }
 
-Widget _buildSizedBox(Map<String, dynamic> props, List<Widget>? children,
-    {String? content}) {
-  final style = _safeMap(props['style']);
-  return SizedBox(
-    width: _toDouble(style['width']),
-    height: _toDouble(style['height']),
-    child: children?.isNotEmpty == true ? children!.first : null,
-  );
-}
-
 Widget _buildImage(Map<String, dynamic> props, List<Widget>? children,
     {String? content}) {
   final style = _safeMap(props['style']);
@@ -609,73 +584,6 @@ Widget _buildSvgPicture(Map<String, dynamic> props, List<Widget>? children,
     xml,
     width: width,
     height: height,
-  );
-}
-
-Widget _buildOpacity(Map<String, dynamic> props, List<Widget>? children,
-    {String? content}) {
-  final opacity = _toDouble(props['opacity']) ?? 1.0;
-  return Opacity(
-    opacity: opacity.clamp(0.0, 1.0),
-    child: children?.isNotEmpty == true
-        ? children!.first
-        : const SizedBox.shrink(),
-  );
-}
-
-Widget _buildColumn(Map<String, dynamic> props, List<Widget>? children,
-    {String? content}) {
-  return Column(
-    mainAxisSize: MainAxisSize.min,
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: children ?? [],
-  );
-}
-
-Widget _buildRow(Map<String, dynamic> props, List<Widget>? children,
-    {String? content}) {
-  return Row(
-    mainAxisSize: MainAxisSize.min,
-    children: children ?? [],
-  );
-}
-
-Widget _buildStack(Map<String, dynamic> props, List<Widget>? children,
-    {String? content}) {
-  return Stack(children: children ?? []);
-}
-
-Widget _buildPositioned(Map<String, dynamic> props, List<Widget>? children,
-    {String? content}) {
-  final style = _safeMap(props['style']);
-  return Positioned(
-    left: _toDouble(style['left']),
-    right: _toDouble(style['right']),
-    top: _toDouble(style['top']),
-    bottom: _toDouble(style['bottom']),
-    child: children?.isNotEmpty == true
-        ? children!.first
-        : const SizedBox.shrink(),
-  );
-}
-
-Widget _buildTransform(Map<String, dynamic> props, List<Widget>? children,
-    {String? content}) {
-  final style = _safeMap(props['style']);
-  final translateX = _toDouble(style['translateX']) ?? 0;
-  final translateY = _toDouble(style['translateY']) ?? 0;
-  final rotation = _toDouble(style['rotation']);
-
-  Widget child =
-      children?.isNotEmpty == true ? children!.first : const SizedBox.shrink();
-
-  if (rotation != null) {
-    child = Transform.rotate(angle: rotation, child: child);
-  }
-
-  return Transform.translate(
-    offset: Offset(translateX, translateY),
-    child: child,
   );
 }
 

@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:surveysparrow_flutter_sdk/ss_spotcheck_listener.dart';
 
-import 'execute/executables.dart' show Executables, sdkVersion;
+import 'execute/executables.dart' show Executables;
 import 'state/spotcheck_state.dart';
 import 'state/function_state.dart';
 import 'state/component_state.dart';
@@ -83,8 +83,6 @@ class SpotCheckSDK {
     registerDefaultComponents();
     registerCloseButtonComponent(spotcheckStore, componentStore, executables);
     registerWebViewComponent(spotcheckStore, componentStore, executables);
-    registerSpotCheckButtonComponent(
-        spotcheckStore, componentStore, executables);
     _componentsRegistered = true;
   }
 

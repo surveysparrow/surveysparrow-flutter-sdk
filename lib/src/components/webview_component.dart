@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' show PlatformDispatcher;
@@ -22,9 +23,6 @@ class WebViewControllerManager {
   String? _lastInjectedData;
   String? _prevInjKey;
 
-  /// Latest classic/chat injection JS we must run once the WebView is ready.
-  /// Normal mode: [trackScreen] can set [webViewInjectionData] before the controller
-  /// exists or before [onPageFinished] — button mode often injects later on tap so it works.
   String? _pendingClassicJs;
   String? _pendingChatJs;
 
@@ -39,8 +37,7 @@ class WebViewControllerManager {
     """;
 
   void injectUnmountApp() {
-    final isChat =
-        spotcheckStore.state.webViewDetails['isCurrentSpotcheckChat'] == true;
+    final isChat = spotcheckStore.state.webViewDetails['isChat'] == true;
     if (isChat && chatController != null) {
       chatController!.runJavaScript(_unmountAppJs);
     } else if (classicController != null) {
@@ -112,8 +109,6 @@ class WebViewControllerManager {
     return v.physicalSize.height / v.devicePixelRatio;
   }
 
-  /// focusin → `{ type: 'position', y }` for [handleWebViewMessage] / `getWrapperStyles`
-  /// (matches legacy Flutter `onPageFinished` + Expo `injectedJavaScript`).
   static String _focusTrackingJavaScript(double logicalScreenHeight) {
     final h = logicalScreenHeight.toStringAsFixed(4);
     return '''
@@ -136,8 +131,6 @@ class WebViewControllerManager {
 ''';
   }
 
-  /// Same helpers as Expo `spotcheckState` `webViewDetails.webViewConfig.injectedJavaScript`
-  /// (language selector + chat close hide). Does not overwrite `flutterSpotCheckData` (native channel).
   static String _euiPageHelperScripts() => r'''
 (function() {
   if (window.__ssSpotcheckEuiHelpersInstalled) return;
@@ -163,9 +156,6 @@ class WebViewControllerManager {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(NavigationDelegate(
         onPageFinished: (_) {
-          // Do NOT set isClassicLoading / isChatLoading here — SPA classic loads long after
-          // the main frame finishes. Readiness is signaled by classicLoadEvent / chatLoadEvent
-          // via handleWebViewMessage (see ss-eui-backend handleWebViewMessage.js).
           final sh = _logicalScreenHeight();
           final js =
               '${_focusTrackingJavaScript(sh)}\n${_euiPageHelperScripts()}';
@@ -197,22 +187,24 @@ class WebViewControllerManager {
                     }
                   },
                 );
-                controller.runJavaScript(_unmountAppJs);
+                injectUnmountApp();
               } else if (type == 'thankYouPageSubmission') {
                 final sd = spotcheckStore.state.spotCheckDetails;
                 final isMiniCard = sd['mode'] == 'miniCard';
                 final closeEnabled = sd['closeButton']?['isEnabled'] == true;
                 if (isMiniCard && !closeEnabled) {
-                  executables.execute(
-                    'webviewComponent.handleWebViewMessage',
-                    {
-                      'event': {
-                        'nativeEvent': {'data': data}
-                      }
-                    },
-                  );
-                  controller.runJavaScript(_unmountAppJs);
+                  Timer(const Duration(seconds: 4), () {
+                    injectUnmountApp();
+                  });
                 }
+                executables.execute(
+                  'webviewComponent.handleWebViewMessage',
+                  {
+                    'event': {
+                      'nativeEvent': {'data': data}
+                    }
+                  },
+                );
               } else {
                 executables.execute(
                   'webviewComponent.handleWebViewMessage',
@@ -256,13 +248,10 @@ class WebViewControllerManager {
       chatController!.loadRequest(Uri.parse(chatUrl));
     }
 
-    // Creating the controller after [trackScreen] must still run pending JS once load finishes.
     _applyPendingJavaScriptInjection();
     _updateFileSelectionListener();
   }
 
-  /// Matches Android [LaunchedEffect] keys: loading flags + injection payload identity
-  /// (not only null vs non-null), so [handleWebViewInjection] runs when the string changes.
   static String _injectionTriggerKey(Map<String, dynamic> wd) {
     final raw = wd['webViewInjectionData'];
     final String injPart = switch (raw) {
@@ -273,11 +262,6 @@ class WebViewControllerManager {
     return '${wd['isClassicLoading']}_${wd['isChatLoading']}_$injPart';
   }
 
-  /// `isClassicLoading` / `isChatLoading` are only treated as "loaded" when explicitly `false`
-  /// (same as Android [JSONObject.optBoolean] with default `true` for missing keys).
-  ///
-  /// Queues injection in [_pendingClassicJs] / [_pendingChatJs] until the controller exists
-  /// and loading is false — then runs [runJavaScript] (parity with button path + delayed open).
   void _applyPendingJavaScriptInjection() {
     final wd = spotcheckStore.state.webViewDetails;
     final injData = wd['webViewInjectionData'];
@@ -296,7 +280,6 @@ class WebViewControllerManager {
       return;
     }
 
-    // Use isChat != true for classic so null (after reset) defaults to classic.
     if (isChat != true) {
       _pendingClassicJs = injData;
       _pendingChatJs = null;
@@ -308,9 +291,8 @@ class WebViewControllerManager {
     final classicReady = isChat != true &&
         classicController != null &&
         isClassicLoading == false;
-    final chatReady = isChat == true &&
-        chatController != null &&
-        isChatLoading == false;
+    final chatReady =
+        isChat == true && chatController != null && isChatLoading == false;
 
     if (classicReady && _pendingClassicJs != null) {
       final js = _pendingClassicJs!;
@@ -329,8 +311,6 @@ class WebViewControllerManager {
     }
   }
 
-  /// Call after [ensureControllers] from widget [build] so normal-mode overlays inject
-  /// when the WebView subtree mounts (store may have notified before [WebViewWidget] existed).
   void flushPendingJavaScriptInjection() => _applyPendingJavaScriptInjection();
 
   void _onStateChanged() {
@@ -398,7 +378,6 @@ class WebViewComponentWidget extends StatelessWidget {
       }
     }
 
-    // Platform views (Android/iOS) can paint outside the schema bounds; clip like RN overflow:hidden.
     return Stack(
       clipBehavior: Clip.hardEdge,
       children: [
@@ -430,8 +409,6 @@ class _WebViewSlot extends StatelessWidget {
     this.hiddenStyle,
   });
 
-  /// Android/iOS platform views often ignore 0×0 or unbounded constraints and paint fullscreen.
-  /// Omit [WebViewWidget] until the parent gives a real box (matches card/overlay lifecycle).
   static Widget _clipWebViewToBox(WebViewWidget webView, BoxConstraints c) {
     if (!c.hasBoundedWidth || !c.hasBoundedHeight) {
       return const SizedBox.shrink();

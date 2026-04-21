@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../builder/builder.dart';
-import '../builder/component_registry.dart';
 import '../state/spotcheck_state.dart';
 import '../state/component_state.dart';
 import '../execute/executables.dart';
@@ -28,8 +27,6 @@ class _SpotCheckButtonComponentState extends State<SpotCheckButtonComponent> {
   String _lastStyleKey = '';
   String? _lastMediaKey;
 
-  /// Bumps when the button is shown again after being hidden (nav away + back).
-  /// Keys [SchemaBuilder] so the subtree remounts — fresh [AnimationWrapper] state (Expo remount parity).
   int _buttonShowSession = 0;
   bool _wasSpotCheckButton = false;
 
@@ -137,16 +134,4 @@ class _SpotCheckButtonComponentState extends State<SpotCheckButtonComponent> {
       context: builderContext,
     );
   }
-}
-
-void registerSpotCheckButtonComponent(
-    SpotcheckStore store, ComponentStore componentStore, Executables exec) {
-  ComponentRegistry.instance.register(
-    'SpotCheckButton',
-    (props, children, {String? content}) => SpotCheckButtonComponent(
-      spotcheckStore: store,
-      componentStore: componentStore,
-      executables: exec,
-    ),
-  );
 }
