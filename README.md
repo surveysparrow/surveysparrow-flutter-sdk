@@ -19,7 +19,7 @@ SurveySparrow’s Flutter package supports two integration modes. Use the row th
 
 | Integration | Command |
 |-------------|---------|
-| SpotChecks | `flutter pub add surveysparrow_flutter_sdk:^1.2.5` |
+| SpotChecks | `flutter pub add surveysparrow_flutter_sdk:^1.2.6` |
 | SDK Share | `flutter pub add surveysparrow_flutter_sdk:^1.1.6` |
 
 ### pub.dev
