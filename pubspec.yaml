@@ -1,6 +1,6 @@
 name: surveysparrow_flutter_sdk
 description: SurveySparrow's flutter SDK lets you collect feedback at various touchpoints from your mobile app users. You can easily embed surveys in your mobile app with a few lines of code.
-version: "1.2.5"
+version: "1.2.6-beta.1"
 homepage: https://github.com/surveysparrow/surveysparrow-flutter-sdk/tree/master
 
 environment:
@@ -10,23 +10,23 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  webview_flutter: ">=4.10.0 <5.0.0"
-  webview_flutter_android: ">=4.3.1 <5.0.0"
-  http: ">=1.2.0 <2.0.0"
-  get: ">=4.6.5 <5.0.0"
-  uuid: ">=4.4.0 <5.0.0"
-  shared_preferences: ">=2.2.0 <3.0.0"
-  file_picker: ">=8.1.0 <11.0.0"
-  image_picker: ">=1.1.0 <2.0.0"
-  device_info_plus: ">=11.0.0 <12.0.0"
-  keyboard_height_plugin: ">=0.1.5 <1.0.0"
-  flutter_svg: ">=2.0.10 <3.0.0"
-  cached_network_image: ">=3.3.0 <4.0.0"
+  webview_flutter: ">=4.10.0"
+  webview_flutter_android: ">=4.3.1"
+  http: ">=1.2.0"
+  get: ">=4.6.5"
+  uuid: ">=4.4.0"
+  shared_preferences: ">=2.2.0"
+  file_picker: ">=8.1.0"
+  image_picker: ">=1.1.0"
+  device_info_plus: ">=11.0.0"
+  keyboard_height_plugin: ">=0.1.5"
+  flutter_svg: ">=2.0.10"
+  cached_network_image: ">=3.3.0"
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ">=2.0.0 <4.0.0"
+  flutter_lints: ">=2.0.0"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
