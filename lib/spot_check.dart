@@ -11,7 +11,6 @@ class SpotCheck extends StatelessWidget {
     required this.userDetails,
     this.variables = const {},
     this.customProperties = const {},
-    this.isStandardCurvedViewEnabled = false,
     this.spotCheckListener,
   }) : super(key: key) {
     spotCheckState = SpotCheckState(
@@ -20,7 +19,6 @@ class SpotCheck extends StatelessWidget {
       userDetails: userDetails,
       variables: variables,
       customProperties: customProperties,
-      isStandardCurvedViewEnabled: isStandardCurvedViewEnabled,
       spotCheckListener: spotCheckListener,
     );
   }
@@ -30,7 +28,6 @@ class SpotCheck extends StatelessWidget {
   final Map<String, dynamic> userDetails;
   final Map<String, dynamic> variables;
   final Map<String, dynamic> customProperties;
-  final bool isStandardCurvedViewEnabled;
   final SsSpotcheckListener? spotCheckListener;
 
   late final SpotCheckState spotCheckState;
