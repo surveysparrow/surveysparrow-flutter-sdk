@@ -759,7 +759,7 @@ class SpotCheckState extends StatelessWidget {
                                 margin: EdgeInsets.symmetric(
                                   horizontal: spotChecksMode.value == "miniCard"
                                       ? 12
-                                      : _getStandardCardHorizontalMargin(),
+                                      : 0,
                                 ),
                                 child: SizedBox(
                                   height: (isSpotCheckOpen.value == true &&
@@ -1072,14 +1072,6 @@ class SpotCheckState extends StatelessWidget {
     }
   }
 
-  double _getStandardCardHorizontalMargin() {
-    if (spotChecksMode.value == "card" &&
-        isStandardCurvedViewEnabled &&
-        position.value == "center") {
-      return _standardCardCornerRadius;
-    }
-    return 0;
-  }
 
   void setAppearance(Map<String, dynamic> responseJson, String screen) async {
     if (responseJson.isEmpty) return;
