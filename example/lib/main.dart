@@ -14,6 +14,7 @@ final SpotCheck spotCheck = SpotCheck(
   userDetails: {},
   variables: {},
   customProperties: {},
+  isStandardCurvedViewEnabled: false, //Optional
     spotCheckListener:MySpotcheckListener()
 );
 

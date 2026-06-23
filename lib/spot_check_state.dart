@@ -28,6 +28,7 @@ class SpotCheckState extends StatelessWidget {
       required this.userDetails,
       required this.variables,
       required this.customProperties,
+      this.isStandardCurvedViewEnabled = false,
       required this.spotCheckListener
       })
       : super(key: key);
@@ -36,6 +37,7 @@ class SpotCheckState extends StatelessWidget {
   final String domainName;
   final Map<String, dynamic> variables;
   final Map<String, dynamic> customProperties;
+  final bool isStandardCurvedViewEnabled;
   double screenHeight = 0;
   double screenWidth = 0;
   final Map<String, dynamic> userDetails;
@@ -87,6 +89,8 @@ class SpotCheckState extends StatelessWidget {
   final RxBool isSurveyLoaded = false.obs;
   final RxMap<String, dynamic> appearance = <String, dynamic>{}.obs;
   final RxBool isChat  = false.obs;
+
+  static const double _standardCardCornerRadius = 12.0;
   void start() {
       isSpotCheckOpen.value = true;
   }
@@ -158,7 +162,7 @@ class SpotCheckState extends StatelessWidget {
 
         return pickedFile != null ? [File(pickedFile.path).uri.toString()] : [];
       } else {
-        final result = await FilePicker.platform.pickFiles(allowMultiple: true);
+        final result = await FilePicker.pickFiles(allowMultiple: true);
         return result?.files
                 .where((file) => file.path != null)
                 .map((file) => File(file.path!).uri.toString())
@@ -752,7 +756,11 @@ class SpotCheckState extends StatelessWidget {
                             shrinkWrap: true,
                             children: [
                               Container(
-                                margin: EdgeInsets.symmetric(horizontal: (spotChecksMode.value == "miniCard") ? 12 : 0),
+                                margin: EdgeInsets.symmetric(
+                                  horizontal: spotChecksMode.value == "miniCard"
+                                      ? 12
+                                      : _getStandardCardHorizontalMargin(),
+                                ),
                                 child: SizedBox(
                                   height: (isSpotCheckOpen.value == true &&
                                       ((isMounted.value || isFullScreenMode.value) &&
@@ -826,7 +834,9 @@ class SpotCheckState extends StatelessWidget {
                                               : SizedBox.shrink(),
                                           Expanded(
                                             child: ClipRRect(
-                                              borderRadius: BorderRadius.circular((spotChecksMode.value == "miniCard") ? 12 : 0),
+                                              borderRadius: spotChecksMode.value == "miniCard"
+                                                  ? BorderRadius.circular(12)
+                                                  : _getStandardCardBorderRadius(),
                                               child: WebViewWidget(
                                                 gestureRecognizers: Set()
                                                   ..add(
@@ -1042,6 +1052,33 @@ class SpotCheckState extends StatelessWidget {
       default:
         return Alignment.bottomCenter;
     }
+  }
+
+  BorderRadius _getStandardCardBorderRadius() {
+    if (spotChecksMode.value != "card" || !isStandardCurvedViewEnabled) {
+      return BorderRadius.zero;
+    }
+
+    final radius = Radius.circular(_standardCardCornerRadius);
+    switch (position.value) {
+      case "top":
+        return BorderRadius.only(bottomLeft: radius, bottomRight: radius);
+      case "center":
+        return BorderRadius.circular(_standardCardCornerRadius);
+      case "bottom":
+        return BorderRadius.only(topLeft: radius, topRight: radius);
+      default:
+        return BorderRadius.zero;
+    }
+  }
+
+  double _getStandardCardHorizontalMargin() {
+    if (spotChecksMode.value == "card" &&
+        isStandardCurvedViewEnabled &&
+        position.value == "center") {
+      return _standardCardCornerRadius;
+    }
+    return 0;
   }
 
   void setAppearance(Map<String, dynamic> responseJson, String screen) async {
