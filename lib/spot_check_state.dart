@@ -87,6 +87,7 @@ class SpotCheckState extends StatelessWidget {
   final RxBool isSurveyLoaded = false.obs;
   final RxMap<String, dynamic> appearance = <String, dynamic>{}.obs;
   final RxBool isChat  = false.obs;
+  final RxBool isRtl = false.obs;
   void start() {
       isSpotCheckOpen.value = true;
   }
@@ -134,6 +135,7 @@ class SpotCheckState extends StatelessWidget {
       isChat.value = false;
       isFirstQuestion.value = true;
       isSurveyLoaded.value = false;
+      isRtl.value = false;
     }
     else{
       isMounted.value = false;
@@ -144,6 +146,7 @@ class SpotCheckState extends StatelessWidget {
       currentQuestionHeight.value = 0;
       isFirstQuestion.value = true;
       isSurveyLoaded.value = false;
+      isRtl.value = false;
     }
   }
 
@@ -637,6 +640,9 @@ class SpotCheckState extends StatelessWidget {
                       isCloseButtonEnabled.value = true;
                     }
                 }
+                else if (jsonResponse['type'] == 'languageChanged') {
+                    isRtl.value = jsonResponse['data']?['isRtl'] ?? false;
+                  }
                 else if (jsonResponse["type"] == 'slideInFrame') {
                     isMounted.value = true;
                   } else if (jsonResponse["type"] == 'position') {
@@ -787,7 +793,7 @@ class SpotCheckState extends StatelessWidget {
                                         children: [
                                           (spotChecksMode.value == "miniCard" && isCloseButtonEnabled.value)
                                               ? Row(
-                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            mainAxisAlignment: isRtl.value ? MainAxisAlignment.start : MainAxisAlignment.end,
                                             children: [
                                               Padding(
                                                 padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -841,7 +847,7 @@ class SpotCheckState extends StatelessWidget {
                                           ),
                                           (avatarEnabled.value && spotChecksMode.value == "miniCard")
                                               ? Row(
-                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            mainAxisAlignment: isRtl.value ? MainAxisAlignment.end : MainAxisAlignment.start,
                                             children: [
                                               Padding(
                                                 padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -873,7 +879,8 @@ class SpotCheckState extends StatelessWidget {
                                           spotChecksMode.value != "miniCard")
                                           ? Positioned(
                                         top: 6,
-                                        right: 8,
+                                        right: isRtl.value ? null : 8,
+                                        left: isRtl.value ? 8 : null,
                                         child: IconButton(
                                           icon: Icon(
                                             Icons.close,
@@ -954,7 +961,8 @@ class SpotCheckState extends StatelessWidget {
                                       (isCloseButtonEnabled.value && !isChatLoading.value && isInjected.value && spotChecksMode.value!="miniCard")
                                           ? Positioned(
                                         top: 6,
-                                        right: 8,
+                                        right: isRtl.value ? null : 8,
+                                        left: isRtl.value ? 8 : null,
                                         child: IconButton(
                                           icon: Icon(
                                             Icons.close,
