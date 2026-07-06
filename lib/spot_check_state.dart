@@ -618,9 +618,7 @@ class SpotCheckState extends StatelessWidget {
                       }
                     }
 
-                    else if(jsonResponse['data']['isCloseButtonEnabled']!=null){
-                      isCloseButtonEnabled.value = jsonResponse['data']['isCloseButtonEnabled'];
-                    }
+
 
                   }
                   else if (jsonResponse['type'] == "classicLoadEvent") {
