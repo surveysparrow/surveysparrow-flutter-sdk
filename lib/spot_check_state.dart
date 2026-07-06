@@ -578,6 +578,19 @@ class SpotCheckState extends StatelessWidget {
               }));
             }
           });
+          (function() {
+            var id = 'ss-sdk-lang-close-margin';
+            if (!document.getElementById(id)) {
+              var el = document.createElement('style');
+              el.id = id;
+              el.textContent =
+                '.ss-language-selector--wrapper--spotcheck-sdk{margin-right:45px;}' +
+                '.ss-eui-wrapper--rtl .ss-language-selector--wrapper--spotcheck-sdk{margin-left:25px;margin-right:0;}' +
+                '.ss-eui-wrapper--rtl .ss-language-selector--wrapper.ss-language-selector--spotchecks{left:62px;right:auto;}' +
+                '.ss-eui-wrapper--rtl .ss-language-selector--wrapper.ss-language-selector--spotchecks-no-close-btn{left:24px;right:auto;}';
+              (document.head || document.documentElement).appendChild(el);
+            }
+          })();
           """
               );
             },
