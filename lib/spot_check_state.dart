@@ -81,7 +81,6 @@ class SpotCheckState extends StatelessWidget {
   final RxBool isSpotCheckButton = false.obs;
   final RxMap<String, dynamic> spotCheckButtonConfig = <String, dynamic>{}.obs;
   final RxBool showSurveyContent = true.obs;
-  final RxBool isThankyouPageSubmission = false.obs;
   final RxString screenName = ''.obs;
   final RxBool isFirstQuestion = true.obs;
   final RxBool isSurveyLoaded = false.obs;
@@ -128,7 +127,6 @@ class SpotCheckState extends StatelessWidget {
       isSpotCheckButton.value = false;
       spotCheckButtonConfig.value = {};
       showSurveyContent.value = true;
-      isThankyouPageSubmission.value = false;
       spotCheckType.value = "";
       appearance.value = {};
       screenName.value = "";
@@ -142,7 +140,6 @@ class SpotCheckState extends StatelessWidget {
       isInjected.value = false;
       isSpotCheckOpen.value = false;
       showSurveyContent.value = false;
-      isThankyouPageSubmission.value = false;
       currentQuestionHeight.value = 0;
       isFirstQuestion.value = true;
       isSurveyLoaded.value = false;
@@ -639,17 +636,11 @@ class SpotCheckState extends StatelessWidget {
                     await spotCheckListener?.onPartialSubmission(jsonResponse);
                   }
                 else if(jsonResponse['type'] == 'thankYouPageSubmission'){
-                    isThankyouPageSubmission.value = true;
-                    await spotCheckListener?.onSurveyResponse(jsonResponse);
-
-                    if (spotChecksMode.value == 'miniCard' && !isCloseButtonEnabled.value) {
-                      Timer(const Duration(seconds: 4), () {
+                    isCloseButtonEnabled.value = false;
+                     Timer(const Duration(seconds: 4), () {
                         end();
                       });
-                    }
-                    else{
-                      isCloseButtonEnabled.value = true;
-                    }
+                    await spotCheckListener?.onSurveyResponse(jsonResponse);
                 }
                 else if (jsonResponse['type'] == 'languageChanged') {
                     isRtl.value = jsonResponse['data']?['isRtl'] ?? false;
