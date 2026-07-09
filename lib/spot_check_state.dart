@@ -56,6 +56,11 @@ class SpotCheckState extends StatelessWidget {
   final RxString traceId = "".obs;
   final RxBool _isImageCaptureActive = false.obs;
   final RxDouble maxHeight = 0.0.obs;
+  final RxDouble cardRadius = 0.0.obs;
+  final RxBool isBackdropEnabled = false.obs;
+  final RxString backdropColor = "#000000".obs;
+  final RxDouble backdropOpacity = 0.0.obs;
+  final RxDouble backdropBlur = 0.0.obs;
   final RxBool _isSpotPassed = false.obs;
   final RxBool _isChecksPassed = false.obs;
   final RxList<dynamic> customEventsSpotChecks = [].obs;
@@ -134,6 +139,11 @@ class SpotCheckState extends StatelessWidget {
       isChat.value = false;
       isFirstQuestion.value = true;
       isSurveyLoaded.value = false;
+      cardRadius.value = 0.0;
+      isBackdropEnabled.value = false;
+      backdropColor.value = "#000000";
+      backdropOpacity.value = 0.0;
+      backdropBlur.value = 0.0;
     }
     else{
       isMounted.value = false;
@@ -726,14 +736,27 @@ class SpotCheckState extends StatelessWidget {
     return Obx(() => SafeArea(
       child: Stack(
               children: <Widget>[
-                ((isMounted.value || isFullScreenMode.value) && isInjected.value && showSurveyContent.value )
-                    ? Container(
-                        color: const Color.fromARGB(85, 0, 0, 0),
-                        child: SizedBox(
-                          height: MediaQuery.of(context).size.height,
-                          width: MediaQuery.of(context).size.width,
+                ((isMounted.value || isFullScreenMode.value) && isInjected.value && showSurveyContent.value)
+                    ? (isBackdropEnabled.value)?ClipRect(
+                        child: BackdropFilter(
+                          filter: ui.ImageFilter.blur(
+                              sigmaX: backdropBlur.value, sigmaY: backdropBlur.value),
+                          child: Container(
+                            color: hexToColor(backdropColor.value)
+                                .withOpacity(backdropOpacity.value),
+                            child: SizedBox(
+                              height: MediaQuery.of(context).size.height,
+                              width: MediaQuery.of(context).size.width,
+                            ),
+                          ),
                         ),
-                      )
+                      ): Container(
+                  color: const Color.fromARGB(85, 0, 0, 0),
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height,
+                    width: MediaQuery.of(context).size.width,
+                  ),
+                )
                     : const SizedBox.shrink(),
                 Positioned(
                   top: (currentQuestionHeight.value==0 && !isFullScreenMode.value && isSpotCheckOpen.value) ? -200 : 0,
@@ -826,7 +849,7 @@ class SpotCheckState extends StatelessWidget {
                                               : SizedBox.shrink(),
                                           Expanded(
                                             child: ClipRRect(
-                                              borderRadius: BorderRadius.circular((spotChecksMode.value == "miniCard") ? 12 : 0),
+                                              borderRadius: _getCardBorderRadius(),
                                               child: WebViewWidget(
                                                 gestureRecognizers: Set()
                                                   ..add(
@@ -1031,6 +1054,29 @@ class SpotCheckState extends StatelessWidget {
     );
   }
 
+  BorderRadius _getCardBorderRadius() {
+    final radius = Radius.circular(cardRadius.value);
+
+    if (spotChecksMode.value == "miniCard") {
+      return BorderRadius.all(radius);
+    }
+
+    if (isFullScreenMode.value) {
+      return BorderRadius.zero;
+    }
+
+    switch (position.value) {
+      case "bottom":
+        return BorderRadius.only(topLeft: radius, topRight: radius);
+      case "top":
+        return BorderRadius.only(bottomLeft: radius, bottomRight: radius);
+      case "center":
+        return BorderRadius.all(radius);
+      default:
+        return BorderRadius.all(radius);
+    }
+  }
+
   Alignment _getAlignment() {
     switch (position.value) {
       case "top":
@@ -1072,6 +1118,7 @@ class SpotCheckState extends StatelessWidget {
 
     switch (appearance["position"]) {
       case "top_full":
+      case "center_top":
         position.value = "top";
         break;
       case "center_center":
@@ -1090,6 +1137,15 @@ class SpotCheckState extends StatelessWidget {
       maxHeight.value =
           double.tryParse(cardProp["maxHeight"].toString()) ?? 1.0 / 100;
     }
+    cardRadius.value =
+        double.tryParse((cardProp?["radius"])?.toString() ?? "0") ?? 0.0;
+
+    isBackdropEnabled.value = appearance!["backdrop"] ?? false;
+    backdropColor.value = appearance!["backdropColor"] ?? "#000000";
+    backdropOpacity.value =
+        double.tryParse(appearance!["backdropOpacity"].toString()) ?? 0.0;
+    backdropBlur.value =
+        double.tryParse(appearance!["backdropBlur"].toString()) ?? 0.0;
 
     isFullScreenMode.value = appearance["mode"] == "fullScreen";
     isBannerImageOn.value = appearance["bannerImage"]?["enabled"] ?? false;
@@ -1210,6 +1266,12 @@ String generateTraceId() {
   String uuidString = uuid.v4();
   int timestamp = DateTime.now().millisecondsSinceEpoch;
   return '$uuidString-$timestamp';
+}
+
+Color hexToColor(String input, {Color fallback = Colors.black}) {
+  return isHex(input)
+      ? Color(int.parse("0xFF${input.replaceAll("#", "")}"))
+      : fallback;
 }
 
 bool isHex(String input) {
