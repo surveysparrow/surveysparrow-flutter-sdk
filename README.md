@@ -12,21 +12,28 @@ SurveySparrow’s Flutter package supports two integration modes. Use the row th
 
 | Integration | Latest version | Package name | Documentation |
 |-------------|----------------|--------------|---------------|
-| **SpotChecks** | `1.2.5` | `surveysparrow_flutter_sdk` | [Flutter SpotChecks](https://developers.surveysparrow.com/spotchecks/mobile-spotchecks/flutter) |
+| **SpotChecks** | `1.2.7` | `surveysparrow_flutter_sdk` | [Flutter SpotChecks](https://developers.surveysparrow.com/spotchecks/mobile-spotchecks/flutter) |
 | **SDK Share** (embed surveys) | `1.1.6` | `surveysparrow_flutter_sdk` | [Flutter SDK](https://developers.surveysparrow.com/sdk/flutter) |
 
 ### Install
 
 | Integration | Command |
 |-------------|---------|
-| SpotChecks | `flutter pub add surveysparrow_flutter_sdk:^1.2.6` |
+| SpotChecks | `flutter pub add surveysparrow_flutter_sdk:^1.2.7` |
 | SDK Share | `flutter pub add surveysparrow_flutter_sdk:^1.1.6` |
 
 ### pub.dev
 
 | Integration | Version page |
 |-------------|--------------|
-| SpotChecks | https://pub.dev/packages/surveysparrow_flutter_sdk/versions/1.2.5 |
+| SpotChecks | https://pub.dev/packages/surveysparrow_flutter_sdk/versions/1.2.7 |
 | SDK Share | https://pub.dev/packages/surveysparrow_flutter_sdk/versions/1.1.6 |
+
+### `file_picker` compatibility
+
+| SDK version | `file_picker` |
+|-------------|---------------|
+| `1.2.7+` | `>=11.0.0` |
+| `1.2.6` and below | `>=8.1.0 <11.0.0` |
 
 > Please submit bugs/issues through [GitHub issues](https://github.com/surveysparrow/surveysparrow-flutter-sdk/issues); we will try to fix them ASAP.
