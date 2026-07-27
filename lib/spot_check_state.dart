@@ -86,12 +86,12 @@ class SpotCheckState extends StatelessWidget {
   final RxBool isSpotCheckButton = false.obs;
   final RxMap<String, dynamic> spotCheckButtonConfig = <String, dynamic>{}.obs;
   final RxBool showSurveyContent = true.obs;
-  final RxBool isThankyouPageSubmission = false.obs;
   final RxString screenName = ''.obs;
   final RxBool isFirstQuestion = true.obs;
   final RxBool isSurveyLoaded = false.obs;
   final RxMap<String, dynamic> appearance = <String, dynamic>{}.obs;
   final RxBool isChat  = false.obs;
+  final RxBool isRtl = false.obs;
   void start() {
       isSpotCheckOpen.value = true;
   }
@@ -132,13 +132,13 @@ class SpotCheckState extends StatelessWidget {
       isSpotCheckButton.value = false;
       spotCheckButtonConfig.value = {};
       showSurveyContent.value = true;
-      isThankyouPageSubmission.value = false;
       spotCheckType.value = "";
       appearance.value = {};
       screenName.value = "";
       isChat.value = false;
       isFirstQuestion.value = true;
       isSurveyLoaded.value = false;
+      isRtl.value = false;
       cardRadius.value = 0.0;
       isBackdropEnabled.value = false;
       backdropColor.value = "#000000";
@@ -150,10 +150,10 @@ class SpotCheckState extends StatelessWidget {
       isInjected.value = false;
       isSpotCheckOpen.value = false;
       showSurveyContent.value = false;
-      isThankyouPageSubmission.value = false;
       currentQuestionHeight.value = 0;
       isFirstQuestion.value = true;
       isSurveyLoaded.value = false;
+      isRtl.value = false;
     }
   }
 
@@ -168,7 +168,7 @@ class SpotCheckState extends StatelessWidget {
 
         return pickedFile != null ? [File(pickedFile.path).uri.toString()] : [];
       } else {
-        final result = await FilePicker.platform.pickFiles(allowMultiple: true);
+        final result = await FilePicker.pickFiles(allowMultiple: true);
         return result?.files
                 .where((file) => file.path != null)
                 .map((file) => File(file.path!).uri.toString())
@@ -585,6 +585,19 @@ class SpotCheckState extends StatelessWidget {
               }));
             }
           });
+          (function() {
+            var id = 'ss-sdk-lang-close-margin';
+            if (!document.getElementById(id)) {
+              var el = document.createElement('style');
+              el.id = id;
+              el.textContent =
+                '.ss-language-selector--wrapper--spotcheck-sdk{margin-right:45px;}' +
+                '.ss-eui-wrapper--rtl .ss-language-selector--wrapper--spotcheck-sdk{margin-left:25px;margin-right:0;}' +
+                '.ss-eui-wrapper--rtl .ss-language-selector--wrapper.ss-language-selector--spotchecks{left:62px;right:auto;}' +
+                '.ss-eui-wrapper--rtl .ss-language-selector--wrapper.ss-language-selector--spotchecks-no-close-btn{left:24px;right:auto;}';
+              (document.head || document.documentElement).appendChild(el);
+            }
+          })();
           """
               );
             },
@@ -612,9 +625,7 @@ class SpotCheckState extends StatelessWidget {
                       }
                     }
 
-                    else if(jsonResponse['data']['isCloseButtonEnabled']!=null){
-                      isCloseButtonEnabled.value = jsonResponse['data']['isCloseButtonEnabled'];
-                    }
+
 
                   }
                   else if (jsonResponse['type'] == "classicLoadEvent") {
@@ -635,18 +646,15 @@ class SpotCheckState extends StatelessWidget {
                     await spotCheckListener?.onPartialSubmission(jsonResponse);
                   }
                 else if(jsonResponse['type'] == 'thankYouPageSubmission'){
-                    isThankyouPageSubmission.value = true;
-                    await spotCheckListener?.onSurveyResponse(jsonResponse);
-
-                    if (spotChecksMode.value == 'miniCard' && !isCloseButtonEnabled.value) {
-                      Timer(const Duration(seconds: 4), () {
+                    isCloseButtonEnabled.value = false;
+                     Timer(const Duration(seconds: 4), () {
                         end();
                       });
-                    }
-                    else{
-                      isCloseButtonEnabled.value = true;
-                    }
+                    await spotCheckListener?.onSurveyResponse(jsonResponse);
                 }
+                else if (jsonResponse['type'] == 'languageChanged') {
+                    isRtl.value = jsonResponse['data']?['isRtl'] ?? false;
+                  }
                 else if (jsonResponse["type"] == 'slideInFrame') {
                     isMounted.value = true;
                   } else if (jsonResponse["type"] == 'position') {
@@ -810,7 +818,7 @@ class SpotCheckState extends StatelessWidget {
                                         children: [
                                           (spotChecksMode.value == "miniCard" && isCloseButtonEnabled.value)
                                               ? Row(
-                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            mainAxisAlignment: isRtl.value ? MainAxisAlignment.start : MainAxisAlignment.end,
                                             children: [
                                               Padding(
                                                 padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -864,7 +872,7 @@ class SpotCheckState extends StatelessWidget {
                                           ),
                                           (avatarEnabled.value && spotChecksMode.value == "miniCard")
                                               ? Row(
-                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            mainAxisAlignment: isRtl.value ? MainAxisAlignment.end : MainAxisAlignment.start,
                                             children: [
                                               Padding(
                                                 padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -896,7 +904,8 @@ class SpotCheckState extends StatelessWidget {
                                           spotChecksMode.value != "miniCard")
                                           ? Positioned(
                                         top: 6,
-                                        right: 8,
+                                        right: isRtl.value ? null : 8,
+                                        left: isRtl.value ? 8 : null,
                                         child: IconButton(
                                           icon: Icon(
                                             Icons.close,
@@ -977,7 +986,8 @@ class SpotCheckState extends StatelessWidget {
                                       (isCloseButtonEnabled.value && !isChatLoading.value && isInjected.value && spotChecksMode.value!="miniCard")
                                           ? Positioned(
                                         top: 6,
-                                        right: 8,
+                                        right: isRtl.value ? null : 8,
+                                        left: isRtl.value ? 8 : null,
                                         child: IconButton(
                                           icon: Icon(
                                             Icons.close,
