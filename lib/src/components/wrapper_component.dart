@@ -133,6 +133,7 @@ class _WrapperComponentState extends State<WrapperComponent> {
     'webViewWrapperStyle': {'width': 0, 'height': 0, 'opacity': 0},
   };
   bool _styleLoading = false;
+  bool _styleReloadPending = false;
   String _lastStyleKey = '';
   double _keyboardInset = -1;
   Timer? _keyboardStyleDebounce;
@@ -157,11 +158,17 @@ class _WrapperComponentState extends State<WrapperComponent> {
     super.dispose();
   }
 
+  Size? _lastSize;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final kb = MediaQuery.viewInsetsOf(context).bottom;
-    if (_keyboardInset >= 0 && (kb - _keyboardInset).abs() < 0.5) {
+    // Rotation/resize also needs fresh styles (width, heights).
+    final size = MediaQuery.sizeOf(context);
+    final sizeChanged = _lastSize != null && _lastSize != size;
+    _lastSize = size;
+    if (!sizeChanged && _keyboardInset >= 0 && (kb - _keyboardInset).abs() < 0.5) {
       return;
     }
     _keyboardInset = kb;
@@ -184,7 +191,9 @@ class _WrapperComponentState extends State<WrapperComponent> {
     final key = '$show|${sd['isMounted']}|${sd['isVisible']}|${sd['isExiting']}'
         '|${sd['currentQuestionHeight']}|${sd['miniCardHeight']}'
         '|${sd['textPosition']}|${sd['mode']}'
-        '|${sd['position']}|${sd['isFullScreenMode']}';
+        '|${sd['position']}|${sd['isFullScreenMode']}'
+        '|${sd['isRTLLanguage']}|${sd['showSurveyContent']}|${sd['closeButton']}'
+        '|${widget.spotcheckStore.state.currentSpotcheck['spotcheckID']}';
 
     if (key == _lastStyleKey) return;
     _lastStyleKey = key;
@@ -196,7 +205,10 @@ class _WrapperComponentState extends State<WrapperComponent> {
   }
 
   void _loadStyles() async {
-    if (_styleLoading) return;
+    if (_styleLoading) {
+      _styleReloadPending = true;
+      return;
+    }
     _styleLoading = true;
 
     final mq = MediaQuery.of(context);
@@ -206,6 +218,7 @@ class _WrapperComponentState extends State<WrapperComponent> {
       {
         'screenHeight': mq.size.height,
         'screenWidth': mq.size.width,
+        'safeAreaTop': mq.padding.top,
         'keyboardHeight': kb,
         'setStyles': null,
       },
@@ -214,6 +227,10 @@ class _WrapperComponentState extends State<WrapperComponent> {
     _styleLoading = false;
     if (result is Map<String, dynamic> && mounted) {
       setState(() => _styles = result);
+    }
+    if (_styleReloadPending && mounted) {
+      _styleReloadPending = false;
+      _loadStyles();
     }
   }
 

@@ -30,7 +30,11 @@ class Executables {
   final KeyboardAdapter keyboard;
   final ListenerAdapter listener;
 
-  void Function()? onAfterBatchDispatch;
+  /// Backend-driven script injection into the classic/chat webview.
+  void Function(String target, String script)? onWebViewInject;
+
+  static const Duration _executeTimeout = Duration(seconds: 15);
+  final Map<int, Timer> _timers = {};
 
   bool _widgetInitializationComplete = false;
 
@@ -115,15 +119,129 @@ URLSearchParams.prototype.append = function(name, value) {
 };
 ''';
 
+  static const String _bridgePolyfill = r'''
+(function() {
+  var timers = {};
+  var nextTimerId = 0;
+  globalThis.setTimeout = function(fn, ms) {
+    var id = ++nextTimerId;
+    timers[id] = fn;
+    sendMessage('ssTimer', JSON.stringify({ id: id, ms: Number(ms) || 0 }));
+    return id;
+  };
+  globalThis.clearTimeout = function(id) {
+    if (timers[id]) {
+      delete timers[id];
+      sendMessage('ssClearTimer', JSON.stringify({ id: id }));
+    }
+  };
+  globalThis.__ssFireTimer = function(id) {
+    var fn = timers[id];
+    delete timers[id];
+    if (!fn) return;
+    try { fn(); } catch (e) {
+      sendMessage('ssSentry', JSON.stringify({ priority: 'P1', error: String((e && e.message) || e), source: 'GENERAL', context: { action: 'timer' } }));
+    }
+  };
+})();
+''';
+
   Future<JavascriptRuntime> _getJsRuntime() async {
     if (_jsRuntime != null && _runtimeReady) return _jsRuntime!;
-    _jsRuntime = getJavascriptRuntime(xhr: false);
-    _jsRuntime!.enableHandlePromises();
-    _registerFetchBridge(_jsRuntime!);
-    _jsRuntime!.evaluate(_fetchPolyfill);
-    _jsRuntime!.evaluate(_urlSearchParamsPolyfill);
+    final runtime = getJavascriptRuntime(xhr: false);
+    _jsRuntime = runtime;
+    runtime.enableHandlePromises();
+    _registerFetchBridge(runtime);
+    _registerPayloadBridges(runtime);
+    runtime.evaluate(_fetchPolyfill);
+    runtime.evaluate(_urlSearchParamsPolyfill);
+    runtime.evaluate(_bridgePolyfill);
     _runtimeReady = true;
-    return _jsRuntime!;
+    return runtime;
+  }
+
+  static Map<String, dynamic> _decodeArgs(dynamic args) {
+    if (args is Map) return _deepCastMap(args) as Map<String, dynamic>;
+    final decoded = jsonDecode(args.toString());
+    return decoded is Map ? _deepCastMap(decoded) as Map<String, dynamic> : {};
+  }
+
+  void _registerPayloadBridges(JavascriptRuntime runtime) {
+    void on(String channel, void Function(Map<String, dynamic> data) handler) {
+      runtime.onMessage(channel, (args) {
+        try {
+          handler(_decodeArgs(args));
+        } catch (e) {
+          sentry.captureP1Error(e, 'GENERAL', {'action': 'bridge:$channel'});
+        }
+        return null;
+      });
+    }
+
+    on('ssDispatch', (data) {
+      spotcheckStore.dispatch(data['update']);
+    });
+    on('ssStorageSave', (data) {
+      final value = data['value'];
+      if (value is String && value.isNotEmpty) unawaited(storage.saveData(value));
+    });
+    on('ssListener', (data) {
+      final response = data['data'] is Map
+          ? Map<String, dynamic>.from(data['data'] as Map)
+          : <String, dynamic>{};
+      switch (data['name']) {
+        case 'onSurveyLoaded':
+          unawaited(listener.onSurveyLoaded(response));
+          break;
+        case 'onSurveyResponse':
+          unawaited(listener.onSurveyResponse(response));
+          break;
+        case 'onPartialSubmission':
+          unawaited(listener.onPartialSubmission(response));
+          break;
+        case 'onCloseButtonTap':
+          unawaited(listener.onCloseButtonTap());
+          break;
+      }
+    });
+    // Reported outside the JS queue so a report never waits on itself.
+    on('ssSentry', (data) {
+      unawaited(sentry.reportFromJsBridge(
+        priority: data['priority']?.toString() ?? 'P1',
+        errorMessage: data['error']?.toString() ?? 'Unknown',
+        source: data['source']?.toString() ?? 'GENERAL',
+        context: data['context'] is Map
+            ? Map<String, dynamic>.from(data['context'] as Map)
+            : null,
+      ));
+    });
+    on('ssKeyboard', (data) {
+      if (data['action'] == 'pause') {
+        keyboard.pauseDefaultKeyboardBehavior();
+      } else {
+        keyboard.resumeDefaultKeyboardBehavior();
+      }
+    });
+    on('ssWebViewInject', (data) {
+      final target = data['target']?.toString() ?? 'classic';
+      final script = data['script']?.toString() ?? '';
+      if (script.isNotEmpty) onWebViewInject?.call(target, script);
+    });
+    on('ssTimer', (data) {
+      final id = (data['id'] as num).toInt();
+      final ms = (data['ms'] as num?)?.toInt() ?? 0;
+      _timers[id]?.cancel();
+      _timers[id] = Timer(Duration(milliseconds: ms < 0 ? 0 : ms), () {
+        _timers.remove(id);
+        if (_jsRuntime != runtime) return;
+        runtime.evaluate('__ssFireTimer($id);');
+        runtime.executePendingJob();
+      });
+    });
+    on('ssClearTimer', (data) {
+      final id = (data['id'] as num).toInt();
+      _timers.remove(id)?.cancel();
+    });
   }
 
   void _registerFetchBridge(JavascriptRuntime runtime) {
@@ -169,44 +287,40 @@ URLSearchParams.prototype.append = function(name, value) {
           response = await http.get(uri, headers: headers);
       }
 
-      final escapedBody = _escapeForJs(response.body);
+      // Runtime may be disposed while the request was in flight.
+      if (_jsRuntime != runtime) return;
       final ok = response.statusCode >= 200 && response.statusCode < 300;
       runtime.evaluate('''
         (function() {
           var cb = globalThis._fetchCallbacks[$id];
           if (cb) {
+            var body = ${jsonEncode(response.body)};
             cb.resolve({
               ok: $ok,
               status: ${response.statusCode},
-              statusText: '${response.reasonPhrase ?? 'OK'}',
+              statusText: ${jsonEncode(response.reasonPhrase ?? 'OK')},
               headers: { get: function(n) { return null; } },
-              json: function() { return Promise.resolve(JSON.parse('$escapedBody')); },
-              text: function() { return Promise.resolve('$escapedBody'); },
+              json: function() { return Promise.resolve(JSON.parse(body)); },
+              text: function() { return Promise.resolve(body); },
             });
             delete globalThis._fetchCallbacks[$id];
           }
         })();
       ''');
+      runtime.executePendingJob();
     } catch (e) {
-      final errorMsg = e.toString().replaceAll("'", "\\'");
+      if (_jsRuntime != runtime) return;
       runtime.evaluate('''
         (function() {
           var cb = globalThis._fetchCallbacks[$id];
           if (cb) {
-            cb.reject(new Error('$errorMsg'));
+            cb.reject(new Error(${jsonEncode(e.toString())}));
             delete globalThis._fetchCallbacks[$id];
           }
         })();
       ''');
+      runtime.executePendingJob();
     }
-  }
-
-  static String _escapeForJs(String json) {
-    return json
-        .replaceAll('\\', '\\\\')
-        .replaceAll("'", "\\'")
-        .replaceAll('\n', '\\n')
-        .replaceAll('\r', '\\r');
   }
 
   void dispatchWrapper(Map<String, dynamic> stateUpdate) {
@@ -261,13 +375,21 @@ URLSearchParams.prototype.append = function(name, value) {
         return null;
       }
 
-      final payload = _buildPayload(params);
+      if (_isBreadcrumbWorthy(functionName)) {
+        sentry.addBreadcrumb('execute', {
+          'functionName': functionName,
+          ..._describeParams(functionName, params),
+        });
+      }
+      // Payload built when the call runs, so queued calls see the latest state.
       return await _enqueueJsExecution(
-        () => _runFunction(functionName, functionString, payload),
+        () => _runFunction(functionName, functionString, _buildPayload(params)),
       );
     } catch (e) {
-      sentry.captureP1Error(e, 'GENERAL',
-          {'action': 'execute:setup', 'functionName': functionName});
+      if (!_isSentryFunction(functionName)) {
+        sentry.captureP1Error(e, 'GENERAL',
+            {'action': 'execute:setup', 'functionName': functionName});
+      }
       return null;
     }
   }
@@ -317,224 +439,151 @@ URLSearchParams.prototype.append = function(name, value) {
     String functionString,
     Map<String, dynamic> payload,
   ) async {
+    final reportErrors = !_isSentryFunction(functionName);
     try {
       final storedUuid = await storage.loadData() ?? '';
       final traceId = _generateTraceId();
-
-      final storedUuidJson = jsonEncode(storedUuid);
-      final traceIdJson = jsonEncode(traceId);
-      final payloadJson = jsonEncode(payload);
 
       final script = '''
 (async function() {
   var module = {exports: {}};
   var exports = module.exports;
   var func = ($functionString);
-  var payload = $payloadJson;
-
-  var dispatchUpdates = [];
-  var storageSaves = [];
-  var pendingTimers = [];
-
-  var _origSetTimeout = typeof setTimeout !== 'undefined' ? setTimeout : null;
-  setTimeout = function(fn, delay) {
-    pendingTimers.push({ fn: fn, delay: delay || 0 });
-    return pendingTimers.length;
+  var payload = ${jsonEncode(payload)};
+  var send = function(channel, data) { sendMessage(channel, JSON.stringify(data)); };
+  var report = function(priority, error, source, context) {
+    send('ssSentry', {
+      priority: priority,
+      error: (error && error.message) ? String(error.message) : String(error),
+      source: String(source || 'GENERAL'),
+      context: context && typeof context === 'object' ? context : {},
+    });
+  };
+  var notify = function(name) {
+    return function(data) { send('ssListener', { name: name, data: data || {} }); return Promise.resolve(); };
   };
 
-  payload.dispatchWrapper = function(update) {
-    dispatchUpdates.push(JSON.parse(JSON.stringify(update)));
-  };
-
+  payload.dispatchWrapper = function(update) { send('ssDispatch', { update: update }); };
   payload.storage = {
     saveData: function(data) {
-      storageSaves.push(typeof data === 'string' ? data : JSON.stringify(data));
+      send('ssStorageSave', { value: typeof data === 'string' ? data : JSON.stringify(data) });
       return Promise.resolve();
     },
     loadData: function(isUuid) {
-      if (isUuid) return Promise.resolve($traceIdJson);
-      return Promise.resolve($storedUuidJson);
+      return Promise.resolve(isUuid ? ${jsonEncode(traceId)} : ${jsonEncode(storedUuid)});
     },
   };
-
-  var sentryReports = [];
   payload.sentry = {
-    captureP0Error: function(error, source, context) {
-      var msg = (error && error.message) ? String(error.message) : String(error);
-      sentryReports.push({
-        priority: 'P0',
-        error: msg,
-        source: String(source || 'GENERAL'),
-        context: context && typeof context === 'object' ? context : {},
-      });
-    },
-    captureP1Error: function(error, source, context) {
-      var msg = (error && error.message) ? String(error.message) : String(error);
-      sentryReports.push({
-        priority: 'P1',
-        error: msg,
-        source: String(source || 'GENERAL'),
-        context: context && typeof context === 'object' ? context : {},
-      });
-    },
+    captureP0Error: function(error, source, context) { report('P0', error, source, context); },
+    captureP1Error: function(error, source, context) { report('P1', error, source, context); },
   };
-
   payload.keyboard = {
-    pauseDefaultKeyboardBehavior: function() {},
-    resumeDefaultKeyboardBehavior: function() {},
+    pauseDefaultKeyboardBehavior: function() { send('ssKeyboard', { action: 'pause' }); },
+    resumeDefaultKeyboardBehavior: function() { send('ssKeyboard', { action: 'resume' }); },
   };
-
   payload.listener = {
-    onSurveyLoaded: function() { return Promise.resolve(); },
-    onSurveyResponse: function() { return Promise.resolve(); },
-    onPartialSubmission: function() { return Promise.resolve(); },
-    onCloseButtonTap: function() { return Promise.resolve(); },
+    onSurveyLoaded: notify('onSurveyLoaded'),
+    onSurveyResponse: notify('onSurveyResponse'),
+    onPartialSubmission: notify('onPartialSubmission'),
+    onCloseButtonTap: notify('onCloseButtonTap'),
   };
-
-  async function flushPendingTimers() {
-    if (pendingTimers.length === 0) return;
-    var flushOne = function(t) {
-      return new Promise(function(resolve) {
-        var ms = Math.max(0, Number(t.delay) || 0);
-        var run = function() {
-          try { t.fn(); } catch (te) {}
-          resolve();
-        };
-        if (_origSetTimeout) {
-          _origSetTimeout(run, ms);
-        } else {
-          run();
-        }
-      });
-    };
-    await Promise.all(pendingTimers.map(flushOne));
-  }
+  payload.webview = {
+    inject: function(target, js) { send('ssWebViewInject', { target: String(target), script: String(js) }); },
+  };
 
   try {
     var result = await func(payload);
-    await flushPendingTimers();
-
-    if (_origSetTimeout) setTimeout = _origSetTimeout;
-    return JSON.stringify({ __result: result || null, __dispatches: dispatchUpdates, __storageSaves: storageSaves, __sentryReports: sentryReports });
-  } catch(e) {
-    await flushPendingTimers();
-
-    if (_origSetTimeout) setTimeout = _origSetTimeout;
-    return JSON.stringify({ __error: e.message || String(e), __dispatches: dispatchUpdates, __storageSaves: storageSaves, __sentryReports: sentryReports });
+    return JSON.stringify({ __result: result === undefined ? null : result });
+  } catch (e) {
+    return JSON.stringify({ __error: (e && e.message) || String(e) });
   }
 })()
 ''';
 
       final runtime = await _getJsRuntime();
       final evalResult = runtime.evaluate(script);
-      final asyncResult = await runtime.handlePromise(evalResult);
+      final asyncResult =
+          await runtime.handlePromise(evalResult, timeout: _executeTimeout);
 
       if (asyncResult.isError) {
-        sentry.captureP1Error(
-          asyncResult.stringResult.isNotEmpty
-              ? asyncResult.stringResult
-              : 'JS runtime evaluate failed',
-          'GENERAL',
-          {
-            'action': 'execute:evaluate',
-            'functionName': functionName,
-          },
-        );
+        if (reportErrors) {
+          sentry.captureP1Error(
+            asyncResult.stringResult.isNotEmpty
+                ? asyncResult.stringResult
+                : 'JS runtime evaluate failed',
+            'GENERAL',
+            {'action': 'execute:evaluate', 'functionName': functionName},
+          );
+        }
         return null;
       }
 
       final stringVal = asyncResult.stringResult;
-      if (stringVal.isEmpty) {
-        sentry.captureP1Error(
-          'Empty JS result',
-          'GENERAL',
-          {
-            'action': 'execute:emptyResult',
-            'functionName': functionName,
-          },
-        );
-        return null;
-      }
+      if (stringVal.isEmpty) return null;
 
-      final parsed = _deepCastMap(jsonDecode(stringVal));
-
+      var decoded = jsonDecode(stringVal);
+      // Some engines return the JSON string quoted once more.
+      if (decoded is String) decoded = jsonDecode(decoded);
+      final parsed = _deepCastMap(decoded);
       if (parsed is Map<String, dynamic>) {
-        final storageSaves = parsed['__storageSaves'];
-        if (storageSaves is List) {
-          for (final saveValue in storageSaves) {
-            if (saveValue is String && saveValue.isNotEmpty) {
-              await storage.saveData(saveValue);
-            }
-          }
-        }
-
-        final dispatches = parsed['__dispatches'];
-        if (dispatches is List && dispatches.isNotEmpty) {
-          final batch = <dynamic>[];
-          for (final dispatch in dispatches) {
-            if (dispatch is Map) batch.add(dispatch);
-          }
-          if (batch.isNotEmpty) {
-            spotcheckStore.batchDispatch(batch);
-            onAfterBatchDispatch?.call();
-          }
-        }
-
-        await _flushJsSentryReports(parsed['__sentryReports']);
-
         if (parsed.containsKey('__error')) {
-          final errMsg = parsed['__error']?.toString() ?? 'Unknown';
-          sentry.captureP1Error(
-            errMsg,
-            'GENERAL',
-            {
-              'action': 'execute:runtime',
-              'functionName': functionName,
-            },
-          );
+          if (reportErrors) {
+            sentry.captureP1Error(
+              parsed['__error']?.toString() ?? 'Unknown',
+              'GENERAL',
+              {'action': 'execute:runtime', 'functionName': functionName},
+            );
+          }
           return null;
         }
         return parsed['__result'];
       }
-
       return parsed;
+    } on TimeoutException {
+      if (reportErrors) {
+        sentry.captureP1Error('Execution timed out', 'GENERAL',
+            {'action': 'execute:timeout', 'functionName': functionName});
+      }
+      return null;
     } catch (e) {
-      sentry.captureP1Error(
-        e,
-        'GENERAL',
-        {
-          'action': 'execute:runtime',
-          'functionName': functionName,
-        },
-      );
+      if (reportErrors) {
+        sentry.captureP1Error(e, 'GENERAL',
+            {'action': 'execute:runtime', 'functionName': functionName});
+      }
       return null;
     }
   }
 
-  Future<void> _flushJsSentryReports(dynamic raw) async {
-    if (raw is! List) return;
-    for (final item in raw) {
-      if (item is! Map) continue;
-      final m = Map<String, dynamic>.from(item);
-      final p = m['priority']?.toString() ?? 'P1';
-      final err = m['error']?.toString() ?? 'Unknown';
-      final src = m['source']?.toString() ?? 'GENERAL';
-      Map<String, dynamic>? ctx;
-      final c = m['context'];
-      if (c is Map) {
-        ctx = c.map((k, v) => MapEntry(k.toString(), v));
-      }
-      await sentry.reportFromJsBridge(
-        priority: p,
-        errorMessage: err,
-        source: src,
-        context: ctx,
-      );
+  // Reporting failures are not reported again (avoids loops).
+  static bool _isSentryFunction(String functionName) =>
+      functionName.startsWith('sentry.');
+
+  // Style getters run on every rebuild; they would push useful breadcrumbs out.
+  static bool _isBreadcrumbWorthy(String functionName) =>
+      !_isSentryFunction(functionName) &&
+      !RegExp(r'\.get\w*Styles$').hasMatch(functionName);
+
+  // Message type only; never survey content.
+  static Map<String, dynamic> _describeParams(
+      String functionName, Map<String, dynamic>? params) {
+    if (functionName != 'webviewComponent.handleWebViewMessage') return {};
+    try {
+      final data = (params?['event'] as Map?)?['nativeEvent']?['data'];
+      if (data == 'captureImage') return {'messageType': data};
+      final decoded = jsonDecode(data.toString());
+      return decoded is Map ? {'messageType': decoded['type']} : {};
+    } catch (_) {
+      return {};
     }
   }
 
   void dispose() {
+    for (final timer in _timers.values) {
+      timer.cancel();
+    }
+    _timers.clear();
     _jsRuntime?.dispose();
     _jsRuntime = null;
+    _runtimeReady = false;
   }
 }

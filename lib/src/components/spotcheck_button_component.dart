@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../builder/builder.dart';
 import '../state/spotcheck_state.dart';
@@ -24,6 +25,7 @@ class SpotCheckButtonComponent extends StatefulWidget {
 class _SpotCheckButtonComponentState extends State<SpotCheckButtonComponent> {
   Map<String, dynamic> _styles = {};
   bool _styleLoading = false;
+  bool _styleReloadPending = false;
   String _lastStyleKey = '';
   String? _lastMediaKey;
 
@@ -85,23 +87,37 @@ class _SpotCheckButtonComponentState extends State<SpotCheckButtonComponent> {
   }
 
   void _loadStyles() async {
-    if (_styleLoading) return;
+    if (_styleLoading) {
+      _styleReloadPending = true;
+      return;
+    }
     _styleLoading = true;
 
+    // Raw view insets (a parent SafeArea would zero MediaQuery padding); safe in initState.
+    final view = ui.PlatformDispatcher.instance.views.first;
     final result = await widget.executables.execute(
       'spotCheckButton.getSpotCheckButtonStyles',
+      {
+        'safeAreaTop': view.padding.top / view.devicePixelRatio,
+        'safeAreaBottom': view.padding.bottom / view.devicePixelRatio,
+      },
     );
 
     _styleLoading = false;
     if (result is Map<String, dynamic> && mounted) {
       setState(() => _styles = result);
     }
+    if (_styleReloadPending && mounted) {
+      _styleReloadPending = false;
+      _loadStyles();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final schema = widget.componentStore.getSchema('spotCheckButton');
-    if (schema == null || !widget.componentStore.isLoaded) {
+    // No styles (e.g. empty config): draw nothing, like legacy.
+    if (schema == null || !widget.componentStore.isLoaded || _styles.isEmpty) {
       return const SizedBox.shrink();
     }
 

@@ -1,9 +1,11 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../scroll/spotcheck_scroll_binding.dart';
 import 'component_registry.dart';
+import 'press_opacity.dart';
 
 Map<String, dynamic> _safeMap(dynamic value) {
   if (value is Map<String, dynamic>) return value;
@@ -13,6 +15,26 @@ Map<String, dynamic> _safeMap(dynamic value) {
     );
   }
   return {};
+}
+
+// Per-corner radius (Expo or Flutter key names), else uniform borderRadius.
+BorderRadius? _parseBorderRadius(Map<String, dynamic> style) {
+  double? corner(String expoKey, String flutterKey) =>
+      _toDouble(style[expoKey]) ?? _toDouble(style[flutterKey]);
+  final tl = corner('borderTopLeftRadius', 'borderRadiusTopLeft');
+  final tr = corner('borderTopRightRadius', 'borderRadiusTopRight');
+  final bl = corner('borderBottomLeftRadius', 'borderRadiusBottomLeft');
+  final br = corner('borderBottomRightRadius', 'borderRadiusBottomRight');
+  if (tl != null || tr != null || bl != null || br != null) {
+    return BorderRadius.only(
+      topLeft: Radius.circular(tl ?? 0),
+      topRight: Radius.circular(tr ?? 0),
+      bottomLeft: Radius.circular(bl ?? 0),
+      bottomRight: Radius.circular(br ?? 0),
+    );
+  }
+  final all = _toDouble(style['borderRadius']);
+  return all != null ? BorderRadius.circular(all) : null;
 }
 
 Alignment? _alignmentWhenSized(
@@ -29,6 +51,7 @@ void registerDefaultComponents() {
   registry.register('SafeArea', _buildSafeArea);
   registry.register('GestureDetector', _buildGestureDetector);
   registry.register('Text', _buildText);
+  registry.register('Icon', _buildIcon);
   registry.register('Image', _buildImage);
   registry.register('SvgPicture', _buildSvgPicture);
   registry.register('ListView', _buildListView);
@@ -119,11 +142,14 @@ Widget _buildContainer(Map<String, dynamic> props, List<Widget>? children,
   final width = _toDouble(style['width']);
   final height = _toDouble(style['height']);
   final bgColor = _parseColor(style['color'] ?? style['backgroundColor']);
-  final borderRadius = _toDouble(style['borderRadius']);
   final opacity = _toDouble(style['opacity']);
   final padding = _parsePadding(style);
   final margin = _parseMargin(style);
-  final alignment = _parseAlignment(style['alignment']);
+  // justifyContent/alignItems only used when alignment is absent.
+  final alignment =
+      _parseAlignment(style['alignment']) ?? _flexAlignment(style);
+  final justify = _parseJustifyContent(style['justifyContent']);
+  final crossAlign = _parseAlignItems(style['alignItems']);
 
   Widget child;
   if (children != null && children.isNotEmpty) {
@@ -150,7 +176,8 @@ Widget _buildContainer(Map<String, dynamic> props, List<Widget>? children,
       } else {
         stackBase = Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: justify ?? MainAxisAlignment.start,
+          crossAxisAlignment: crossAlign ?? CrossAxisAlignment.stretch,
           children: nonPositioned,
         );
       }
@@ -165,7 +192,8 @@ Widget _buildContainer(Map<String, dynamic> props, List<Widget>? children,
     } else {
       child = Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: justify ?? MainAxisAlignment.start,
+        crossAxisAlignment: crossAlign ?? CrossAxisAlignment.stretch,
         children: children,
       );
     }
@@ -181,8 +209,8 @@ Widget _buildContainer(Map<String, dynamic> props, List<Widget>? children,
     alignment: _alignmentWhenSized(alignment, width, height),
     decoration: BoxDecoration(
       color: bgColor,
-      borderRadius:
-          borderRadius != null ? BorderRadius.circular(borderRadius) : null,
+      border: _parseBorder(style),
+      borderRadius: _parseBorderRadius(style),
     ),
     clipBehavior: style['clipBehavior'] == 'antiAlias'
         ? Clip.antiAlias
@@ -195,6 +223,11 @@ Widget _buildContainer(Map<String, dynamic> props, List<Widget>? children,
   final rotation = _toDouble(style['rotation']);
   if (rotation != null && rotation != 0) {
     result = Transform.rotate(angle: rotation, child: result);
+  }
+
+  final scale = _parseScale(style);
+  if (scale != null) {
+    result = Transform.scale(scale: scale, child: result);
   }
 
   final translateX = _toDouble(style['translateX']) ?? 0.0;
@@ -303,18 +336,27 @@ Widget _buildSafeArea(Map<String, dynamic> props, List<Widget>? children,
   final saWidth = _toDouble(style['width']);
   final saHeight = _toDouble(style['height']);
 
-  Widget result = SafeArea(
-    child: Container(
-      color: bgColor,
-      width: saWidth == -1 ? double.infinity : saWidth,
-      height: saHeight == -1 ? double.infinity : saHeight,
-      alignment: _alignmentWhenSized(alignment, saWidth, saHeight),
-      transform: topOffset != null && topOffset != 0
-          ? Matrix4.translationValues(0, topOffset, 0)
-          : null,
-      child: child,
-    ),
+  final backdropBlur = _toDouble(style['backdropBlur']) ?? 0;
+  Widget content = Container(
+    color: bgColor,
+    width: saWidth == -1 ? double.infinity : saWidth,
+    height: saHeight == -1 ? double.infinity : saHeight,
+    alignment: _alignmentWhenSized(alignment, saWidth, saHeight),
+    transform: topOffset != null && topOffset != 0
+        ? Matrix4.translationValues(0, topOffset, 0)
+        : null,
+    child: child,
   );
+  if (backdropBlur > 0) {
+    content = ClipRect(
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: backdropBlur, sigmaY: backdropBlur),
+        child: content,
+      ),
+    );
+  }
+
+  Widget result = SafeArea(child: content);
 
   if (pointerEvents == 'none') {
     result = IgnorePointer(ignoring: true, child: result);
@@ -399,18 +441,19 @@ Widget _buildGestureDetector(Map<String, dynamic> props, List<Widget>? children,
   final bgColor = _parseColor(style['color'] ?? style['backgroundColor']);
   final width = _toDouble(style['width']);
   final height = _toDouble(style['height']);
-  final borderRadius = _toDouble(style['borderRadius']);
-  // Expo/backend use borderTopLeftRadius; older Flutter style blobs used borderRadiusTopLeft — accept both.
-  final borderTopLeftRadius = _toDouble(style['borderTopLeftRadius']) ??
-      _toDouble(style['borderRadiusTopLeft']);
-  final borderTopRightRadius = _toDouble(style['borderTopRightRadius']) ??
-      _toDouble(style['borderRadiusTopRight']);
   final padding = _parsePadding(style);
   final margin = _parseMargin(style);
   final alignment = _parseAlignment(style['alignment']);
   final rotation = _toDouble(style['rotation']);
   final gap = _toDouble(style['gap']);
   final elevation = _toDouble(style['elevation']);
+  final justify = _parseJustifyContent(style['justifyContent']);
+  final crossAlign = _parseAlignItems(style['alignItems']);
+  // Row stretch needs a bounded height, so only with an explicit height.
+  final rowCross = crossAlign == CrossAxisAlignment.stretch &&
+          (height == null || height == -1)
+      ? null
+      : crossAlign;
 
   Widget child;
   if (children != null && children.isNotEmpty) {
@@ -422,41 +465,41 @@ Widget _buildGestureDetector(Map<String, dynamic> props, List<Widget>? children,
       }
       child = Row(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: justify ?? MainAxisAlignment.start,
+          crossAxisAlignment: rowCross ?? CrossAxisAlignment.center,
           children: spaced);
     } else if (style['flexDirection'] == 'row') {
       child = Row(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: justify ?? MainAxisAlignment.start,
+          crossAxisAlignment: rowCross ?? CrossAxisAlignment.center,
           children: children);
     } else if (children.length == 1) {
       child = children.first;
     } else {
-      child = Column(mainAxisSize: MainAxisSize.min, children: children);
+      child = Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: justify ?? MainAxisAlignment.start,
+          crossAxisAlignment: crossAlign ?? CrossAxisAlignment.center,
+          children: children);
     }
   } else {
     child = const SizedBox.shrink();
   }
 
-  BorderRadius? br;
-  if (borderRadius != null) {
-    br = BorderRadius.circular(borderRadius);
-  } else if (borderTopLeftRadius != null || borderTopRightRadius != null) {
-    br = BorderRadius.only(
-      topLeft: Radius.circular(borderTopLeftRadius ?? 0),
-      topRight: Radius.circular(borderTopRightRadius ?? 0),
-    );
-  }
+  final br = _parseBorderRadius(style);
 
   final shadowColor = _parseColor(style['shadowColor']);
   final shadowBlurRadius = _toDouble(style['shadowBlurRadius']) ?? 0;
   final shadowOffsetY = _toDouble(style['shadowOffsetY']) ?? 0;
+  final shadowOffsetX = _toDouble(style['shadowOffsetX']) ?? 0;
+  final shadowSpread = _toDouble(style['shadowSpread']) ?? 0;
   final shadowOpacity = _toDouble(style['shadowOpacity']) ?? 1.0;
 
   final hasRotation = rotation != null && rotation != 0;
 
-  Widget result = GestureDetector(
-    behavior: HitTestBehavior.opaque,
+  Widget result = PressOpacity(
+    pressedOpacity: _toDouble(props['pressedOpacity']) ?? 0.6,
     onTap: onTap != null
         ? () => onTap()
         : onPress != null
@@ -470,6 +513,7 @@ Widget _buildGestureDetector(Map<String, dynamic> props, List<Widget>? children,
       alignment: _alignmentWhenSized(alignment, width, height),
       decoration: BoxDecoration(
         color: bgColor,
+        border: _parseBorder(style),
         borderRadius: br,
         boxShadow: (elevation != null && elevation > 0) || shadowColor != null
             ? [
@@ -477,7 +521,8 @@ Widget _buildGestureDetector(Map<String, dynamic> props, List<Widget>? children,
                   color: (shadowColor ?? Colors.black)
                       .withValues(alpha: shadowOpacity),
                   blurRadius: shadowBlurRadius,
-                  offset: Offset(0, shadowOffsetY),
+                  spreadRadius: shadowSpread,
+                  offset: Offset(shadowOffsetX, shadowOffsetY),
                 ),
               ]
             : null,
@@ -498,6 +543,11 @@ Widget _buildGestureDetector(Map<String, dynamic> props, List<Widget>? children,
     result = RotatedBox(quarterTurns: quarterTurns, child: result);
   }
 
+  final scale = _parseScale(style);
+  if (scale != null) {
+    result = Transform.scale(scale: scale, child: result);
+  }
+
   if (style['positioned'] == true) {
     return Positioned(
       left: _toDouble(style['left']),
@@ -511,6 +561,20 @@ Widget _buildGestureDetector(Map<String, dynamic> props, List<Widget>? children,
   return result;
 }
 
+// Material icon by name (e.g. close); style: size, color.
+const Map<String, IconData> _iconsByName = {'close': Icons.close};
+
+Widget _buildIcon(Map<String, dynamic> props, List<Widget>? children,
+    {String? content}) {
+  final style = _safeMap(props['style']);
+  final icon = _iconsByName[props['name']] ?? Icons.close;
+  return Icon(
+    icon,
+    size: _toDouble(style['size']) ?? 20,
+    color: _parseColor(style['color']) ?? Colors.black,
+  );
+}
+
 Widget _buildText(Map<String, dynamic> props, List<Widget>? children,
     {String? content}) {
   final style = _safeMap(props['style']);
@@ -522,6 +586,10 @@ Widget _buildText(Map<String, dynamic> props, List<Widget>? children,
       color: _parseColor(style['color']),
       fontSize: _toDouble(style['fontSize']),
       fontWeight: _parseFontWeight(style['fontWeight']),
+      // Missing font falls back to the platform default.
+      fontFamily:
+          style['fontFamily'] is String ? style['fontFamily'] as String : null,
+      fontStyle: style['fontStyle'] == 'italic' ? FontStyle.italic : null,
       height: _toDouble(style['lineHeight']) != null
           ? _toDouble(style['lineHeight'])! /
               (_toDouble(style['fontSize']) ?? 14.0)
@@ -705,34 +773,112 @@ Alignment? _parseAlignment(dynamic value) {
 }
 
 EdgeInsets? _parsePadding(Map style) {
+  // Plain padding is the last fallback (side > axis > all).
+  final all = _toDouble(style['padding']);
   final pt = _toDouble(style['paddingTop']) ??
       _toDouble(style['paddingVertical']) ??
+      all ??
       0;
   final pb = _toDouble(style['paddingBottom']) ??
       _toDouble(style['paddingVertical']) ??
+      all ??
       0;
   final pl = _toDouble(style['paddingLeft']) ??
       _toDouble(style['paddingHorizontal']) ??
+      all ??
       0;
   final pr = _toDouble(style['paddingRight']) ??
       _toDouble(style['paddingHorizontal']) ??
+      all ??
       0;
   if (pt == 0 && pb == 0 && pl == 0 && pr == 0) return null;
   return EdgeInsets.fromLTRB(pl, pt, pr, pb);
 }
 
 EdgeInsets? _parseMargin(Map style) {
-  final mt =
-      _toDouble(style['marginTop']) ?? _toDouble(style['marginVertical']) ?? 0;
+  // Plain margin is the last fallback (side > axis > all).
+  final all = _toDouble(style['margin']);
+  final mt = _toDouble(style['marginTop']) ??
+      _toDouble(style['marginVertical']) ??
+      all ??
+      0;
   final mb = _toDouble(style['marginBottom']) ??
       _toDouble(style['marginVertical']) ??
+      all ??
       0;
   final ml = _toDouble(style['marginLeft']) ??
       _toDouble(style['marginHorizontal']) ??
+      all ??
       0;
   final mr = _toDouble(style['marginRight']) ??
       _toDouble(style['marginHorizontal']) ??
+      all ??
       0;
   if (mt == 0 && mb == 0 && ml == 0 && mr == 0) return null;
   return EdgeInsets.fromLTRB(ml, mt, mr, mb);
+}
+
+// RN borderWidth/borderColor; null when width is missing or <= 0.
+Border? _parseBorder(Map style) {
+  final w = _toDouble(style['borderWidth']);
+  if (w == null || w <= 0) return null;
+  return Border.all(
+      color: _parseColor(style['borderColor']) ?? Colors.black, width: w);
+}
+
+// RN scale; null when missing or 1.
+double? _parseScale(Map style) {
+  final s = _toDouble(style['scale']);
+  if (s == null || s == 1 || s.isNaN || s.isInfinite) return null;
+  return s;
+}
+
+MainAxisAlignment? _parseJustifyContent(dynamic value) {
+  switch (value) {
+    case 'flex-start':
+      return MainAxisAlignment.start;
+    case 'flex-end':
+      return MainAxisAlignment.end;
+    case 'center':
+      return MainAxisAlignment.center;
+    case 'space-between':
+      return MainAxisAlignment.spaceBetween;
+    case 'space-around':
+      return MainAxisAlignment.spaceAround;
+    case 'space-evenly':
+      return MainAxisAlignment.spaceEvenly;
+    default:
+      return null;
+  }
+}
+
+// baseline is skipped (needs textBaseline, would assert).
+CrossAxisAlignment? _parseAlignItems(dynamic value) {
+  switch (value) {
+    case 'flex-start':
+      return CrossAxisAlignment.start;
+    case 'flex-end':
+      return CrossAxisAlignment.end;
+    case 'center':
+      return CrossAxisAlignment.center;
+    case 'stretch':
+      return CrossAxisAlignment.stretch;
+    default:
+      return null;
+  }
+}
+
+// Column-style Alignment from justifyContent (y) / alignItems (x); null if neither.
+Alignment? _flexAlignment(Map style) {
+  double? axis(dynamic v) => v == 'flex-start'
+      ? -1.0
+      : v == 'center'
+          ? 0.0
+          : v == 'flex-end'
+              ? 1.0
+              : null;
+  final y = axis(style['justifyContent']);
+  final x = axis(style['alignItems']);
+  if (x == null && y == null) return null;
+  return Alignment(x ?? -1.0, y ?? -1.0);
 }

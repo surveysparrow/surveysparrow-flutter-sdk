@@ -47,7 +47,6 @@ class SpotCheckState extends StatefulWidget {
   SpotCheckState._internal(this._spotCheck);
 
   void closeSpotCheck() {
-    SpotCheckSDK.instance.injectUnmountApp();
     SpotCheckSDK.instance.executables.execute('closeButton.handleCloseButton');
   }
 
@@ -149,18 +148,29 @@ class SsNavigationListener extends NavigatorObserver {
 
   @override
   void didPush(Route route, Route? previousRoute) {
-    _handle();
+    _handle(route);
   }
 
   @override
   void didPop(Route route, Route? previousRoute) {
-    _handle();
+    _handle(route);
   }
 
-  void _handle() {
-    if (state.isSpotCheckOpen.value || state.isSpotCheckButton.value) {
-      state.closeSpotCheck();
-      state.end(isNavigation: true);
-    }
+  // pushReplacement (splash/login -> home) is a screen change too.
+  @override
+  void didReplace({Route? newRoute, Route? oldRoute}) {
+    _handle(newRoute ?? oldRoute);
+  }
+
+  @override
+  void didRemove(Route route, Route? previousRoute) {
+    _handle(route);
+  }
+
+  // Only full screens count; dialogs, sheets and menus must not close the survey.
+  // Always notify on a screen change so the backend can cancel pending delayed shows.
+  void _handle(Route? route) {
+    if (route is! PageRoute) return;
+    state.end(isNavigation: true);
   }
 }

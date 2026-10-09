@@ -56,7 +56,7 @@ class SpotCheckStateData {
     final size = window.physicalSize / window.devicePixelRatio;
     return {
       'deviceType': 'MOBILE',
-      'operatingSystem': Platform.isIOS ? 'iOS' : 'Android',
+      'operatingSystem': Platform.operatingSystem, // legacy: 'ios' / 'android'
       'screenResolution': {
         'width': size.width.round(),
         'height': size.height.round(),

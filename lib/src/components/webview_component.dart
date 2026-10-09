@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' show PlatformDispatcher;
 import 'package:file_picker/file_picker.dart';
@@ -14,42 +13,45 @@ import '../state/spotcheck_state.dart';
 import '../state/component_state.dart';
 import '../execute/executables.dart';
 
-class WebViewControllerManager {
+class WebViewControllerManager with WidgetsBindingObserver {
   final Executables executables;
   final SpotcheckStore spotcheckStore;
 
   WebViewController? classicController;
+  String? remoteWebViewScript;
   WebViewController? chatController;
-  String? _lastInjectedData;
   String? _prevInjKey;
 
-  String? _pendingClassicJs;
-  String? _pendingChatJs;
-
   bool _isImageCaptureActive = false;
-
-  static final String _unmountAppJs = """
-      (function() {
-        window.dispatchEvent(new MessageEvent('message', {
-          data: ${jsonEncode({"type": "UNMOUNT_APP"})}
-        }));
-      })();
-    """;
-
-  void injectUnmountApp() {
-    final isChat = spotcheckStore.state.webViewDetails['isChat'] == true;
-    if (isChat && chatController != null) {
-      chatController!.runJavaScript(_unmountAppJs);
-    } else if (classicController != null) {
-      classicController!.runJavaScript(_unmountAppJs);
-    }
-  }
+  bool _observing = false;
+  String? _lastScreenHeight;
 
   WebViewControllerManager({
     required this.executables,
     required this.spotcheckStore,
   }) {
     spotcheckStore.addListener(_onStateChanged);
+  }
+
+  /// Backend-driven injection (payload.webview.inject).
+  void injectScript(String target, String script) {
+    final controller = target == 'chat' ? chatController : classicController;
+    if (controller == null) return;
+    controller.runJavaScript(script).catchError((_) {});
+    _updateFileSelectionListener();
+  }
+
+  // Keeps the focus script's screen height correct after rotation.
+  @override
+  void didChangeMetrics() {
+    if (PlatformDispatcher.instance.views.isEmpty) return;
+    final h = _logicalScreenHeight().toStringAsFixed(4);
+    // Skip keyboard frames; only real height changes matter.
+    if (h == _lastScreenHeight) return;
+    _lastScreenHeight = h;
+    final js = 'window.__ssScreenHeight = $h;';
+    classicController?.runJavaScript(js).catchError((_) {});
+    chatController?.runJavaScript(js).catchError((_) {});
   }
 
   Future<List<String>> _pickFiles({bool isImage = false}) async {
@@ -63,7 +65,7 @@ class WebViewControllerManager {
 
         return pickedFile != null ? [File(pickedFile.path).uri.toString()] : [];
       } else {
-        final result = await FilePicker.platform.pickFiles(allowMultiple: true);
+        final result = await FilePicker.pickFiles(allowMultiple: true);
         return result?.files
                 .where((file) => file.path != null)
                 .map((file) => File(file.path!).uri.toString())
@@ -105,8 +107,9 @@ class WebViewControllerManager {
   }
 
   static double _logicalScreenHeight() {
+    // Legacy: height minus the top inset.
     final v = PlatformDispatcher.instance.views.first;
-    return v.physicalSize.height / v.devicePixelRatio;
+    return (v.physicalSize.height - v.padding.top) / v.devicePixelRatio;
   }
 
   static String _focusTrackingJavaScript(double logicalScreenHeight) {
@@ -120,7 +123,7 @@ class WebViewControllerManager {
       var rect = event.target.getBoundingClientRect();
       var yPosition = rect.y + window.scrollY;
       var webViewHeight = window.innerHeight;
-      var scaledY = (yPosition / webViewHeight) * $h;
+      var scaledY = (yPosition / webViewHeight) * (window.__ssScreenHeight || $h);
       flutterSpotCheckData.postMessage(JSON.stringify({
         type: 'position',
         y: scaledY
@@ -141,7 +144,7 @@ class WebViewControllerManager {
   });
   obs.observe(document.body, { childList: true, subtree: true });
   var styleTag = document.createElement("style");
-  styleTag.innerHTML = ".surveysparrow-chat__wrapper .ss-language-selector--wrapper { margin-right: 45px; } .close-btn-chat--spotchecks { display: none !important; }";
+  styleTag.innerHTML = ".close-btn-chat--spotchecks { display: none !important; }";
   document.head.appendChild(styleTag);
 })();
 ''';
@@ -157,9 +160,12 @@ class WebViewControllerManager {
       ..setNavigationDelegate(NavigationDelegate(
         onPageFinished: (_) {
           final sh = _logicalScreenHeight();
-          final js =
-              '${_focusTrackingJavaScript(sh)}\n${_euiPageHelperScripts()}';
-          controller.runJavaScript(js);
+          final remote = remoteWebViewScript;
+          // Backend page script when sent; built-in one otherwise.
+          final js = remote != null
+              ? 'window.__ssScreenHeight = window.__ssScreenHeight || ${sh.toStringAsFixed(4)};\n$remote'
+              : '${_focusTrackingJavaScript(sh)}\n${_euiPageHelperScripts()}';
+          controller.runJavaScript(js).catchError((_) {});
         },
         onWebResourceError: (error) {
           if (error.isForMainFrame ?? false) {
@@ -175,47 +181,14 @@ class WebViewControllerManager {
         onMessageReceived: (message) {
           final data = message.message;
           if (data.isNotEmpty && data != 'captureImage') {
-            try {
-              final json = jsonDecode(data) as Map<String, dynamic>?;
-              final type = json?['type'] as String?;
-              if (type == 'surveyCompleted') {
-                executables.execute(
-                  'webviewComponent.handleWebViewMessage',
-                  {
-                    'event': {
-                      'nativeEvent': {'data': data}
-                    }
-                  },
-                );
-                injectUnmountApp();
-              } else if (type == 'thankYouPageSubmission') {
-                final sd = spotcheckStore.state.spotCheckDetails;
-                final isMiniCard = sd['mode'] == 'miniCard';
-                final closeEnabled = sd['closeButton']?['isEnabled'] == true;
-                if (isMiniCard && !closeEnabled) {
-                  Timer(const Duration(seconds: 4), () {
-                    injectUnmountApp();
-                  });
+            executables.execute(
+              'webviewComponent.handleWebViewMessage',
+              {
+                'event': {
+                  'nativeEvent': {'data': data}
                 }
-                executables.execute(
-                  'webviewComponent.handleWebViewMessage',
-                  {
-                    'event': {
-                      'nativeEvent': {'data': data}
-                    }
-                  },
-                );
-              } else {
-                executables.execute(
-                  'webviewComponent.handleWebViewMessage',
-                  {
-                    'event': {
-                      'nativeEvent': {'data': data}
-                    }
-                  },
-                );
-              }
-            } catch (_) {}
+              },
+            );
           }
         },
       )
@@ -248,7 +221,12 @@ class WebViewControllerManager {
       chatController!.loadRequest(Uri.parse(chatUrl));
     }
 
-    _applyPendingJavaScriptInjection();
+    // Lazy so the binding exists (not required before runApp).
+    if (!_observing && (classicController != null || chatController != null)) {
+      WidgetsBinding.instance.addObserver(this);
+      _observing = true;
+    }
+
     _updateFileSelectionListener();
   }
 
@@ -262,57 +240,6 @@ class WebViewControllerManager {
     return '${wd['isClassicLoading']}_${wd['isChatLoading']}_$injPart';
   }
 
-  void _applyPendingJavaScriptInjection() {
-    final wd = spotcheckStore.state.webViewDetails;
-    final injData = wd['webViewInjectionData'];
-    final isChat = wd['isCurrentSpotcheckChat'];
-    final isClassicLoading = wd['isClassicLoading'];
-    final isChatLoading = wd['isChatLoading'];
-
-    if (injData == null) {
-      _lastInjectedData = null;
-      _pendingClassicJs = null;
-      _pendingChatJs = null;
-      return;
-    }
-
-    if (injData is! String || injData.isEmpty) {
-      return;
-    }
-
-    if (isChat != true) {
-      _pendingClassicJs = injData;
-      _pendingChatJs = null;
-    } else {
-      _pendingChatJs = injData;
-      _pendingClassicJs = null;
-    }
-
-    final classicReady = isChat != true &&
-        classicController != null &&
-        isClassicLoading == false;
-    final chatReady =
-        isChat == true && chatController != null && isChatLoading == false;
-
-    if (classicReady && _pendingClassicJs != null) {
-      final js = _pendingClassicJs!;
-      if (js != _lastInjectedData) {
-        _lastInjectedData = js;
-        classicController!.runJavaScript(js);
-        _updateFileSelectionListener();
-      }
-    } else if (chatReady && _pendingChatJs != null) {
-      final js = _pendingChatJs!;
-      if (js != _lastInjectedData) {
-        _lastInjectedData = js;
-        chatController!.runJavaScript(js);
-        _updateFileSelectionListener();
-      }
-    }
-  }
-
-  void flushPendingJavaScriptInjection() => _applyPendingJavaScriptInjection();
-
   void _onStateChanged() {
     ensureControllers();
 
@@ -323,12 +250,14 @@ class WebViewControllerManager {
       _prevInjKey = injKey;
       executables.execute('webviewComponent.handleWebViewInjection');
     }
-
-    _applyPendingJavaScriptInjection();
   }
 
   void dispose() {
     spotcheckStore.removeListener(_onStateChanged);
+    if (_observing) {
+      WidgetsBinding.instance.removeObserver(this);
+      _observing = false;
+    }
   }
 }
 
@@ -347,7 +276,6 @@ class WebViewComponentWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     webViewManager.ensureControllers();
-    webViewManager.flushPendingJavaScriptInjection();
 
     final wd = spotcheckStore.state.webViewDetails;
     final canShowClassic = wd['canShowClassic'] == true;
@@ -378,22 +306,28 @@ class WebViewComponentWidget extends StatelessWidget {
       }
     }
 
+    final slots = <_WebViewSlot>[
+      if (webViewManager.classicController != null)
+        _WebViewSlot(
+          key: ObjectKey(webViewManager.classicController),
+          controller: webViewManager.classicController!,
+          canShow: canShowClassic,
+          hiddenStyle: classicHidden,
+        ),
+      if (webViewManager.chatController != null)
+        _WebViewSlot(
+          key: ObjectKey(webViewManager.chatController),
+          controller: webViewManager.chatController!,
+          canShow: canShowChat,
+          hiddenStyle: chatHidden,
+        ),
+    ];
+    // Hidden (preloading) webview spans past the card; paint it first so the shown one is on top.
+    slots.sort((a, b) => (a.canShow ? 1 : 0) - (b.canShow ? 1 : 0));
+
     return Stack(
       clipBehavior: Clip.hardEdge,
-      children: [
-        if (webViewManager.classicController != null)
-          _WebViewSlot(
-            controller: webViewManager.classicController!,
-            canShow: canShowClassic,
-            hiddenStyle: classicHidden,
-          ),
-        if (webViewManager.chatController != null)
-          _WebViewSlot(
-            controller: webViewManager.chatController!,
-            canShow: canShowChat,
-            hiddenStyle: chatHidden,
-          ),
-      ],
+      children: slots,
     );
   }
 }
@@ -404,6 +338,7 @@ class _WebViewSlot extends StatelessWidget {
   final Map<String, dynamic>? hiddenStyle;
 
   const _WebViewSlot({
+    super.key,
     required this.controller,
     required this.canShow,
     this.hiddenStyle,
@@ -453,10 +388,13 @@ class _WebViewSlot extends StatelessWidget {
         bottom: (hs?['bottom'] as num?)?.toDouble(),
         left: (hs?['left'] as num?)?.toDouble(),
         right: (hs?['right'] as num?)?.toDouble(),
-        child: SizedBox(
-          width: sw,
-          height: sh,
-          child: ClipRect(child: webView),
+        // Preloading only: never takes taps meant for the shown survey.
+        child: IgnorePointer(
+          child: SizedBox(
+            width: sw,
+            height: sh,
+            child: ClipRect(child: webView),
+          ),
         ),
       );
     }

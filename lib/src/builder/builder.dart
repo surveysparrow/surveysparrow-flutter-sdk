@@ -1,8 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_js/flutter_js.dart';
 import 'component_registry.dart';
-import 'animation_wrapper.dart';
 
 dynamic _deepCast(dynamic value) {
   if (value is Map) {
@@ -14,6 +11,11 @@ dynamic _deepCast(dynamic value) {
     return value.map(_deepCast).toList();
   }
   return value;
+}
+
+/// Runs a backend function for schema `{"\$execute": "group.fn", "args": {...}}`; set by the SDK.
+class SpotcheckActions {
+  static void Function(String functionName, Map<String, dynamic> params)? runner;
 }
 
 class BuilderContext {
@@ -59,7 +61,18 @@ class SchemaBuilder extends StatelessWidget {
     return const SizedBox.shrink();
   }
 
+  // A bad node (wrong types from a newer/older schema) is dropped, never crashes the app.
   Widget? _renderNode(dynamic rawNode, String key) {
+    try {
+      return _renderNodeUnsafe(rawNode, key);
+    } catch (e) {
+      debugPrint('SpotCheck: skipped schema node $key: $e');
+      return null;
+    }
+  }
+
+  Widget? _renderNodeUnsafe(dynamic rawNode, String key) {
+    if (rawNode is! Map) return null;
     final node = _deepCast(rawNode) as Map<String, dynamic>;
 
     if (node.containsKey('slot') && context.slots != null) {
@@ -71,21 +84,23 @@ class SchemaBuilder extends StatelessWidget {
       if (!conditionResult) return null;
     }
 
-    final type = node['type'] as String?;
-    if (type == null) return null;
+    final type = node['type'];
+    if (type is! String) return null;
 
     final builder = ComponentRegistry.instance.get(type);
     if (builder == null) return null;
 
-    final rawProps = node['props'] as Map<String, dynamic>?;
-    final resolvedProps =
-        rawProps != null ? _resolveBindingMap(rawProps) : <String, dynamic>{};
+    final rawProps = node['props'];
+    final resolvedProps = rawProps is Map<String, dynamic>
+        ? _resolveBindingMap(rawProps)
+        : <String, dynamic>{};
 
     final hasContent = node.containsKey('content');
     final content =
         hasContent ? resolveBinding(node['content'], context) : null;
 
-    final childNodes = node['children'] as List?;
+    final rawChildren = node['children'];
+    final childNodes = rawChildren is List ? rawChildren : null;
     final children = childNodes
         ?.asMap()
         .entries
@@ -94,32 +109,23 @@ class SchemaBuilder extends StatelessWidget {
         .cast<Widget>()
         .toList();
 
-    final animation = node['animation'] as Map<String, dynamic>?;
-
-    Widget widget = builder(
+    final widget = builder(
       resolvedProps,
       hasContent ? null : children,
       content: hasContent ? content?.toString() : null,
     );
 
-    widget = KeyedSubtree(key: ValueKey(key), child: widget);
-
-    if (animation != null) {
-      widget = AnimationWrapper(
-        key: ValueKey('anim-$key'),
-        animation: animation,
-        context: context,
-        child: widget,
-      );
-    }
-
-    return widget;
+    return KeyedSubtree(key: ValueKey(key), child: widget);
   }
 
   Map<String, dynamic> _resolveBindingMap(Map<String, dynamic> props) {
     final resolved = <String, dynamic>{};
     for (final entry in props.entries) {
-      resolved[entry.key] = resolveBinding(entry.value, context);
+      try {
+        resolved[entry.key] = resolveBinding(entry.value, context);
+      } catch (_) {
+        resolved[entry.key] = null;
+      }
     }
     return resolved;
   }
@@ -137,9 +143,8 @@ dynamic resolveBinding(dynamic value, BuilderContext context) {
   if (value is Map) {
     final m = _deepCast(value) as Map<String, dynamic>;
 
-    if (m.containsKey('\$expr')) {
-      return evaluateExpression(m['\$expr'] as String, context);
-    }
+    // $expr is not supported on native; backend style functions compute values.
+    if (m.containsKey('\$expr')) return null;
 
     if (m.containsKey('\$ref')) {
       final path = (m['\$ref'] as String).split('.');
@@ -176,6 +181,21 @@ dynamic resolveBinding(dynamic value, BuilderContext context) {
       return context.handlers![m['\$handler'] as String];
     }
 
+    // Generic action: callable with or without an event (taps vs layout).
+    if (m.containsKey('\$execute')) {
+      final fn = m['\$execute'];
+      final args = m['args'] is Map<String, dynamic>
+          ? Map<String, dynamic>.from(m['args'] as Map)
+          : <String, dynamic>{};
+      return ([dynamic event]) {
+        final runner = SpotcheckActions.runner;
+        if (fn is! String || fn.isEmpty || runner == null) return;
+        try {
+          runner(fn, {...args, if (event is Map) 'event': event});
+        } catch (_) {}
+      };
+    }
+
     if (m.containsKey('\$handlers') && context.handlers != null) {
       final handlerNames = m['\$handlers'] as List;
       return () {
@@ -194,46 +214,6 @@ dynamic resolveBinding(dynamic value, BuilderContext context) {
   }
 
   return value;
-}
-
-dynamic evaluateExpression(String expr, BuilderContext context) {
-  try {
-    final stateJson = jsonEncode(context.state ?? {});
-    final stylesJson = jsonEncode(context.styles ?? {});
-
-    final runtime = getJavascriptRuntime();
-    try {
-      final script = '''
-(function() {
-  var state = $stateJson;
-  var styles = $stylesJson;
-  try {
-    var result = ($expr);
-    return JSON.stringify({r: result});
-  } catch(e) {
-    return JSON.stringify({e: e.message});
-  }
-})()
-''';
-      final result = runtime.evaluate(script);
-      if (result.isError) return _exprFallback(expr);
-
-      final parsed = jsonDecode(result.stringResult);
-      if (parsed is Map && parsed.containsKey('e')) return _exprFallback(expr);
-      return parsed['r'];
-    } finally {
-      runtime.dispose();
-    }
-  } catch (_) {
-    return _exprFallback(expr);
-  }
-}
-
-dynamic _exprFallback(String expr) {
-  if (expr.contains('translateY') || expr.contains('translateX')) return 0;
-  if (expr.contains('scale')) return 1;
-  if (expr.contains('opacity')) return 1;
-  return null;
 }
 
 bool evaluateCondition(dynamic condition, BuilderContext context) {

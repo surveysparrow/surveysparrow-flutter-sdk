@@ -1,7 +1,12 @@
+import 'dart:io' show Platform;
+import 'dart:ui' show PlatformDispatcher;
+
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:surveysparrow_flutter_sdk/ss_spotcheck_listener.dart';
 
+import 'builder/builder.dart' show SpotcheckActions;
 import 'execute/executables.dart' show Executables;
 import 'state/spotcheck_state.dart';
 import 'state/function_state.dart';
@@ -19,9 +24,47 @@ import 'components/wrapper_scroll_coordinator.dart';
 import 'components/wrapper_component.dart';
 import 'scroll/spotcheck_scroll_binding.dart';
 
-String _spotcheckDefaultUserAgent() {
+// Raw device facts; the backend builds the User-Agent from these.
+Future<Map<String, dynamic>> _deviceFacts() async {
+  try {
+    final deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      final info = await deviceInfo.androidInfo;
+      final view = PlatformDispatcher.instance.views.first;
+      final ratio = view.devicePixelRatio;
+      final w = view.physicalSize.width;
+      final h = view.physicalSize.height;
+      final isTablet = (ratio < 2 && (w >= 1000 || h >= 1000)) ||
+          (ratio == 2 && (w >= 1920 || h >= 1920));
+      return {'os': 'android', 'osVersion': info.version.release, 'isTablet': isTablet};
+    }
+    if (Platform.isIOS) {
+      final info = await deviceInfo.iosInfo;
+      return {
+        'os': 'ios',
+        'osVersion': info.systemVersion,
+        'deviceName': info.name,
+        'model': info.model,
+        'isTablet': false,
+      };
+    }
+  } catch (_) {}
+  return {};
+}
+
+// Fallback User-Agent (legacy format) for backends that don't build one.
+String _fallbackUserAgent(Map<String, dynamic> d) {
+  if (d['os'] == 'android') {
+    return 'Mozilla/5.0 (Linux; Android ${d['osVersion']}; ${d['isTablet'] == true ? 'Tablet' : 'Mobile'}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Mobile Safari/537.36';
+  }
+  if (d['os'] == 'ios') {
+    final version = (d['osVersion'] as String).replaceAll('.', '_');
+    return 'Mozilla/5.0 (${d['deviceName']} - ${d['model']} CPU iOS $version like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/537.36';
+  }
   return 'SurveySparrow-Flutter-SDK/$sdkVersion (${defaultTargetPlatform.name})';
 }
+
+const _nonFunctionKeys = {'componentSchemas', 'config'};
 
 class SpotCheckSDK {
   static SpotCheckSDK? _instance;
@@ -64,8 +107,11 @@ class SpotCheckSDK {
       spotcheckStore: spotcheckStore,
     );
 
-    executables.onAfterBatchDispatch =
-        webViewManager.flushPendingJavaScriptInjection;
+    executables.onWebViewInject = webViewManager.injectScript;
+    // Schema `$execute` taps run backend functions; unknown names are ignored by execute().
+    SpotcheckActions.runner = (fn, params) {
+      executables.execute(fn, params);
+    };
 
     sentry.wireExecute(
       execute: executables.execute,
@@ -102,6 +148,8 @@ class SpotCheckSDK {
     sentry.configure(domainName: domainName, targetToken: targetToken);
 
     _api = SpotcheckApi(domainName: domainName, targetToken: targetToken);
+    final device = await _deviceFacts();
+    final userAgent = _fallbackUserAgent(device);
 
     spotcheckStore.dispatch({
       'params': {
@@ -111,41 +159,32 @@ class SpotCheckSDK {
         'variables': variables ?? {},
         'customProperties': customProperties ?? {},
         'framework': 'flutter',
-        'userAgent': _spotcheckDefaultUserAgent(),
+        'userAgent': userAgent,
       },
     });
 
     try {
       final response = await _api!.getAllSpotcheckFunctions();
-      if (response == null) {
-        executables.abandonPendingInitialization();
-        return;
-      }
 
+      // Load every function the backend sends (non-function keys skipped).
       final functions = <String, dynamic>{};
-      final topLevelFunctions = [
-        'initializeSpotcheckComponent',
-        'trackScreen',
-        'trackEvent',
-        'handleNavigationChange',
-        'handleExitAnimationComplete',
-      ];
-      for (final name in topLevelFunctions) {
-        if (response[name] != null) functions[name] = response[name];
-      }
-
-      final groups = [
-        'webviewComponent',
-        'closeButton',
-        'wrapper',
-        'spotCheckButton',
-        'sentry',
-      ];
-      for (final group in groups) {
-        if (response[group] is Map) {
-          functions[group] = response[group];
+      response.forEach((key, value) {
+        if (_nonFunctionKeys.contains(key)) return;
+        if (value is String && value.isNotEmpty) {
+          functions[key] = value;
+        } else if (value is Map) {
+          final group = <String, dynamic>{};
+          value.forEach((k, v) {
+            if (v is String && v.isNotEmpty) group[k.toString()] = v;
+          });
+          if (group.isNotEmpty) functions[key.toString()] = group;
         }
-      }
+      });
+
+      final config = response['config'];
+      final script = config is Map ? config['webViewScript'] : null;
+      webViewManager.remoteWebViewScript =
+          script is String && script.trim().isNotEmpty ? script : null;
 
       functionStore.loadFunctions(functions);
 
@@ -163,29 +202,29 @@ class SpotCheckSDK {
         'userDetails': userDetails,
         'variables': variables ?? {},
         'customProperties': customProperties ?? {},
+        'framework': 'flutter',
+        'sdkVersion': sdkVersion,
+        'device': device,
       });
 
       await executables.flushPendingExecutes();
     } catch (e) {
       executables.abandonPendingInitialization();
-      sentry.captureP0Error(e, 'SDK_INITIALIZATION', {'action': 'initialize'});
+      sentry.captureP0Error(e, 'SPOTCHECK_INITIALIZATION', {'action': 'initialize'});
     }
   }
 
   Future<void> trackScreen(String screen) async {
+    sentry.addBreadcrumb('trackScreen', {'screen': screen});
     await executables.execute('trackScreen', {'screen': screen});
   }
 
   Future<void> trackEvent(String screen, Map<String, dynamic> event) async {
+    sentry.addBreadcrumb('trackEvent', {'screen': screen, 'event': event.keys.join(',')});
     await executables.execute('trackEvent', {'screen': screen, 'event': event});
   }
 
-  void injectUnmountApp() {
-    webViewManager.injectUnmountApp();
-  }
-
   void handleNavigationChange() {
-    injectUnmountApp();
     executables.execute('handleNavigationChange');
   }
 
@@ -224,6 +263,8 @@ class SpotCheckSDK {
   }
 
   void dispose() {
+    executables.dispose();
+    webViewManager.dispose();
     SpotcheckScrollBinding.clear();
     spotcheckStore.dispose();
     functionStore.dispose();

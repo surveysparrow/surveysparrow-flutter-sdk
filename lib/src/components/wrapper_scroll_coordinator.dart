@@ -20,19 +20,40 @@ class WrapperScrollCoordinator extends StatefulWidget {
       _WrapperScrollCoordinatorState();
 }
 
-class _WrapperScrollCoordinatorState extends State<WrapperScrollCoordinator> {
+class _WrapperScrollCoordinatorState extends State<WrapperScrollCoordinator>
+    with WidgetsBindingObserver {
   double _lastTextPositionForScroll = double.negativeInfinity;
+  double _lastKeyboardHeight = 0;
 
   @override
   void initState() {
     super.initState();
     widget.store.addListener(_onStoreChanged);
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     widget.store.removeListener(_onStoreChanged);
     super.dispose();
+  }
+
+  // Legacy re-scrolled whenever the keyboard height changed.
+  @override
+  void didChangeMetrics() {
+    final kb = _keyboardHeight();
+    if (kb == _lastKeyboardHeight) return;
+    _lastKeyboardHeight = kb;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _applyLegacyWrapperScroll();
+    });
+  }
+
+  double _keyboardHeight() {
+    final view = PlatformDispatcher.instance.views.first;
+    return MediaQueryData.fromView(view).viewInsets.bottom;
   }
 
   void _onStoreChanged() {
@@ -51,8 +72,7 @@ class _WrapperScrollCoordinatorState extends State<WrapperScrollCoordinator> {
   void _applyLegacyWrapperScroll() {
     if (!Platform.isAndroid) return;
 
-    final view = PlatformDispatcher.instance.views.first;
-    final kb = MediaQueryData.fromView(view).viewInsets.bottom;
+    final kb = _keyboardHeight();
     if (kb <= 0) return;
 
     final sd = widget.store.state.spotCheckDetails;
