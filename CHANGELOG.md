@@ -102,3 +102,10 @@
 ## 1.2.3
 
 * SpotChecks enhancements and Mini Cards
+
+## 1.2.9
+
+* Backend-driven SpotChecks revamp: layout and logic now come from the SurveySparrow backend.
+* A failed SpotChecks init (e.g. offline at launch) is retried on the next track call; the init request times out after 15s.
+* Minimum Flutter 3.24 / Dart 3.5 (already required by `webview_flutter` 4.10).
+* Removed the internal `spot_check_state.dart` and `spot_check_button.dart` files; import `package:surveysparrow_flutter_sdk/surveysparrow.dart` instead. The documented API is unchanged.
