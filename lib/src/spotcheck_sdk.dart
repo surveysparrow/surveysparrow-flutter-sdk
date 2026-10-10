@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:io' show Platform;
 import 'dart:ui' show PlatformDispatcher;
 
@@ -82,6 +83,12 @@ class SpotCheckSDK {
 
   bool _componentsRegistered = false;
 
+  // A failed init (e.g. offline) is retried on the next track call, at most every 10s.
+  static const Duration _initRetryGap = Duration(seconds: 10);
+  Future<void> Function()? _retryInit;
+  bool _initFailed = false;
+  DateTime _lastInitAttempt = DateTime.fromMillisecondsSinceEpoch(0);
+
   SpotCheckSDK._() {
     spotcheckStore = SpotcheckStore();
     functionStore = FunctionStore();
@@ -141,6 +148,17 @@ class SpotCheckSDK {
     SsSpotcheckListener? spotCheckListener,
   }) async {
     _registerComponents();
+
+    _initFailed = false;
+    _lastInitAttempt = DateTime.now();
+    _retryInit = () => initialize(
+          domainName: domainName,
+          targetToken: targetToken,
+          userDetails: userDetails,
+          variables: variables,
+          customProperties: customProperties,
+          spotCheckListener: spotCheckListener,
+        );
 
     executables.resetInitializationGate();
 
@@ -209,17 +227,29 @@ class SpotCheckSDK {
 
       await executables.flushPendingExecutes();
     } catch (e) {
+      _initFailed = true;
       executables.abandonPendingInitialization();
       sentry.captureP0Error(e, 'SPOTCHECK_INITIALIZATION', {'action': 'initialize'});
     }
   }
 
+  // False drops the call (iOS parity); a started retry queues it until init finishes.
+  bool _retryInitIfFailed() {
+    if (!_initFailed) return true;
+    final retry = _retryInit;
+    if (retry == null || DateTime.now().difference(_lastInitAttempt) < _initRetryGap) return false;
+    unawaited(retry());
+    return true;
+  }
+
   Future<void> trackScreen(String screen) async {
+    if (!_retryInitIfFailed()) return;
     sentry.addBreadcrumb('trackScreen', {'screen': screen});
     await executables.execute('trackScreen', {'screen': screen});
   }
 
   Future<void> trackEvent(String screen, Map<String, dynamic> event) async {
+    if (!_retryInitIfFailed()) return;
     sentry.addBreadcrumb('trackEvent', {'screen': screen, 'event': event.keys.join(',')});
     await executables.execute('trackEvent', {'screen': screen, 'event': event});
   }

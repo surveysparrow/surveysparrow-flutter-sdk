@@ -518,8 +518,10 @@ Widget _buildGestureDetector(Map<String, dynamic> props, List<Widget>? children,
         boxShadow: (elevation != null && elevation > 0) || shadowColor != null
             ? [
                 BoxShadow(
+                  // withOpacity keeps Flutter <3.27 support (withValues is 3.27+).
                   color: (shadowColor ?? Colors.black)
-                      .withValues(alpha: shadowOpacity),
+                      // ignore: deprecated_member_use
+                      .withOpacity(shadowOpacity),
                   blurRadius: shadowBlurRadius,
                   spreadRadius: shadowSpread,
                   offset: Offset(shadowOffsetX, shadowOffsetY),

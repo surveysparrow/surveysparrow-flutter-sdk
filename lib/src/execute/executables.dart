@@ -37,6 +37,8 @@ class Executables {
   final Map<int, Timer> _timers = {};
 
   bool _widgetInitializationComplete = false;
+  // Bounds the track queue while init is failing (RN parity).
+  static const int _maxPendingExecutes = 20;
 
   final List<({String functionName, Map<String, dynamic>? params})>
       _pendingExecutes = [];
@@ -362,6 +364,7 @@ URLSearchParams.prototype.append = function(name, value) {
       if (isTrack) {
         if (!functionStore.isLoaded || !_widgetInitializationComplete) {
           _pendingExecutes.add((functionName: functionName, params: params));
+          if (_pendingExecutes.length > _maxPendingExecutes) _pendingExecutes.removeAt(0);
           return null;
         }
       } else if (!isInitComponent) {
