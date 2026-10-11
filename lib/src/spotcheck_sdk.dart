@@ -5,6 +5,7 @@ import 'dart:ui' show PlatformDispatcher;
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:surveysparrow_flutter_sdk/ss_spotcheck_listener.dart';
 
 import 'builder/builder.dart' show SpotcheckActions;
@@ -27,6 +28,17 @@ import 'scroll/spotcheck_scroll_binding.dart';
 
 // Raw device facts; the backend builds the User-Agent from these.
 Future<Map<String, dynamic>> _deviceFacts() async {
+  final facts = await _osFacts();
+  // Host app release; the backend keeps the SDK version of the newest build.
+  try {
+    final info = await PackageInfo.fromPlatform();
+    if (info.version.isNotEmpty) facts['appVersion'] = info.version;
+    if (info.buildNumber.isNotEmpty) facts['appBuild'] = info.buildNumber;
+  } catch (_) {}
+  return facts;
+}
+
+Future<Map<String, dynamic>> _osFacts() async {
   try {
     final deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
