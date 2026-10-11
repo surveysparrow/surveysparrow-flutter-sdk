@@ -8,35 +8,26 @@ void main() {
 }
 
 final SpotCheck spotCheck = SpotCheck(
-  domainName: "",
-  targetToken: "",
-  // Should Not Pass userDetails as const
-  userDetails: {},
-  variables: {},
-  customProperties: {},
-    spotCheckListener:MySpotcheckListener()
-);
+    domainName: "kalai.in.ngrok.io",
+    targetToken: "tar-4TtoU3D5mmopzFFRtHdEx7",
+    // Should Not Pass userDetails as const
+    userDetails: {},
+    variables: {},
+    customProperties: {},
+    spotCheckListener: MySpotcheckListener());
 
 class MySpotcheckListener extends SsSpotcheckListener {
   @override
-  Future<void> onSurveyLoaded(Map<String, dynamic> response) async {
-    print("SurveyLoaded: $response");
-  }
+  Future<void> onSurveyLoaded(Map<String, dynamic> response) async {}
 
   @override
-  Future<void> onSurveyResponse(Map<String, dynamic> response) async {
-    print("Submission Response: $response");
-  }
+  Future<void> onSurveyResponse(Map<String, dynamic> response) async {}
 
   @override
-  Future<void> onCloseButtonTap() async {
-    print("Close Button tapped");
-  }
+  Future<void> onCloseButtonTap() async {}
 
   @override
-  Future<void> onPartialSubmission(Map<String, dynamic> response) async {
-    print("Partial Submission Response: $response");
-  }
+  Future<void> onPartialSubmission(Map<String, dynamic> response) async {}
 }
 
 class MyApp extends StatelessWidget {
@@ -45,6 +36,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    spotCheck.trackScreen("SpotCheckScreen");
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -61,9 +53,7 @@ class MyApp extends StatelessWidget {
           ),
         );
       },
-      navigatorObservers: [
-        SsNavigationListener(spotCheck.spotCheckState)
-      ],
+      navigatorObservers: [SsNavigationListener(spotCheck.spotCheckState)],
     );
   }
 }
@@ -77,28 +67,29 @@ class SurveyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    spotCheck.trackScreen("SpotCheckScreen");
     return Scaffold(
       appBar: AppBar(
         title: const Text("SurveySparrow"),
       ),
       body: Builder(
         builder: ((context) => Center(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const SpotCheckScreen(),
-                      ),
-                    );
-                  },
-                  child: const Text("SpotCheck"))
-            ],
-          ),
-        )),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const SpotCheckScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text("SpotCheck"))
+                ],
+              ),
+            )),
       ),
     );
   }
