@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:sentry/sentry.dart' as sentry_pkg;
-// ignore: implementation_imports
-import 'package:sentry/src/event_processor/enricher/enricher_event_processor.dart';
 
 /// Keep in sync with `version` in pubspec.yaml.
 const String sdkVersion = '1.2.9-beta.1';
@@ -77,7 +75,7 @@ class SentryAdapter {
         ..sendClientReports = false
         ..attachStacktrace = true
         ..beforeSend = _beforeSend;
-      options.addEventProcessor(EnricherEventProcessor(options));
+      // Public API only (no internal enricher) so sentry 8.x-10.x all compile.
       _hub = sentry_pkg.Hub(options);
     } catch (_) {
       _hubFailed = true;

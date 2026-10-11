@@ -65,12 +65,11 @@ class WebViewControllerManager with WidgetsBindingObserver {
 
         return pickedFile != null ? [File(pickedFile.path).uri.toString()] : [];
       } else {
-        final result = await FilePicker.pickFiles(allowMultiple: true);
-        return result?.files
-                .where((file) => file.path != null)
-                .map((file) => File(file.path!).uri.toString())
-                .toList() ??
-            [];
+        final files = await _pickPlatformFiles();
+        return files
+            .where((file) => file.path != null)
+            .map((file) => File(file.path!).uri.toString())
+            .toList();
       }
     } catch (e) {
       _isImageCaptureActive = false;
@@ -417,4 +416,21 @@ void registerWebViewComponent(
       return const SizedBox.shrink();
     },
   );
+}
+
+// file_picker 11/12 take allowMultiple (11 returns FilePickerResult?); 13 always multi-selects and returns a list.
+Future<List<PlatformFile>> _pickPlatformFiles() async {
+  dynamic result;
+  try {
+    result = await Function.apply(FilePicker.pickFiles, const [], const {#allowMultiple: true});
+  } on NoSuchMethodError {
+    result = await Function.apply(FilePicker.pickFiles, const []);
+  }
+  if (result is List) return result.whereType<PlatformFile>().toList();
+  // file_picker 11's FilePickerResult (type gone in 12+), read dynamically.
+  try {
+    final files = (result as dynamic)?.files;
+    if (files is List) return files.whereType<PlatformFile>().toList();
+  } catch (_) {}
+  return const [];
 }
