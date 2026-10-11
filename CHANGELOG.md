@@ -112,4 +112,4 @@
 * Sends the host app's version and build number with SpotChecks requests, so SurveySparrow tracks the SDK version in your newest release. Adds the `package_info_plus` (8.x–10.x) dependency; it is installed automatically with `flutter pub get`.
 * Compatibility:
   * Works with current versions of shared plugins: `file_picker` 11.x–13.x, `device_info_plus` 11.x–13.x, `cached_network_image` 3.x–4.x, `sentry` 8.x–10.x (including apps using `sentry_flutter` 9/10).
-  * Android Gradle Plugin 9 (projects created with the newest Flutter template): add `kotlin.jvm.target.validation.mode=warning` to `android/gradle.properties`. The `flutter_js` dependency sets a Kotlin JVM target that AGP 9 rejects otherwise (every version up to 0.8.7). AGP 8 projects need nothing.
+  * Builds on Android Gradle Plugin 8 and 9 (including projects created with the newest Flutter template) with no extra setup. The SDK aligns the `flutter_js` dependency's Java target with its Kotlin target, which AGP 9 otherwise rejects.
