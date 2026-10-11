@@ -109,3 +109,7 @@
 * A failed SpotChecks init (e.g. offline at launch) is retried on the next track call; the init request times out after 15s.
 * Minimum Flutter 3.24 / Dart 3.5 (already required by `webview_flutter` 4.10).
 * Removed the internal `spot_check_state.dart` and `spot_check_button.dart` files; import `package:surveysparrow_flutter_sdk/surveysparrow.dart` instead. The documented API is unchanged.
+* Sends the host app's version and build number with SpotChecks requests, so SurveySparrow tracks the SDK version in your newest release. Adds the `package_info_plus` (8.x–10.x) dependency; it is installed automatically with `flutter pub get`.
+* Compatibility:
+  * Supported dependency ranges: `file_picker` 11.x, `device_info_plus` 11.x, `cached_network_image` 3.x, `sentry` 8.x. Apps already on newer major versions of these get a version conflict until a later release widens support.
+  * Android Gradle Plugin 9 (projects created with the newest Flutter template): the Android build fails inside the `flutter_js` dependency ("Inconsistent JVM Target Compatibility"). Workaround: add `kotlin.jvm.target.validation.mode=warning` to `android/gradle.properties`. AGP 8 projects are not affected.
