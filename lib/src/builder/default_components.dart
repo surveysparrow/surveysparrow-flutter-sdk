@@ -79,7 +79,7 @@ Widget _buildListView(Map<String, dynamic> props, List<Widget>? children,
 }
 
 bool _isPositionedLike(Widget w) {
-  if (w is Positioned || w is Align) return true;
+  if (w is Positioned || w is Align || w is PositionedSlot) return true;
   if (w is KeyedSubtree) return _isPositionedLike(w.child);
   return false;
 }

@@ -21,3 +21,12 @@ class ComponentRegistry {
 
   List<String> list() => _registry.keys.toList();
 }
+
+// Marks a widget that builds a Positioned, so Stack builders place it as an overlay.
+class PositionedSlot extends StatelessWidget {
+  final Widget child;
+  const PositionedSlot({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) => child;
+}

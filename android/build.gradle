@@ -5,7 +5,8 @@ apply plugin: 'com.android.library'
 
 android {
     namespace 'com.surveysparrow.surveysparrow_flutter_sdk'
-    compileSdk 36
+    // Follow the app's Flutter compile SDK; 34 only when an old Flutter exposes no extension.
+    compileSdk project.extensions.findByName('flutter')?.compileSdkVersion ?: 34
     defaultConfig {
         minSdk 21
     }
