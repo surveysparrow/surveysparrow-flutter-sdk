@@ -17,6 +17,9 @@ Color _parseHexColor(String? hex) {
   return Colors.black;
 }
 
+// Latest backend close-button placement (closeButtonContainerStyle), read by the registered wrapper.
+final ValueNotifier<Map<String, dynamic>> _closeContainerStyle = ValueNotifier(const {});
+
 class CloseButtonComponent extends StatefulWidget {
   final SpotcheckStore spotcheckStore;
   final ComponentStore componentStore;
@@ -97,6 +100,7 @@ class _CloseButtonComponentState extends State<CloseButtonComponent> {
       _minTapH = h;
       _containerStyle =
           container is Map ? Map<String, dynamic>.from(container) : const {};
+      _closeContainerStyle.value = _containerStyle;
       _allStyles = map!;
     });
   }
@@ -223,10 +227,14 @@ void registerCloseButtonComponent(
       // miniCard flows above the WebView; card/fullScreen overlays (left in RTL).
       if (isMiniCard) return child;
       final isRtl = sd['isRTLLanguage'] == true;
+      // Backend placement; legacy top 6 / side 8 until the styles load.
+      final style = _closeContainerStyle.value;
+      double? toDouble(dynamic v) => v is num ? v.toDouble() : null;
+      final side = isRtl ? toDouble(style['left']) : toDouble(style['right']);
       return Positioned(
-        top: 6,
-        left: isRtl ? 8 : null,
-        right: isRtl ? null : 8,
+        top: toDouble(style['top']) ?? 6,
+        left: isRtl ? (side ?? 8) : null,
+        right: isRtl ? null : (side ?? 8),
         child: child,
       );
     },
