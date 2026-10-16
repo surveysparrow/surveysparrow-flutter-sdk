@@ -121,17 +121,19 @@ class WrapperComponent extends StatefulWidget {
   State<WrapperComponent> createState() => _WrapperComponentState();
 }
 
+const Map<String, dynamic> _hiddenStyles = {
+  'overlayStyle': {'width': 0, 'height': 0, 'opacity': 0, 'positioned': true},
+  'wrapperStyle': {
+    'width': 0,
+    'height': 0,
+    'opacity': 0,
+    'clipBehavior': 'hardEdge'
+  },
+  'webViewWrapperStyle': {'width': 0, 'height': 0, 'opacity': 0},
+};
+
 class _WrapperComponentState extends State<WrapperComponent> {
-  Map<String, dynamic> _styles = {
-    'overlayStyle': {'width': 0, 'height': 0, 'opacity': 0, 'positioned': true},
-    'wrapperStyle': {
-      'width': 0,
-      'height': 0,
-      'opacity': 0,
-      'clipBehavior': 'hardEdge'
-    },
-    'webViewWrapperStyle': {'width': 0, 'height': 0, 'opacity': 0},
-  };
+  Map<String, dynamic> _styles = Map<String, dynamic>.from(_hiddenStyles);
   bool _styleLoading = false;
   bool _styleReloadPending = false;
   String _lastStyleKey = '';
@@ -244,9 +246,13 @@ class _WrapperComponentState extends State<WrapperComponent> {
     final kb = MediaQuery.viewInsetsOf(context).bottom;
     final state = _stateWithKeyboardInset(widget.spotcheckStore, kb);
 
+    // A close is already in the store; the queued style refresh can lag behind it (serial JS queue).
+    final store = widget.spotcheckStore.state;
+    final closed = !store.showSpotCheck && store.spotCheckDetails['isVisible'] != true;
+
     final builderContext = BuilderContext(
       state: state,
-      styles: _styles,
+      styles: closed ? {..._styles, ..._hiddenStyles} : _styles,
       slots: {'children': widget.child},
       handlers: {
         'executeFunction': (String name) => widget.executables.execute(name),
