@@ -1,0 +1,27 @@
+group 'com.surveysparrow.surveysparrow_flutter_sdk'
+version '1.0'
+
+apply plugin: 'com.android.library'
+
+android {
+    namespace 'com.surveysparrow.surveysparrow_flutter_sdk'
+    // Follow the app's Flutter compile SDK; 34 only when an old Flutter exposes no extension.
+    compileSdk project.extensions.findByName('flutter')?.compileSdkVersion ?: 34
+    defaultConfig {
+        minSdk 21
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+// flutter_js (all versions <= 0.8.7) sets Kotlin jvmTarget 1.8 but no Java target; AGP 9 rejects the mismatch, so align its Java tasks to 1.8.
+rootProject.subprojects { project ->
+    if (project.name == 'flutter_js') {
+        project.tasks.withType(JavaCompile).configureEach {
+            sourceCompatibility = '1.8'
+            targetCompatibility = '1.8'
+        }
+    }
+}
