@@ -49,7 +49,12 @@ Future<Map<String, dynamic>> _osFacts() async {
       final h = view.physicalSize.height;
       final isTablet = (ratio < 2 && (w >= 1000 || h >= 1000)) ||
           (ratio == 2 && (w >= 1920 || h >= 1920));
-      return {'os': 'android', 'osVersion': info.version.release, 'isTablet': isTablet};
+      return {
+        'os': 'android',
+        'osVersion': info.version.release,
+        'model': info.model,
+        'isTablet': isTablet,
+      };
     }
     if (Platform.isIOS) {
       final info = await deviceInfo.iosInfo;

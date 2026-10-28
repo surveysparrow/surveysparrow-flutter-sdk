@@ -217,6 +217,14 @@ URLSearchParams.prototype.append = function(name, value) {
             : null,
       ));
     });
+    on('ssBreadcrumb', (data) {
+      final message = data['message']?.toString() ?? '';
+      if (message.isEmpty) return;
+      final extra = data['data'] is Map
+          ? Map<String, dynamic>.from(data['data'] as Map)
+          : <String, dynamic>{};
+      sentry.addBreadcrumb(message, extra.isEmpty ? null : extra);
+    });
     on('ssKeyboard', (data) {
       if (data['action'] == 'pause') {
         keyboard.pauseDefaultKeyboardBehavior();
@@ -454,10 +462,18 @@ URLSearchParams.prototype.append = function(name, value) {
   var func = ($functionString);
   var payload = ${jsonEncode(payload)};
   var send = function(channel, data) { sendMessage(channel, JSON.stringify(data)); };
+  var errorMessage = function(error) { return (error && error.message) ? String(error.message) : String(error); };
+  // Errors the function already reported; the runtime catch skips them.
+  var reportedMessages = Object.create(null);
   var report = function(priority, error, source, context) {
+    var message = errorMessage(error);
+    reportedMessages[message] = true;
+    if (error && (typeof error === 'object' || typeof error === 'function')) {
+      try { Object.defineProperty(error, '__ssReported', { value: true }); } catch (_) {}
+    }
     send('ssSentry', {
       priority: priority,
-      error: (error && error.message) ? String(error.message) : String(error),
+      error: message,
       source: String(source || 'GENERAL'),
       context: context && typeof context === 'object' ? context : {},
     });
@@ -479,6 +495,22 @@ URLSearchParams.prototype.append = function(name, value) {
   payload.sentry = {
     captureP0Error: function(error, source, context) { report('P0', error, source, context); },
     captureP1Error: function(error, source, context) { report('P1', error, source, context); },
+    // Primitive values only; never throws.
+    addBreadcrumb: function(message, data) {
+      try {
+        if (typeof message !== 'string' || !message) return;
+        var small = {};
+        if (data && typeof data === 'object') {
+          Object.keys(data).slice(0, 20).forEach(function(key) {
+            var value = data[key];
+            var type = typeof value;
+            if (value === null || type === 'number' || type === 'boolean') small[key] = value;
+            else if (type === 'string') small[key] = value.slice(0, 200);
+          });
+        }
+        send('ssBreadcrumb', { message: message.slice(0, 200), data: small });
+      } catch (_) {}
+    },
   };
   payload.keyboard = {
     pauseDefaultKeyboardBehavior: function() { send('ssKeyboard', { action: 'pause' }); },
@@ -498,7 +530,9 @@ URLSearchParams.prototype.append = function(name, value) {
     var result = await func(payload);
     return JSON.stringify({ __result: result === undefined ? null : result });
   } catch (e) {
-    return JSON.stringify({ __error: (e && e.message) || String(e) });
+    var message = errorMessage(e);
+    var reported = !!(e && e.__ssReported) || reportedMessages[message] === true;
+    return JSON.stringify({ __error: message, __reported: reported });
   }
 })()
 ''';
@@ -530,7 +564,8 @@ URLSearchParams.prototype.append = function(name, value) {
       final parsed = _deepCastMap(decoded);
       if (parsed is Map<String, dynamic>) {
         if (parsed.containsKey('__error')) {
-          if (reportErrors) {
+          // Skipped when the function already reported it.
+          if (reportErrors && parsed['__reported'] != true) {
             sentry.captureP1Error(
               parsed['__error']?.toString() ?? 'Unknown',
               'GENERAL',
