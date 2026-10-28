@@ -131,6 +131,10 @@ class SpotCheckSDK {
     SpotcheckActions.runner = (fn, params) {
       executables.execute(fn, params);
     };
+    // A schema node that failed to render was skipped; the app keeps running.
+    SpotcheckActions.renderErrorReporter = (error, stack, nodeKey) {
+      sentry.captureP1Error(error, 'APP_CRASH', {'action': 'renderNode', 'node': nodeKey}, stack);
+    };
 
     sentry.wireExecute(
       execute: executables.execute,

@@ -16,6 +16,8 @@ dynamic _deepCast(dynamic value) {
 /// Runs a backend function for schema `{"\$execute": "group.fn", "args": {...}}`; set by the SDK.
 class SpotcheckActions {
   static void Function(String functionName, Map<String, dynamic> params)? runner;
+  // Set by the SDK: reports a schema node that failed to render (APP_CRASH).
+  static void Function(Object error, StackTrace stack, String nodeKey)? renderErrorReporter;
 }
 
 class BuilderContext {
@@ -61,12 +63,20 @@ class SchemaBuilder extends StatelessWidget {
     return const SizedBox.shrink();
   }
 
+  // Rebuilds repeat the same failure; each distinct one is reported once.
+  static final Set<String> _reportedRenderErrors = {};
+
   // A bad node (wrong types from a newer/older schema) is dropped, never crashes the app.
   Widget? _renderNode(dynamic rawNode, String key) {
     try {
       return _renderNodeUnsafe(rawNode, key);
-    } catch (e) {
+    } catch (e, stack) {
       debugPrint('SpotCheck: skipped schema node $key: $e');
+      if (_reportedRenderErrors.add('$key|$e')) {
+        try {
+          SpotcheckActions.renderErrorReporter?.call(e, stack, key);
+        } catch (_) {}
+      }
       return null;
     }
   }
