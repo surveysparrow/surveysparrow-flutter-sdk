@@ -33,7 +33,7 @@ SurveySparrow’s Flutter package supports two integration modes. Use the row th
 
 | SDK version | Flutter / Dart | `file_picker` | `webview_flutter` |
 |-------------|----------------|---------------|-------------------|
-| `1.2.9` | Flutter `>=3.27.0`, Dart `>=3.6.0` | `>=11.0.0 <12.0.0` | `>=4.10.0 <5.0.0` |
+| `1.2.9` | Flutter `>=3.24.0`, Dart `>=3.5.0` | `>=11.0.0 <14.0.0` | `>=4.10.0 <5.0.0` |
 | `1.2.7` – `1.2.8` | Flutter `>=3.13.0`, Dart `>=3.1.0` | `>=11.0.0` | `>=4.10.0` |
 | `1.2.6` and below | Flutter `>=3.13.0`, Dart `>=3.1.0` | `>=8.1.0` (use below 11.0.0) | `>=4.10.0` |
 
