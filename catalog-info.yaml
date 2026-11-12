@@ -12,18 +12,14 @@ metadata:
   description: SurveySparrow Flutter SDK enables you to collect feedback from your mobile app. Embed the Classic surveys in your Flutter application seamlessly with few lines of code.
   annotations:
     # No API definition, dependency graph or TechDocs for this repo yet: hide those tabs.
-    sparrow.io/hide: api,dependencies,docs
+    # A library has no pods or logs: hide those too.
+    sparrow.io/hide: api,dependencies,docs,observability
     github.com/project-slug: surveysparrow/surveysparrow-flutter-sdk
     backstage.io/source-location: url:https://github.com/surveysparrow/surveysparrow-flutter-sdk/tree/master/
   tags:
   - dart
   - library
   - surveysparrow
-  links:
-  - url: https://github.com/surveysparrow/surveysparrow-flutter-sdk
-    title: GitHub repository
-    icon: github
-    type: repo
 spec:
   type: library
   lifecycle: production
