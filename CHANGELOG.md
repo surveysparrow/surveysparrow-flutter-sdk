@@ -103,7 +103,7 @@
 
 * SpotChecks enhancements and Mini Cards
 
-## 1.2.9
+## 1.3.0
 
 * Backend-driven SpotChecks revamp: layout and logic now come from the SurveySparrow backend.
 * A failed SpotChecks init (e.g. offline at launch) is retried on the next track call; the init request times out after 15s.
