@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:sentry/sentry.dart' as sentry_pkg;
 
 /// Keep in sync with `version` in pubspec.yaml.
-const String sdkVersion = '1.3.0-beta.1';
+const String sdkVersion = '1.3.0';
 
 /// Expo pattern: an isolated Sentry hub (dummy DSN, never the global
 /// Sentry.init) enriches errors; beforeSend routes them to our backend and
