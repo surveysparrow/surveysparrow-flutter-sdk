@@ -103,6 +103,10 @@
 
 * SpotChecks enhancements and Mini Cards
 
+## 1.3.0-beta.1
+
+* Beta of 1.3.0. Same changes as listed under 1.3.0.
+
 ## 1.3.0
 
 * Backend-driven SpotChecks revamp: layout and logic now come from the SurveySparrow backend.

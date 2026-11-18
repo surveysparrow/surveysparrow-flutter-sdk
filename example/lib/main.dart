@@ -8,8 +8,8 @@ void main() {
 }
 
 final SpotCheck spotCheck = SpotCheck(
-    domainName: "kalai.in.ngrok.io",
-    targetToken: "tar-4TtoU3D5mmopzFFRtHdEx7",
+    domainName: "",
+    targetToken: "",
     // Should Not Pass userDetails as const
     userDetails: {},
     variables: {},
