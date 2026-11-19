@@ -24,8 +24,19 @@ class SpotCheck extends StatelessWidget {
 
   late final SpotCheckState spotCheckState;
 
-  void trackScreen(String screen) async {
-    await SpotCheckSDK.instance.trackScreen(screen);
+  /// Values passed here are merged into the init values and kept for later calls.
+  void trackScreen(
+    String screen, {
+    Map<String, dynamic> userDetails = const {},
+    Map<String, dynamic> variables = const {},
+    Map<String, dynamic> customProperties = const {},
+  }) async {
+    await SpotCheckSDK.instance.trackScreen(
+      screen,
+      userDetails: userDetails,
+      variables: variables,
+      customProperties: customProperties,
+    );
   }
 
   void trackEvent(String screen, Map<String, dynamic> event) async {

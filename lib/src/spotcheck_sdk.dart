@@ -263,10 +263,22 @@ class SpotCheckSDK {
     return true;
   }
 
-  Future<void> trackScreen(String screen) async {
+  Future<void> trackScreen(
+    String screen, {
+    Map<String, dynamic> userDetails = const {},
+    Map<String, dynamic> variables = const {},
+    Map<String, dynamic> customProperties = const {},
+  }) async {
     if (!_retryInitIfFailed()) return;
     sentry.addBreadcrumb('trackScreen', {'screen': screen});
-    await executables.execute('trackScreen', {'screen': screen});
+    await executables.execute('trackScreen', {
+      'screen': screen,
+      'options': {
+        'userDetails': userDetails,
+        'variables': variables,
+        'customProperties': customProperties,
+      },
+    });
   }
 
   Future<void> trackEvent(String screen, Map<String, dynamic> event) async {
